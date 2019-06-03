@@ -18,6 +18,13 @@ import (
 	"github.com/xyzj/gopsu"
 )
 
+// ClassifyCtrlDataGrpc 解析grpc数据
+func ClassifyCtrlDataGrpc(msg *msgctl.MsgWithCtrl, port *uint16) (r *Rtb) {
+	r = &Rtb{}
+	r.Do = append(r.Do, dataWlst(msg, port)...)
+	return r
+}
+
 // ClassifyCtlData 中间层等数据解析
 func ClassifyCtlData(d []byte, port *uint16) (r *Rtb) {
 	r = &Rtb{}
@@ -739,38 +746,7 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 	return lstf
 }
 
-func dataCtl(data []byte, port *uint16) (lstf []*Fwd) {
-	var zmqmsg []byte
-	var ndata []byte
-	var ndatacmd string
-
-	defer func() {
-		if ex := recover(); ex != nil {
-			f := &Fwd{
-				Ex:  fmt.Sprintf("%+v", errors.WithStack(ex.(error))),
-				Src: base64.StdEncoding.EncodeToString(data),
-			}
-			lstf = append(lstf, f)
-		}
-	}()
-	var pb2data *msgctl.MsgWithCtrl
-	pb2data = Pb2FromBytes(data)
-	// if nob64 {
-	// 	pb2data = DecodePb2("", data)
-	// } else {
-	// 	pb2data = DecodePb2(string(data), nil)
-	// }
-	if pb2data == nil {
-		// f := Fwd{
-		//     Ex:  "unknow ctl data",
-		//     Src: string(d),
-		// }
-		// lstf=append(lstf, f)
-		return dataCtlJSON(data)
-	}
-	if pb2data.Head == nil {
-		return lstf
-	}
+func dataWlst(pb2data *msgctl.MsgWithCtrl, port *uint16) (lstf []*Fwd) {
 	getprotocol := true
 	cmd := pb2data.Head.Cmd
 	tra := byte(pb2data.Head.Tra)
@@ -3563,4 +3539,40 @@ func dataCtl(data []byte, port *uint16) (lstf []*Fwd) {
 		lstf = append(lstf, f)
 	}
 	return lstf
+}
+
+func dataCtl(data []byte, port *uint16) (lstf []*Fwd) {
+	var zmqmsg []byte
+	var ndata []byte
+	var ndatacmd string
+
+	defer func() {
+		if ex := recover(); ex != nil {
+			f := &Fwd{
+				Ex:  fmt.Sprintf("%+v", errors.WithStack(ex.(error))),
+				Src: base64.StdEncoding.EncodeToString(data),
+			}
+			lstf = append(lstf, f)
+		}
+	}()
+	var pb2data *msgctl.MsgWithCtrl
+	pb2data = Pb2FromBytes(data)
+	// if nob64 {
+	// 	pb2data = DecodePb2("", data)
+	// } else {
+	// 	pb2data = DecodePb2(string(data), nil)
+	// }
+	if pb2data == nil {
+		// f := Fwd{
+		//     Ex:  "unknow ctl data",
+		//     Src: string(d),
+		// }
+		// lstf=append(lstf, f)
+		return dataCtlJSON(data)
+	}
+	if pb2data.Head == nil {
+		return lstf
+	}
+	return dataWlst(pb2data, port)
+
 }
