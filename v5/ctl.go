@@ -19,14 +19,14 @@ import (
 )
 
 // ClassifyCtrlDataGrpc 解析grpc数据
-func ClassifyCtrlDataGrpc(msg *msgctl.MsgWithCtrl, port *uint16) (r *Rtb) {
+func ClassifyCtrlDataGrpc(msg *msgctl.MsgWithCtrl, port *int) (r *Rtb) {
 	r = &Rtb{}
 	r.Do = append(r.Do, dataWlst(msg, port)...)
 	return r
 }
 
 // ClassifyCtlData 中间层等数据解析
-func ClassifyCtlData(d []byte, port *uint16) (r *Rtb) {
+func ClassifyCtlData(d []byte, port *int) (r *Rtb) {
 	r = &Rtb{}
 	defer func() {
 		if ex := recover(); ex != nil {
@@ -58,7 +58,7 @@ LOOP:
 }
 
 // ClassifyCtlDataNoB64 ClassifyCtlDataNoB64
-func ClassifyCtlDataNoB64(d []byte, port *uint16) (r *Rtb) {
+func ClassifyCtlDataNoB64(d []byte, port *int) (r *Rtb) {
 	r = &Rtb{}
 	r.Do = append(r.Do, dataCtl(d, port)...)
 	return r
@@ -746,7 +746,7 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 	return lstf
 }
 
-func dataCtl(data []byte, port *uint16) (lstf []*Fwd) {
+func dataCtl(data []byte, port *int) (lstf []*Fwd) {
 	defer func() {
 		if ex := recover(); ex != nil {
 			f := &Fwd{
@@ -778,7 +778,7 @@ func dataCtl(data []byte, port *uint16) (lstf []*Fwd) {
 
 }
 
-func dataWlst(pb2data *msgctl.MsgWithCtrl, port *uint16) (lstf []*Fwd) {
+func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 	defer func() {
 		if ex := recover(); ex != nil {
 			f := &Fwd{
