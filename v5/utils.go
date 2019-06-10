@@ -262,7 +262,7 @@ func initMsgCtl(cmd string, addr, ip int64, tver int32, tra byte, cid int32, por
 
 // GetHelloMsg send who is
 func GetHelloMsg() *msgctl.MsgWithCtrl {
-	a := uint16(0)
+	a := int(0)
 	return initMsgCtl("wlst.sys.whois", 0, 0, 1, 1, 0, &a)
 }
 
