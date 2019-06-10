@@ -231,7 +231,7 @@ type Rtb struct {
 // 	tver：协议版本，默认1
 // 	tra：传输方式，1-socket，2-485
 // 	cid: 子设备物理地址
-func initMsgCtl(cmd string, addr, ip int64, tver int32, tra byte, cid int32, port *uint16) *msgctl.MsgWithCtrl {
+func initMsgCtl(cmd string, addr, ip int64, tver int32, tra byte, cid int32, port *int) *msgctl.MsgWithCtrl {
 	msg := &msgctl.MsgWithCtrl{
 		Head: &msgctl.Head{
 			Mod:  2,
