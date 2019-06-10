@@ -27,7 +27,7 @@ import (
 //  checkrc：是否进行数据校验
 // Return:
 // 	r: 处理反馈结果
-func ClassifyTmlData(d []byte, ip *int64, portlocal, portremote *uint16, checkrc *bool, oldaddr int64) (r *Rtb) {
+func ClassifyTmlData(d []byte, ip *int64, portlocal, portremote *int, checkrc *bool, oldaddr int64) (r *Rtb) {
 	r = &Rtb{}
 	defer func() {
 		if ex := recover(); ex != nil {
@@ -284,7 +284,7 @@ LOOP:
 
 // NB大平台单灯数据解析
 // 	r: 处理反馈结果
-func ClassifyNBSluData(d []byte, ip *int64, portlocal, portremote *uint16, checkrc *bool, oldaddr int64, imei, dataflag string) (r *Rtb) {
+func ClassifyNBSluData(d []byte, ip *int64, portlocal, portremote *int, checkrc *bool, oldaddr int64, imei, dataflag string) (r *Rtb) {
 	r = ClassifyTmlData(d, ip, portlocal, portremote, checkrc, oldaddr)
 	for k, v := range r.Do {
 		if v.DstType == SockTml && v.DataCmd == "wlst.vslu.3900" {
@@ -305,7 +305,7 @@ func ClassifyNBSluData(d []byte, ip *int64, portlocal, portremote *uint16, check
 //  crc: 是否对lrc失败的数据进行二次crc校验
 // Return:
 // 	lstf: 处理反馈结果
-func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *uint16) (lstf []*Fwd) {
+func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -1414,7 +1414,7 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *uint16) (l
 // 	ip：数据来源ip
 // Return:
 // 	lstf: 处理反馈结果
-func dataRtu70(d []byte, ip *int64, portlocal *uint16) (lstf []*Fwd) {
+func dataRtu70(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -2119,7 +2119,7 @@ func dataRtu70(d []byte, ip *int64, portlocal *uint16) (lstf []*Fwd) {
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataLdu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (lstf []*Fwd) {
+func dataLdu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -2540,7 +2540,7 @@ func dataLdu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (l
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (lstf []*Fwd) {
+func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -4143,7 +4143,7 @@ func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (l
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataAls(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (lstf []*Fwd) {
+func dataAls(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -4599,7 +4599,7 @@ func dataAls(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (l
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (lstf []*Fwd) {
+func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -5598,7 +5598,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (l
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataCom(d []byte, ip *int64, portlocal, portremote *uint16) (lstf []*Fwd) {
+func dataCom(d []byte, ip *int64, portlocal, portremote *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -5947,7 +5947,7 @@ func dataCom(d []byte, ip *int64, portlocal, portremote *uint16) (lstf []*Fwd) {
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataGps(d []byte, ip *int64, portlocal *uint16) (lstf []*Fwd) {
+func dataGps(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DstType:  SockData,
@@ -5972,7 +5972,7 @@ func dataGps(d []byte, ip *int64, portlocal *uint16) (lstf []*Fwd) {
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataElu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (lstf []*Fwd) {
+func dataElu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -6152,7 +6152,7 @@ func dataElu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (l
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataD0(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (lstf []*Fwd) {
+func dataD0(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -6518,7 +6518,7 @@ func dataD0(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (ls
 // 	ip：数据来源ip
 // Return:
 // 	lstf: 处理反馈结果
-func dataAhhf(d []byte, ip *int64, portlocal *uint16) (lstf []*Fwd) {
+func dataAhhf(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -6869,7 +6869,7 @@ func dataAhhf(d []byte, ip *int64, portlocal *uint16) (lstf []*Fwd) {
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataBlk(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (lstf []*Fwd) {
+func dataBlk(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -6895,7 +6895,7 @@ func dataBlk(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (l
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataEsu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (lstf []*Fwd) {
+func dataEsu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -7576,7 +7576,7 @@ func dataEsu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *uint16) (l
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataUpgrade(d []byte, ip *int64, portlocal *uint16, oldaddr int64) (lstf []*Fwd) {
+func dataUpgrade(d []byte, ip *int64, portlocal *int, oldaddr int64) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "6",
