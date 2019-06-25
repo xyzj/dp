@@ -4780,7 +4780,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 		}
 		svrmsg.Head.Tver = 3
 		svrmsg.Args.Cid = int32(dd[2]) + int32(dd[3])*256
-		svrmsg.Args.Cid = int32(dd[2]) + int32(dd[3])*256
+		if svrmsg.Args.Cid == 0 {
+			f.Ex = "vslu cid error"
+			lstf = append(lstf, f)
+			return lstf
+		}
 		cmd := dd[4]
 		switch cmd {
 		case 0xd1: // 控制器读版本
