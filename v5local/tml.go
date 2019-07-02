@@ -4780,11 +4780,6 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 		}
 		svrmsg.Head.Tver = 3
 		svrmsg.Args.Cid = int32(dd[2]) + int32(dd[3])*256
-		if svrmsg.Args.Cid == 0 {
-			f.Ex = "vslu cid error"
-			lstf = append(lstf, f)
-			return lstf
-		}
 		cmd := dd[4]
 		switch cmd {
 		case 0xd1: // 控制器读版本
@@ -4820,9 +4815,14 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			svrmsg.WlstTml.WlstSluFa00.SluitemSunriseset = &msgctl.WlstSlu_9D00_SluitemSunriseset{}
 			svrmsg.WlstTml.WlstSluFa00.SluitemDataNew = &msgctl.WlstSlu_9D00_SluitemDataNew{}
 			readMark := fmt.Sprintf("%08b%08b", dd[8], dd[7])
+			setMark := fmt.Sprintf("%08b%08b", dd[6], dd[5])
+			if gopsu.String2Int64(readMark, 2) > 0 && gopsu.String2Int64(setMark, 2) > 0 {
+				f.Ex = fmt.Sprintf("mark data error")
+				lstf = append(lstf, f)
+				return lstf
+			}
 			if gopsu.String2Int64(readMark[3:], 2) == 0 {
 				svrmsg.WlstTml.WlstSluFa00.Status = 0
-				setMark := fmt.Sprintf("%08b%08b", dd[6], dd[5])
 				if setMark[14:15] == "1" { // 设置时钟
 					ff := &Fwd{
 						DataType: DataTypeBase64,
