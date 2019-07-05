@@ -1352,11 +1352,6 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 					return dataMru(dd[k:], ip, 2, f.Addr, portlocal)
 				}
 			}
-			if !found {
-				f.Ex = "Unhandled 485 device protocol"
-				lstf = append(lstf, f)
-				return lstf
-			}
 			// if v == 0x7e {
 			// 	if dd[k+1] == 0xd0 { // 485主报 or 江阴节能
 			// 		return dataD0(dd[k:], ip, 2, f.Addr, portlocal)
@@ -1378,6 +1373,11 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 			// 	lstf = append(lstf, f)
 			// 	return lstf
 			// }
+		}
+		if !found {
+			f.Ex = "Unhandled 485 device protocol"
+			lstf = append(lstf, f)
+			return lstf
 		}
 	case 0xaa:
 	case 0xf8: // 招测事件
