@@ -61,7 +61,7 @@ func testTmldata() {
 		ss[k] = gopsu.String2Int8(v, 16)
 	}
 	a := int64(0)
-	b := false
+	b := true
 	c := 0
 	// t := false
 	r := dpv5.ClassifyTmlData(ss, &a, &c, &c, &b, 193)

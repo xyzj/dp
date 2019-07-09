@@ -318,7 +318,7 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 	f.Addr = int64(d[2]) + int64(d[3])*256
 	cmd := d[4]
 
-	if !*checkrc || cmd == 0xb7 {
+	if !*checkrc {
 		norc = true
 	} else {
 		for _, v := range NorcClis {
