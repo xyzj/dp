@@ -1347,7 +1347,8 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 					return dataLdu(dd[k:], ip, 2, f.Addr, portlocal)
 				}
 			case 0x68:
-				if dd[k+7] == 0x68 && bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81}, []byte{dd[k+8]}) { // 电表
+				lMru := int(dd[k+9])
+				if dd[k+7] == 0x68 && dd[k+lMru+11] == 0x16 && bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81}, []byte{dd[k+8]}) { // 电表
 					found = true
 					return dataMru(dd[k:], ip, 2, f.Addr, portlocal)
 				}
