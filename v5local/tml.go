@@ -4782,7 +4782,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 		svrmsg.Head.Tver = 3
 		svrmsg.Args.Cid = int32(dd[2]) + int32(dd[3])*256
 		cmd := dd[4]
-		if dd[1] <= 7 {
+		if dd[1] <= 6 {
 			f.Ex = fmt.Sprintf("nb data length error")
 			lstf = append(lstf, f)
 			return lstf
