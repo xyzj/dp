@@ -273,6 +273,10 @@ LOOP:
 			}
 			// 上海路灯心跳（无视）
 			lShld := int(d[k+1]) + int(d[k+2])*256
+			if len(d[k:]) <= lShld+8 {
+				d = d[k+lShld+8:]
+				goto LOOP
+			}
 			if d[k+5] == 0x68 && d[k+lShld+8] == 0x16 {
 				d = d[k+lShld+9:]
 				goto LOOP
