@@ -240,7 +240,7 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 							case 1:
 								d22 = append(d22, 0x10, byte(i-1), 0xff)
 							}
-							if d22[0] > 0 {
+							if len(d22) > 0 {
 								for _, v := range xaddrs {
 									f := &Fwd{
 										DataMsg: DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int32(cid), "wlst.rtu.2200", d22, br, rc),

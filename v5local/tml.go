@@ -286,7 +286,7 @@ LOOP:
 	return r
 }
 
-// NB大平台单灯数据解析
+// ClassifyNBSluData NB大平台单灯数据解析
 // 	r: 处理反馈结果
 func ClassifyNBSluData(d []byte, ip *int64, portlocal, portremote *int, checkrc *bool, oldaddr int64, imei, dataflag string) (r *Rtb) {
 	r = ClassifyTmlData(d, ip, portlocal, portremote, checkrc, oldaddr)

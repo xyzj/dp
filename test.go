@@ -90,7 +90,7 @@ func testCtldatajson() {
 	// f := false
 	dpv5.AnsJSON = t
 	// dpv5.EnableCustomTimer = f
-	js := `{"head":{"mod":2,"src":2,"ver":1,"tra":2,"tver":1,"cmd":"wlst.mru.1300","gid":0,"rcv":0,"ret":0},"args":{"port":1025,"addr":[14],"cid":0,"scid":0},"data":{"addr1":170,"addr2":170,"addr3":170,"addr4":170,"addr5":170,"addr6":170,"br":3}}`
+	js := `{"head":{"src":7,"ver":1,"tver":1,"tra":1,"cmd":"wlst.rtu.4b00","ret":1,"mod":2},"args":{"ip":[1782405612],"cid":1,"port":0,"addr":[143]},"data":{"k3":1,"k2":2,"k1":2,"k6":2,"k5":2,"k4":2}}`
 	r := dpv5.ClassifyCtlData([]byte(fmt.Sprintf("`%s`", js)), &a)
 
 	for k, v := range r.Do {
@@ -172,8 +172,8 @@ func main() {
 	// os.Exit(0)
 	// testCtldata()
 	// testCtldataPb2()
-	// testCtldatajson()
-	testTmldata()
+	testCtldatajson()
+	// testTmldata()
 	// for {
 	// 	time.Sleep(time.Second)
 	// }
