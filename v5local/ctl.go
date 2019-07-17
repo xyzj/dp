@@ -11,8 +11,10 @@ import (
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 
-	msgctl "192.168.51.60/xy/proto/msgjk"
-	msgnb "192.168.51.60/xy/proto/msgnb"
+	msgctl "github.com/xyzj/proto/msgjk"
+	msgnb "github.com/xyzj/proto/msgnb"
+	// msgctl "192.168.51.60/xy/proto/msgjk"
+	// msgnb "192.168.51.60/xy/proto/msgnb"
 	pb2 "github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/xyzj/gopsu"
