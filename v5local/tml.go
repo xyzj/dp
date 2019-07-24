@@ -1781,8 +1781,7 @@ func dataRtu70(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 		j++
 		svrmsg.WlstTml.WlstRtu_70Da.CmdType = int32(d[j])
 		j++
-		switch svrmsg.WlstTml.WlstRtu_70Da.CmdType {
-		case 1: // 终端参数
+		if svrmsg.WlstTml.WlstRtu_70Da.CmdType == 1 || ll > 6 { // 终端参数
 			svrmsg.WlstTml.WlstRtu_70Da.KeepAlive = int32(d[j])
 			j++
 			svrmsg.WlstTml.WlstRtu_70Da.AlarmCycle = int32(d[j])
@@ -1837,7 +1836,7 @@ func dataRtu70(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 				svrmsg.WlstTml.WlstRtu_70Da.XUpperCurrentLimit = append(svrmsg.WlstTml.WlstRtu_70Da.XUpperCurrentLimit, int32(float32(d[j+1])*1.0/0x3f)*svrmsg.WlstTml.WlstRtu_70Da.XCurrentRange[i])
 				j += 2
 			}
-		case 2: // 电能板互感比，上传时×5
+		} else if svrmsg.WlstTml.WlstRtu_70Da.CmdType == 2 || ll <= 6 { // 电能板互感比，上传时×5
 			for i := 0; i < 3; i++ {
 				svrmsg.WlstTml.WlstRtu_70Da.Transformers = append(svrmsg.WlstTml.WlstRtu_70Da.Transformers, int32(d[j])*5)
 				j++
