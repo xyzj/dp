@@ -1780,8 +1780,10 @@ func dataRtu70(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 		svrmsg.WlstTml.WlstRtu_70Da.CmdIdx = int32(d[j])
 		j++
 		svrmsg.WlstTml.WlstRtu_70Da.CmdType = int32(d[j])
-		j++
-		if svrmsg.WlstTml.WlstRtu_70Da.CmdType == 1 || ll > 6 { // 终端参数
+		if svrmsg.WlstTml.WlstRtu_70Da.CmdType == 1 || svrmsg.WlstTml.WlstRtu_70Da.CmdType == 2 {
+			j++
+		}
+		if svrmsg.WlstTml.WlstRtu_70Da.CmdType == 1 || ll > 8 { // 终端参数
 			svrmsg.WlstTml.WlstRtu_70Da.KeepAlive = int32(d[j])
 			j++
 			svrmsg.WlstTml.WlstRtu_70Da.AlarmCycle = int32(d[j])
