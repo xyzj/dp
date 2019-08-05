@@ -179,6 +179,8 @@ var (
 	SendGps = gopsu.String2Bytes("7e-59-4-0-0-0-4-1-cd-22", "-")
 	// SendElu5d00 漏电直连读取参数
 	SendElu5d00 = gopsu.String2Bytes("7e-62-02-00-5d-73-8b", "-")
+	// SendElu5900 漏电直连读1-4路数据
+	SendElu5900 = gopsu.String2Bytes("7e-62-02-00-59-72-48", "-")
 	// SendIMEI 读取模块imei
 	SendIMEI = gopsu.String2Bytes("3e-3c-0f-00-30-30-30-30-30-30-30-30-30-30-30-01-20-04-02-a7-d8", "-")
 	// DirConf config files dir path
