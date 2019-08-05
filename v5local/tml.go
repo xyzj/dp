@@ -158,7 +158,20 @@ LOOP:
 				d = d[k+ll+3:]
 				goto LOOP
 			}
-			// 漏电/主报
+			// 漏电直连
+			if l == 0x62 && bytes.Contains(elureply, []byte{d[k+4]}) {
+				ll := int(d[k+2])
+				if len(d[k:]) < ll+5 {
+					r.Ex = fmt.Sprintf("Insufficient data length. %s", gopsu.Bytes2String(d[k:], "-"))
+					r.Unfinish = d
+					d = []byte{}
+					goto LOOP
+				}
+				r.Do = append(r.Do, dataElu(d[k:k+ll+5], ip, 1, 0, portlocal)...)
+				d = d[k+ll+5:]
+				goto LOOP
+			}
+			// 漏电485主报
 			if l == 0xd0 && d[k+3] == 0x62 {
 				ll := int(d[k+2])
 				if len(d[k:]) < ll+4 {
@@ -1334,7 +1347,7 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 				if dd[k+1] == 0xd0 { // 485主报 or 江阴节能
 					found = true
 					return dataD0(dd[k:], ip, 2, f.Addr, portlocal)
-				} else if (dd[k+1] == 0x62 || dd[k+2] == 0x62) && bytes.Contains([]byte{0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xe0, 0xe1, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf}, []byte{dd[k+4]}) { // 外购漏电保护
+				} else if (dd[k+1] == 0x62 || dd[k+2] == 0x62) && bytes.Contains(elureply, []byte{d[k+4]}) { // 外购漏电保护
 					found = true
 					return dataElu(dd[k:], ip, 2, f.Addr, portlocal)
 				} else if dd[k+1] == 0x5a { // 光控

@@ -69,6 +69,9 @@ var wj3006reply = []byte{0x82, 0x89, 0xdb, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e,
 // 江阴节能应答指令
 var jyesureply = []byte{0xd5, 0xd7, 0xd8}
 
+// 外购漏电
+var elureply = []byte{0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xe0, 0xe1, 0xda, 0xdb, 0xdc, 0xdd, 0xde, 0xdf}
+
 // 防盗应答指令
 var ldureply = []byte{0x96, 0x9a, 0xa6, 0xdb, 0xc9, 0xca, 0xcd, 0xdc}
 
@@ -170,11 +173,13 @@ var (
 	SendEsu2600 = gopsu.String2Bytes("7e-b-0-0-1b-7e-80-1-26-99-ae-0-80-b0-d5", "-")
 	// SendAhhf6810 安徽合肥版本召测
 	SendAhhf6810 = gopsu.String2Bytes("68-10-0-68-0-0-0-0-0-0-0-0-9-10-0-0-1-0-0-0-f7-b2-56", "-")
-	// 远程升级用版本招测
+	// SendUpg0500 远程升级用版本招测
 	SendUpg0500 = gopsu.String2Bytes("7e-fe-05-00-00-00-05-00-00-e8-9b", "-")
 	// SendGps 采集gps信息
 	SendGps = gopsu.String2Bytes("7e-59-4-0-0-0-4-1-cd-22", "-")
-	// Send3e3c01
+	// SendElu5d00 漏电直连读取参数
+	SendElu5d00 = gopsu.String2Bytes("7e-62-02-00-5d-73-8b", "-")
+	// SendIMEI 读取模块imei
 	SendIMEI = gopsu.String2Bytes("3e-3c-0f-00-30-30-30-30-30-30-30-30-30-30-30-01-20-04-02-a7-d8", "-")
 	// DirConf config files dir path
 	DirConf string

@@ -46,7 +46,14 @@ import (
 //
 //  return nums[1] * nums[2] * nums[3] //index out of range
 // }
-
+func countCRC() {
+	// 7e-e-3f-0-37-5-0-7e-62-2-1-59-73-d8-0-90-0-90,0
+	bb := []byte{0x7e, 0x62, 0x02, 0x0, 0x5d}
+	// bb := []byte{0x7e, 0x62, 0x2, 0x1, 0x59}
+	bbb := gopsu.CountCrc16VB(&bb)
+	bb = append(bb, bbb...)
+	println(gopsu.Bytes2String(bb, "-"))
+}
 func testTmldata() {
 	// defer func() {
 	// 	if ex := recover(); ex != nil {
@@ -55,7 +62,8 @@ func testTmldata() {
 	// }()
 	//7e-90-0e-00-07-00-f9-00-02-01-00-01-2c-40-00-00-00-d0-03-22 //// TODO:
 	// s := strings.Split("3e-3c-2e-00-30-30-30-30-30-30-30-30-30-30-30-81-55-20-06-00-34-36-30-30-30-37-34-35-33-31-37-34-35-39-30-38-36-37-32-32-33-30-32-37-30-38-38-34-38-33-b7-4b", "-")
-	s := strings.Split("7e-70-08-00-01-00-da-01-02-14-14-14-46-04", "-")
+	s := strings.Split("68 01 00 00 00 00 00 68 9C 2F 7D 2B 00 00 A3 00 00 00 24 5F 56 5F 56 19 00 14 00 27 02 C1 01 0C 00 03 00 A0 02 00 A8 00 00 0C 0C 00 08 00 00 01 AA 15 00 28 00 00 00 69 FD 54 16", " ")
+	s = strings.Split("68 01 00 00 00 00 00 68 9C 0B 7D 07 00 00 A3 00 02 00 20 12 45 18 16", " ")
 	ss := make([]byte, len(s))
 	for k, v := range s {
 		ss[k] = gopsu.String2Int8(v, 16)
@@ -173,7 +181,8 @@ func main() {
 	// testCtldata()
 	// testCtldataPb2()
 	// testCtldatajson()
-	testTmldata()
+	// testTmldata()
+	countCRC()
 	// for {
 	// 	time.Sleep(time.Second)
 	// }
