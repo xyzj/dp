@@ -2,6 +2,7 @@ package dpv5
 
 import (
 	"bytes"
+	"encoding/base64"
 	"fmt"
 	"math"
 	"os"
@@ -18,6 +19,23 @@ import (
 	pb2 "github.com/gogo/protobuf/proto"
 	msgctl "github.com/xyzj/proto/msgjk"
 )
+
+// ClassifyTmlDataNB NB数据解析
+// Args:
+// 	rawdata: base64原始数据
+// Return:
+// 	r: 处理反馈结果
+func ClassifyTmlDataNB(rawdata string) (r *Rtb) {
+	ip1 := int64(0)
+	ip2 := int(0)
+	rc := true
+	r = &Rtb{}
+	d, err := base64.StdEncoding.DecodeString(rawdata)
+	if err != nil {
+		return r
+	}
+	return ClassifyTmlData(d, &ip1, &ip2, &ip2, &rc, 0)
+}
 
 // ClassifyTmlData 分类数据解析
 // Args:
