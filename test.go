@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"strings"
@@ -57,10 +58,19 @@ func testTmldata() {
 	s := strings.Split("68 01 00 00 00 00 00 68 9C 2F 7D 2B 00 00 A3 00 00 00 24 5F 56 5F 56 19 00 14 00 27 02 C1 01 0C 00 03 00 A0 02 00 A8 00 00 0C 0C 00 08 00 00 01 AA 15 00 28 00 00 00 69 FD 54 16", " ")
 	s = strings.Split("68 01 00 00 00 00 00 68 9C 0B 7D 07 00 00 A3 00 02 00 20 12 45 18 16", " ")
 	s = strings.Split("7e-62-26-01-d9-02-28-23-e7-03-00-00-46-02-02-28-23-e7-03-00-00-6e-02-03-f4-01-64-00-00-00-00-00-03-f4-01-64-00-00-00-00-00-08-32-81-1d", "-")
+
 	ss := make([]byte, len(s))
 	for k, v := range s {
 		ss[k] = gopsu.String2Int8(v, 16)
 	}
+	js := "aAd2GQAAAGickH2MAQC5ADCRDlUAAAAAAACiAAAAAAAAACgIAAAAAAAAGwsAAAAAAADHDQAAAAAAABUBAAAAAAAACBwAAAAAAAAAAAAAAAAAAAAAAAFkZGRkEwgHDDI6bDcAACIPAABVAPoA+gD6APoABhoDAIDWAgCAaAAAAFMAAABtAACAFAAAAMgJAAAAFAQdAAYBEyh3aZoW"
+	sa, err := base64.StdEncoding.DecodeString(js)
+	if err != nil {
+		println(err.Error())
+		return
+	}
+	ss = sa
+	println(gopsu.Bytes2String(ss, "-"))
 	a := int64(0)
 	b := true
 	c := 0
@@ -92,6 +102,7 @@ func testCtldatajson() {
 	dpv5.AnsJSON = t
 	// dpv5.EnableCustomTimer = f
 	js := `{"head":{"src":7,"ver":1,"tver":1,"tra":1,"cmd":"wlst.rtu.4b00","ret":1,"mod":2},"args":{"ip":[1782405612],"cid":1,"port":0,"addr":[143]},"data":{"k3":1,"k2":2,"k1":2,"k6":2,"k5":2,"k4":2}}`
+
 	r := dpv5.ClassifyCtlData([]byte(fmt.Sprintf("`%s`", js)), &a)
 
 	for k, v := range r.Do {
@@ -141,6 +152,7 @@ func testCtldataPb2() {
 	// js := dpv5.CodePb2(msg)
 	js := "ChsIAhACGAEgASgBMAE6DXdsc3QucnR1LjEyMDASBhCACBoBAqIGGsIBFwoVMjAxOS0wMS0zMCAxNToyNDo0NyAz"
 	js = "ChsIAhACGAEgASgBMAE6DXdsc3QuZWx1LjYyNTkSChCEnQEaAgECKAGiBiDCAQoKCDEyODlrZHNmihkLCAExmpmZmZmZ8T/aJgIIAQ=="
+
 	r := dpv5.ClassifyCtlData([]byte(fmt.Sprintf("`%s`", js)), &a)
 	println(fmt.Sprintf("%+v", r))
 	for k, v := range r.Do {
@@ -183,9 +195,9 @@ func main() {
 	// println(a.Int())
 	// os.Exit(0)
 	// testCtldata()
-	testCtldataPb2()
+	// testCtldataPb2()
 	// testCtldatajson()
-	// testTmldata()
+	testTmldata()
 	// countCRC()
 	// for {
 	// 	time.Sleep(time.Second)

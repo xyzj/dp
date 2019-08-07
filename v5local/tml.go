@@ -5162,7 +5162,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					if svrmsg.WlstTml.WlstSluFa00.SluitemPara.UplinkTimer == 0 {
 						svrmsg.WlstTml.WlstSluFa00.SluitemPara.UplinkTimer = 30
 					}
-					j += 1
+					j++
 				}
 				if readMark[11:12] == "1" { // 读取组地址
 					svrmsg.WlstTml.WlstSluFa00.DataMark.ReadGroup = 1
@@ -5405,7 +5405,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			svrmsg.WlstTml.WlstSluB900.TimeFault = &msgctl.WlstSlu_3900_TimeFault{}
 			svrmsg.WlstTml.WlstSluB900.SluitemPara = &msgctl.WlstSlu_3900_SluitemPara{}
 			// 序号
-			svrmsg.WlstTml.WlstSluB900.CmdIdx = int32(d[5])
+			svrmsg.WlstTml.WlstSluB900.CmdIdx = int32(d[15])
 
 			// 型号
 			mi := &msgctl.WlstSlu_3900_ModelInfo{}
@@ -5474,17 +5474,17 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 
 			// 漏电流 控制器状态 时钟故障 自复位次数
 			svrmsg.WlstTml.WlstSluB900.LeakageCurrent = float64(d[j]) / 100
-			j += 1
+			j++
 			m = fmt.Sprintf("%08b", d[j])
 			svrmsg.WlstTml.WlstSluB900.SluitemStatus.FlashFault = gopsu.String2Int32(m[6:7], 2)
 			svrmsg.WlstTml.WlstSluB900.SluitemStatus.EnableAlarm = gopsu.String2Int32(m[4:5], 2)
-			j += 1
+			j++
 			svrmsg.WlstTml.WlstSluB900.TimeFault.ClockFault = gopsu.String2Int32(m[7:8], 2)
 			svrmsg.WlstTml.WlstSluB900.TimeFault.ClockOutFault = gopsu.String2Int32(m[6:7], 2)
 			svrmsg.WlstTml.WlstSluB900.TimeFault.ClockOutAlarm = gopsu.String2Int32(m[5:6], 2)
-			j += 1
+			j++
 			svrmsg.WlstTml.WlstSluB900.ResetCount = int32(d[j])
-			j += 1
+			j++
 
 			// 回路数据（节能档位）
 			for k, _ := range cbd.LightData {
@@ -5513,14 +5513,14 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			} else if gopsu.String2Int32(m[1:2], 2) == 10 {
 				svrmsg.WlstTml.WlstSluB900.SluitemPara.IsRunning = 1
 			}
-			j += 1
+			j++
 
 			// 回路数据（控制器上电开灯 额定功率）
 			m = fmt.Sprintf("%08b", d[j])
 			for k, _ := range m[4:8] {
 				cbd.LightData[k].SluitemPowerTurnon = gopsu.String2Int32(m[7-k:8-k], 2)
 			}
-			j += 1
+			j++
 			for k, _ := range cbd.LightData {
 				cbd.LightData[k].RatedPower = int32(d[j+2*k]) + int32(d[j+1+2*k])*256
 			}
@@ -5533,7 +5533,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			if svrmsg.WlstTml.WlstSluB900.SluitemPara.AlarmInterval == 0 {
 				svrmsg.WlstTml.WlstSluB900.SluitemPara.AlarmInterval = 30
 			}
-			j += 1
+			j++
 
 			// 调试信息
 			m = fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
@@ -5574,11 +5574,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			svrmsg.WlstTml.WlstSluB900.Earfcn = gopsu.String2Int64(m, 2)
 			j += 4
 			svrmsg.WlstTml.WlstSluB900.Ecl = int32(d[j])
-			j += 1
+			j++
 			svrmsg.WlstTml.WlstSluB900.Csq = int32(d[j])
-			j += 1
+			j++
 			svrmsg.WlstTml.WlstSluB900.Reson = int32(d[j])
-			j += 1
+			j++
 			svrmsg.WlstTml.WlstSluB900.Retry = int32(d[j]) + int32(d[j+1])*256
 			j += 2
 
