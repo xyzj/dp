@@ -5529,6 +5529,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			// 运行参数(主报参数)
 			m = fmt.Sprintf("%08b", d[j])
 			repflg := gopsu.String2Int32(m[:1], 2)
+			svrmsg.WlstTml.WlstSluB900.SluitemPara.UplinkReply = repflg
 			svrmsg.WlstTml.WlstSluB900.SluitemPara.AlarmInterval = gopsu.String2Int32(m[1:], 2) * 5
 			if svrmsg.WlstTml.WlstSluB900.SluitemPara.AlarmInterval == 0 {
 				svrmsg.WlstTml.WlstSluB900.SluitemPara.AlarmInterval = 30
