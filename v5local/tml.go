@@ -5504,14 +5504,14 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			j += 4
 			m = fmt.Sprintf("%02d", d[j])
 			if gopsu.String2Int32(m[:1], 2) == 5 {
-				svrmsg.WlstTml.WlstSluB900.SluitemPara.HasEnableAlarm = 0
-			} else if gopsu.String2Int32(m[:1], 2) == 10 {
 				svrmsg.WlstTml.WlstSluB900.SluitemPara.HasEnableAlarm = 1
+			} else if gopsu.String2Int32(m[:1], 2) == 10 {
+				svrmsg.WlstTml.WlstSluB900.SluitemPara.HasEnableAlarm = 0
 			}
 			if gopsu.String2Int32(m[1:2], 2) == 5 {
-				svrmsg.WlstTml.WlstSluB900.SluitemPara.IsRunning = 0
-			} else if gopsu.String2Int32(m[1:2], 2) == 10 {
 				svrmsg.WlstTml.WlstSluB900.SluitemPara.IsRunning = 1
+			} else if gopsu.String2Int32(m[1:2], 2) == 10 {
+				svrmsg.WlstTml.WlstSluB900.SluitemPara.IsRunning = 0
 			}
 			j++
 
