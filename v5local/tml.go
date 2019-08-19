@@ -5782,9 +5782,11 @@ func dataCom(d []byte, ip *int64, portlocal, portremote *int) (lstf []*Fwd) {
 				}
 				if m[8] == 49 { // 心跳参数
 					svrmsg.WlstCom_3E81.Channel.KeepAlive = int32(d[j])
+					j++
 				}
 				if m[7] == 49 { // 心跳参数
 					svrmsg.WlstCom_3E81.Channel.Idle = int32(d[j])
+					j++
 				}
 			}
 			if s[5] == 49 { // 接口参数

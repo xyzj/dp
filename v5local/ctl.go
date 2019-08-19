@@ -2872,25 +2872,25 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 							grpmark := fmt.Sprintf("%08b", pb2data.WlstCom_3E02.GroupMark)
 							var g1mark, g2mark, g3mark, g4mark, g5mark string
 							j := 0
-							if grpmark[7] == 1 {
+							if grpmark[7] == 49 {
 								g1mark = fmt.Sprintf("%016b", pb2data.WlstCom_3E02.ArgsMark[j])
 								j += 2
 							}
-							if grpmark[6] == 1 {
+							if grpmark[6] == 49 {
 								g2mark = fmt.Sprintf("%08b%08b", pb2data.WlstCom_3E02.ArgsMark[j+1],
 									pb2data.WlstCom_3E02.ArgsMark[j])
 								j += 2
 							}
-							if grpmark[5] == 1 {
+							if grpmark[5] == 49 {
 								g3mark = fmt.Sprintf("%016b", pb2data.WlstCom_3E02.ArgsMark[j])
 								j += 2
 							}
-							if grpmark[4] == 1 {
+							if grpmark[4] == 49 {
 								g4mark = fmt.Sprintf("%08b%08b", pb2data.WlstCom_3E02.ArgsMark[j+1],
 									pb2data.WlstCom_3E02.ArgsMark[j])
 								j += 2
 							}
-							if grpmark[2] == 1 {
+							if grpmark[3] == 49 {
 								g5mark = fmt.Sprintf("%016b", pb2data.WlstCom_3E02.ArgsMark[j])
 								j += 2
 							}
@@ -2899,72 +2899,72 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 								d.WriteByte(byte(v))
 							}
 							if len(g1mark) > 0 {
-								if g1mark[15] == 1 {
+								if g1mark[15] == 49 {
 									d.Write([]byte(pb2data.WlstCom_3E02.Operators.Apn))
 								}
-								if g1mark[14] == 1 {
+								if g1mark[14] == 49 {
 									d.Write([]byte(pb2data.WlstCom_3E02.Operators.User))
 								}
-								if g1mark[13] == 1 {
+								if g1mark[13] == 49 {
 									d.Write([]byte(pb2data.WlstCom_3E02.Operators.Pwd))
 								}
 							}
 							if len(g2mark) > 0 {
-								if g2mark[15] == 1 {
+								if g2mark[15] == 49 {
 									d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%04b", pb2data.WlstCom_3E02.Channel.Channel2Type, pb2data.WlstCom_3E02.Channel.Channel1Type), 2))
 								}
-								if g2mark[14] == 1 {
+								if g2mark[14] == 49 {
 									for _, v := range pb2data.WlstCom_3E02.Channel.Channel1Ip {
 										d.WriteByte(byte(v))
 									}
 								}
-								if g2mark[13] == 1 {
+								if g2mark[13] == 49 {
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.Channel1Port / 256))
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.Channel1Port % 256))
 								}
-								if g2mark[12] == 1 {
+								if g2mark[12] == 49 {
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.Channel1LocalPort / 256))
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.Channel1LocalPort % 256))
 								}
-								if g2mark[11] == 1 {
+								if g2mark[11] == 49 {
 									for _, v := range pb2data.WlstCom_3E02.Channel.Channel2Ip {
 										d.WriteByte(byte(v))
 									}
 								}
-								if g2mark[10] == 1 {
+								if g2mark[10] == 49 {
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.Channel1Port / 256))
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.Channel1Port % 256))
 								}
-								if g2mark[9] == 1 {
+								if g2mark[9] == 49 {
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.Channel1LocalPort / 256))
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.Channel1LocalPort % 256))
 								}
-								if g2mark[8] == 1 {
+								if g2mark[8] == 49 {
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.KeepAlive))
 								}
-								if g2mark[7] == 1 {
+								if g2mark[7] == 49 {
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Channel.Idle))
 								}
 							}
 							if len(g3mark) > 0 {
-								if g3mark[15] == 1 {
+								if g3mark[15] == 49 {
 									d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%04b", pb2data.WlstCom_3E02.Interface.Port2Br, pb2data.WlstCom_3E02.Interface.Port1Br), 2))
 									d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%02b%03b%03b", pb2data.WlstCom_3E02.Interface.WorkMode, pb2data.WlstCom_3E02.Interface.Port2Rc, pb2data.WlstCom_3E02.Interface.Port1Rc), 2))
 								}
 							}
 							if len(g4mark) > 0 {
-								if g4mark[15] == 1 {
+								if g4mark[15] == 49 {
 									d.WriteByte(byte(pb2data.WlstCom_3E02.Sms.ValidCount))
 								}
-								if g4mark[14] == 1 {
+								if g4mark[14] == 49 {
 									d.Write([]byte(pb2data.WlstCom_3E02.Sms.Sim[0]))
 								}
-								if g4mark[4] == 1 {
+								if g4mark[4] == 49 {
 									d.Write([]byte(pb2data.WlstCom_3E02.Sms.Yecx))
 								}
 							}
 							if len(g5mark) > 0 {
-								if g5mark[15] == 1 {
+								if g5mark[15] == 49 {
 									for _, v := range pb2data.WlstCom_3E02.Address.Addr {
 										d.WriteByte(byte(v))
 									}
@@ -2972,7 +2972,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 							}
 							// 7e 70用数据
 							if len(g1mark) > 0 {
-								if g1mark[15] == 1 {
+								if g1mark[15] == 49 {
 									ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Operators.Apn)...)
 								} else {
 									for i := 0; i < 32; i++ {
@@ -2985,32 +2985,32 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 								}
 							}
 							if len(g2mark) > 0 {
-								if g2mark[14] == 1 {
+								if g2mark[14] == 49 {
 									for _, v := range pb2data.WlstCom_3E02.Channel.Channel1Ip {
 										ndata = append(ndata, byte(v))
 									}
 								} else {
 									ndata = append(ndata, 180, 153, 108, 83)
 								}
-								if g2mark[13] == 1 {
+								if g2mark[13] == 49 {
 									ndata = append(ndata, byte(pb2data.WlstCom_3E02.Channel.Channel1Port/256),
 										byte(pb2data.WlstCom_3E02.Channel.Channel1Port%256))
 								} else {
 									ndata = append(ndata, byte(10001/256), byte(10001%256))
 								}
-								if g2mark[15] == 1 {
+								if g2mark[15] == 49 {
 									ndata = append(ndata, gopsu.String2Int8(fmt.Sprintf("%04b%04b", pb2data.WlstCom_3E02.Channel.Channel2Type, pb2data.WlstCom_3E02.Channel.Channel1Type), 2), 0x07)
 								} else {
 									ndata = append(ndata, 0, 0x7)
 								}
-								if g2mark[11] == 1 {
+								if g2mark[11] == 49 {
 									for _, v := range pb2data.WlstCom_3E02.Channel.Channel2Ip {
 										ndata = append(ndata, byte(v))
 									}
 								} else {
 									ndata = append(ndata, 0, 0, 0, 0)
 								}
-								if g2mark[10] == 1 {
+								if g2mark[10] == 49 {
 									ndata = append(ndata, byte(pb2data.WlstCom_3E02.Channel.Channel2Port/256),
 										byte(pb2data.WlstCom_3E02.Channel.Channel2Port%256))
 								} else {
@@ -3019,7 +3019,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 							} else {
 								ndata = append(ndata, 180, 153, 108, 83, 10001/256, 10001%256, 0, 7, 0, 0, 0, 0, 0, 0)
 							}
-							if len(g3mark) > 0 && g3mark[15] == 1 {
+							if len(g3mark) > 0 && g3mark[15] == 49 {
 								d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%04b", pb2data.WlstCom_3E02.Interface.Port2Br, pb2data.WlstCom_3E02.Interface.Port1Br), 2))
 								d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%02b%03b%03b", pb2data.WlstCom_3E02.Interface.WorkMode, pb2data.WlstCom_3E02.Interface.Port2Rc, pb2data.WlstCom_3E02.Interface.Port1Rc), 2))
 							} else {
@@ -3027,14 +3027,14 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 							}
 							ndata = append(ndata, 0xff)
 							if len(g1mark) > 0 {
-								if g2mark[14] == 1 {
+								if g2mark[14] == 49 {
 									ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Operators.User)...)
 								} else {
 									for i := 0; i < 32; i++ {
 										ndata = append(ndata, 0)
 									}
 								}
-								if g2mark[13] == 1 {
+								if g2mark[13] == 49 {
 									ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Operators.Pwd)...)
 								} else {
 									for i := 0; i < 32; i++ {
@@ -3047,13 +3047,13 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 								}
 							}
 							if len(g2mark) > 0 {
-								if g2mark[12] == 1 {
+								if g2mark[12] == 49 {
 									ndata = append(ndata, byte(pb2data.WlstCom_3E02.Channel.Channel1LocalPort/256),
 										byte(pb2data.WlstCom_3E02.Channel.Channel1LocalPort%256))
 								} else {
 									ndata = append(ndata, byte(1024/256), byte(1024%256))
 								}
-								if g2mark[9] == 1 {
+								if g2mark[9] == 49 {
 									ndata = append(ndata, byte(pb2data.WlstCom_3E02.Channel.Channel2LocalPort/256),
 										byte(pb2data.WlstCom_3E02.Channel.Channel2LocalPort%256))
 								} else {
@@ -3064,17 +3064,17 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 							}
 							ndata = append(ndata, 0xaa)
 							if len(g4mark) > 0 {
-								if g4mark[15] == 1 {
+								if g4mark[15] == 49 {
 									ndata = append(ndata, byte(pb2data.WlstCom_3E02.Sms.ValidCount))
 								} else {
 									ndata = append(ndata, 0)
 								}
-								if g4mark[14] == 1 {
+								if g4mark[14] == 49 {
 									ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Sms.Sim[0])...)
 								} else {
 									ndata = append(ndata, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30)
 								}
-								if g4mark[4] == 1 {
+								if g4mark[4] == 49 {
 									ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Sms.Yecx)...)
 								} else {
 									ndata = append(ndata, []byte("CXLL")...)
@@ -3083,7 +3083,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 								ndata = append(ndata, 0, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30)
 								ndata = append(ndata, []byte("CXLL")...)
 							}
-							if len(g5mark) > 0 && g5mark[15] == 1 {
+							if len(g5mark) > 0 && g5mark[15] == 49 {
 								for _, v := range pb2data.WlstCom_3E02.Address.Addr {
 									ndata = append(ndata, byte(v))
 								}

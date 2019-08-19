@@ -273,7 +273,7 @@ func GetHelloMsg() *msgctl.MsgWithCtrl {
 	return initMsgCtl("wlst.sys.whois", 0, 0, 1, 1, 0, &a)
 }
 
-// GetServerTimeMsg
+// GetServerTimeMsg 按服务器时间组装对时命令
 // Args:
 // 	t:设备时间格式1-rtu,2-slu,3-vslu,4-esu
 // 	nosecond：是否携带秒字节
@@ -322,7 +322,7 @@ func CodePb2(m *msgctl.MsgWithCtrl) []byte {
 	return []byte{}
 }
 
-// DecodePb2 decode msgcgtl
+// Pb2FromBytes decode msgcgtl
 // Args:
 // 	s: base64编码格式数据
 // 	b：pb2序列化数据
