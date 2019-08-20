@@ -2993,8 +2993,8 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 									ndata = append(ndata, 180, 153, 108, 83)
 								}
 								if g2mark[13] == 49 {
-									ndata = append(ndata, byte(pb2data.WlstCom_3E02.Channel.Channel1Port/256),
-										byte(pb2data.WlstCom_3E02.Channel.Channel1Port%256))
+									ndata = append(ndata, byte(pb2data.WlstCom_3E02.Channel.Channel1Port%256),
+										byte(pb2data.WlstCom_3E02.Channel.Channel1Port/256))
 								} else {
 									ndata = append(ndata, byte(10001/256), byte(10001%256))
 								}
@@ -3011,8 +3011,8 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 									ndata = append(ndata, 0, 0, 0, 0)
 								}
 								if g2mark[10] == 49 {
-									ndata = append(ndata, byte(pb2data.WlstCom_3E02.Channel.Channel2Port/256),
-										byte(pb2data.WlstCom_3E02.Channel.Channel2Port%256))
+									ndata = append(ndata, byte(pb2data.WlstCom_3E02.Channel.Channel2Port%256),
+										byte(pb2data.WlstCom_3E02.Channel.Channel2Port/256))
 								} else {
 									ndata = append(ndata, 0, 0)
 								}
@@ -3463,7 +3463,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 									scmd[2] == "7021" {
 									f.DataPT = 10000
 								}
-								lstf = append(lstf, f)
+								// 发送主板通讯参数修改
 								if len(ndata) > 0 {
 									ff := &Fwd{
 										DataCmd: ndatacmd,
@@ -3481,6 +3481,9 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 									}
 									lstf = append(lstf, ff)
 								}
+								// 发送模块通讯参数修改
+								lstf = append(lstf, f)
+								// 发送复位
 								if cmd == "wlst.com.3e02" {
 									ff := &Fwd{
 										DataCmd:  "wlst.rtu.7010",
