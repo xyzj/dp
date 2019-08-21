@@ -3488,7 +3488,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 										DataCmd: ndatacmd,
 										DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, ndatacmd, ndata, br, rc),
 										// DataMsg:  gopsu.Bytes2String(DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, ndata, br, rc), "-"),
-										DataSP:   SendLevelNormal,
+										DataSP:   SendLevelHigh,
 										DataDst:  fmt.Sprintf("wlst-rtu-%d", v),
 										DataPT:   3000,
 										DataType: DataTypeBytes,

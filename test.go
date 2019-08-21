@@ -157,7 +157,7 @@ func testCtldataPb2() {
 	println(fmt.Sprintf("%+v", r))
 	for k, v := range r.Do {
 		// println(fmt.Sprintf("%d: %+v", k, v))
-		println(k, gopsu.Bytes2String(v.DataMsg, "-"))
+		println(k, v.DataSP, gopsu.Bytes2String(v.DataMsg, "-"))
 	}
 }
 
