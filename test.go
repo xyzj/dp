@@ -151,12 +151,13 @@ func testCtldataPb2() {
 	}
 	// js := dpv5.CodePb2(msg)
 	js := "ChsIAhACGAEgASgBMAE6DXdsc3QucnR1LjEyMDASBhCACBoBAqIGGsIBFwoVMjAxOS0wMS0zMCAxNToyNDo0NyAz"
-	js = "ChsIAhACGAEgASgBMAE6DXdsc3QuZWx1LjYyNTkSChCEnQEaAgECKAGiBiDCAQoKCDEyODlrZHNmihkLCAExmpmZmZmZ8T/aJgIIAQ=="
+	js = "CiAIAhAGGAEwAToNd2xzdC5jb20uM2UwMkEAAAB0Z2rkQRIDGgEE0j55EBsaCQEAhwEBAwgBACIiCiBjbW5ldAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoUEgi0AacB9QHpARiFnQEoAUgFUHg6IQgBEgsxODkwMDAwMDAwMBoQQ1hMTAAAAAAAAAAAAAAAAEINCgsxODkwMDAwMDAwMA=="
 
 	r := dpv5.ClassifyCtlData([]byte(fmt.Sprintf("`%s`", js)), &a)
 	println(fmt.Sprintf("%+v", r))
 	for k, v := range r.Do {
-		println(fmt.Sprintf("%d: %+v", k, v))
+		// println(fmt.Sprintf("%d: %+v", k, v))
+		println(k, gopsu.Bytes2String(v.DataMsg, "-"))
 	}
 }
 
@@ -195,9 +196,9 @@ func main() {
 	// println(a.Int())
 	// os.Exit(0)
 	// testCtldata()
-	// testCtldataPb2()
+	testCtldataPb2()
 	// testCtldatajson()
-	testTmldata()
+	// testTmldata()
 	// countCRC()
 	// for {
 	// 	time.Sleep(time.Second)

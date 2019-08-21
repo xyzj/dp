@@ -2971,17 +2971,22 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 								}
 							}
 							// 7e 70用数据
+							ndata = append(ndata, 0)
 							if len(g1mark) > 0 {
 								if g1mark[15] == 49 {
-									ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Operators.Apn)...)
-								} else {
-									for i := 0; i < 32; i++ {
-										ndata = append(ndata, 0)
+									for _, v := range []byte(pb2data.WlstCom_3E02.Operators.Apn) {
+										if v == 0 {
+											break
+										}
+										ndata = append(ndata, v)
 									}
-								}
-							} else {
-								for i := 0; i < 32; i++ {
 									ndata = append(ndata, 0)
+									// ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Operators.Apn)...)
+								} else {
+									ndata = append(ndata, []byte("CMNET")...)
+									ndata = append(ndata, 0)
+									// for i := 0; i < 32; i++ {
+									// 	ndata = append(ndata, 0)
 								}
 							}
 							if len(g2mark) > 0 {
@@ -3028,18 +3033,32 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 							ndata = append(ndata, 0xff)
 							if len(g1mark) > 0 {
 								if g2mark[14] == 49 {
-									ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Operators.User)...)
-								} else {
-									for i := 0; i < 32; i++ {
-										ndata = append(ndata, 0)
+									for _, v := range []byte(pb2data.WlstCom_3E02.Operators.User) {
+										if v == 0 {
+											break
+										}
+										ndata = append(ndata, v)
 									}
+									ndata = append(ndata, 0)
+									// ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Operators.User)...)
+								} else {
+									// for i := 0; i < 32; i++ {
+									ndata = append(ndata, 0)
+									// }
 								}
 								if g2mark[13] == 49 {
-									ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Operators.Pwd)...)
-								} else {
-									for i := 0; i < 32; i++ {
-										ndata = append(ndata, 0)
+									for _, v := range []byte(pb2data.WlstCom_3E02.Operators.Pwd) {
+										if v == 0 {
+											break
+										}
+										ndata = append(ndata, v)
 									}
+									ndata = append(ndata, 0)
+									// ndata = append(ndata, []byte(pb2data.WlstCom_3E02.Operators.Pwd)...)
+								} else {
+									// for i := 0; i < 32; i++ {
+									ndata = append(ndata, 0)
+									// }
 								}
 							} else {
 								for i := 0; i < 64; i++ {
@@ -3467,7 +3486,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 								if len(ndata) > 0 {
 									ff := &Fwd{
 										DataCmd: ndatacmd,
-										DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, ndata, br, rc),
+										DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, ndatacmd, ndata, br, rc),
 										// DataMsg:  gopsu.Bytes2String(DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, ndata, br, rc), "-"),
 										DataSP:   SendLevelNormal,
 										DataDst:  fmt.Sprintf("wlst-rtu-%d", v),
