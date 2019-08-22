@@ -364,7 +364,7 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 		}
 	}
 	if !norc {
-		p := filepath.Join(DirCache, fmt.Sprintf("rtu-retry-0x20-%d", f.Addr))
+		p := filepath.Join(gopsu.DefaultCacheDir, fmt.Sprintf("rtu-retry-0x20-%d", f.Addr))
 		if crc {
 			if !gopsu.CheckCrc16VB(d) && !gopsu.CheckLrc(d[:len(d)-2]) {
 				f.Ex = fmt.Sprintf("Rtu data validation fails")

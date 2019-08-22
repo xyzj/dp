@@ -183,12 +183,6 @@ var (
 	SendElu5900 = gopsu.String2Bytes("7e-62-02-00-59-72-48", "-")
 	// SendIMEI 读取模块imei
 	SendIMEI = gopsu.String2Bytes("3e-3c-0f-00-30-30-30-30-30-30-30-30-30-30-30-01-20-04-02-a7-d8", "-")
-	// DirConf config files dir path
-	DirConf string
-	// DirLog log files dir path
-	DirLog string
-	// DirCache cache files dir path
-	DirCache string
 	// NorcClis NorcClis
 	NorcClis []int64 // = make([]int64, 0)
 	// LegalIPs LegalIPs
