@@ -1365,7 +1365,7 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 				if dd[k+1] == 0xd0 { // 485主报 or 江阴节能
 					found = true
 					return dataD0(dd[k:], ip, 2, f.Addr, portlocal)
-				} else if (dd[k+1] == 0x62 || dd[k+2] == 0x62) && bytes.Contains(elureply, []byte{d[k+4]}) { // 外购漏电保护
+				} else if (dd[k+1] == 0x62 || dd[k+2] == 0x62) && bytes.Contains(elureply, []byte{dd[k+4]}) { // 外购漏电保护
 					found = true
 					return dataElu(dd[k:], ip, 2, f.Addr, portlocal)
 				} else if dd[k+1] == 0x5a { // 光控
