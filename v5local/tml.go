@@ -4240,8 +4240,9 @@ func dataAls(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			lstf = append(lstf, ffj)
 		}
 	case 0xa6: // 旧版选测
-		svrmsg.WlstTml.WlstAlsA600 = &msgctl.WlstAlsA700{}
-		svrmsg.WlstTml.WlstAlsA600.Addr = 1
+		svrmsg.Head.Cmd = "wlst.als.a700"
+		svrmsg.WlstTml.WlstAlsA700 = &msgctl.WlstAlsA700{}
+		svrmsg.WlstTml.WlstAlsA700.Addr = 1
 		s := fmt.Sprintf("%08b", d[12])
 		var count int
 		var a, g, c, e, x, y float64
@@ -4268,18 +4269,18 @@ func dataAls(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			count++
 			e = ((float64(d[10]) + float64(d[11])*256.0) / x) * y
 		}
-		svrmsg.WlstTml.WlstAlsA600.Error = 4 - int32(count)
+		svrmsg.WlstTml.WlstAlsA700.Error = 4 - int32(count)
 		// if count > 3 {
 		// 	svrmsg.WlstTml.WlstAlsA600.Error = 0
 		// } else {
 		// 	svrmsg.WlstTml.WlstAlsA600.Error = 1
 		// }
 		if count == 0 {
-			svrmsg.WlstTml.WlstAlsA600.Lux = 0
+			svrmsg.WlstTml.WlstAlsA700.Lux = 0
 		} else {
-			svrmsg.WlstTml.WlstAlsA600.Lux = (a + g + c + e) / float64(count)
+			svrmsg.WlstTml.WlstAlsA700.Lux = (a + g + c + e) / float64(count)
 		}
-		zm := svrmsg.WlstTml.WlstAlsA600
+		zm := svrmsg.WlstTml.WlstAlsA700
 		b, ex := pb2.Marshal(zm)
 		if ex == nil {
 			f.DataMQ = b
@@ -4290,9 +4291,9 @@ func dataAls(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			jv, _ = sjson.Set(jv, "args.addr.-1", f.Addr)
 			jv, _ = sjson.Set(jv, "args.ip.-1", *ip)
 			jv, _ = sjson.Set(jv, "args.port", *portlocal)
-			jv, _ = sjson.Set(jv, "data.addr", svrmsg.WlstTml.WlstAlsA600.Addr)
-			jv, _ = sjson.Set(jv, "data.v", fmt.Sprintf("%.02f", svrmsg.WlstTml.WlstAlsA600.Lux))
-			jv, _ = sjson.Set(jv, "data.err", svrmsg.WlstTml.WlstAlsA600.Error)
+			jv, _ = sjson.Set(jv, "data.addr", svrmsg.WlstTml.WlstAlsA700.Addr)
+			jv, _ = sjson.Set(jv, "data.v", fmt.Sprintf("%.02f", svrmsg.WlstTml.WlstAlsA700.Lux))
+			jv, _ = sjson.Set(jv, "data.err", svrmsg.WlstTml.WlstAlsA700.Error)
 			ffj := &Fwd{
 				DataCmd:  svrmsg.Head.Cmd,
 				DataType: DataTypeString,
