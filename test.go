@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 	"strings"
@@ -56,7 +57,7 @@ func testTmldata() {
 	// s := strings.Split("3e-3c-2e-00-30-30-30-30-30-30-30-30-30-30-30-81-55-20-06-00-34-36-30-30-30-37-34-35-33-31-37-34-35-39-30-38-36-37-32-32-33-30-32-37-30-38-38-34-38-33-b7-4b", "-")
 	s := strings.Split("68 01 00 00 00 00 00 68 9C 2F 7D 2B 00 00 A3 00 00 00 24 5F 56 5F 56 19 00 14 00 27 02 C1 01 0C 00 03 00 A0 02 00 A8 00 00 0C 0C 00 08 00 00 01 AA 15 00 28 00 00 00 69 FD 54 16", " ")
 	s = strings.Split("68 01 00 00 00 00 00 68 9C 0B 7D 07 00 00 A3 00 02 00 20 12 45 18 16", " ")
-	s = strings.Split("7e-90-0c-00-0d-00-f1-01-00-80-13-08-1c-10-09-32-d4-2f", "-")
+	s = strings.Split("7e-d0-29-62-05-e1-03-64-00-01-00-00-00-cd-0c-03-64-00-01-00-00-00-cd-0c-03-64-00-01-00-00-00-cd-0c-03-64-00-01-00-00-00-cd-0c-35-ab-9f", "-")
 
 	ss := make([]byte, len(s))
 	for k, v := range s {
@@ -78,10 +79,11 @@ func testTmldata() {
 	fmt.Printf("%+v\n\n", r)
 	// println(r.Ex)
 	for k, v := range r.Do {
+
 		//		println(fmt.Sprintf("--- %d: %+v", k, v))
 		// println(fmt.Sprintf(" --- %d %+v \n", k, v))
 		if len(v.Ex) > 0 {
-			println("err-----------------------------------------------------------------", v.Ex)
+			println("err-----------------------------------------------------------------", v.Ex, v.Src)
 		} else {
 			// println(fmt.Sprintf("%d, %+v", k, v))
 			z := dpv5.Pb2FromBytes(v.DataMsg)
@@ -126,11 +128,11 @@ func testCtldataPb2() {
 	msg := &msgctl.MsgWithCtrl{
 		Head: &msgctl.Head{
 			Mod:  2,
-			Src:  6,
+			Src:  2,
 			Ver:  1,
 			Tver: 1,
 			Ret:  1,
-			Cmd:  "wlst.com.3e01",
+			Cmd:  "wlst.elu.6259",
 			Tra:  1,
 		},
 		Args: &msgctl.Args{
@@ -138,6 +140,9 @@ func testCtldataPb2() {
 			Addr: []int64{1},
 		},
 		WlstTml: &msgctl.WlstTerminal{
+			WlstRtu_7020: &msgctl.WlstRtu_70A0{
+				CmdType: 1,
+			},
 			// WlstRtuDc00: &msgctl.WlstRtuDc00{
 			// 	Ver: "---",
 			// },
@@ -148,9 +153,10 @@ func testCtldataPb2() {
 		ArgsMark:  []int32{7, 0, 255, 1, 1, 0, 3, 8, 1, 0, 16, 15},
 		GroupMark: 63,
 	}
-	// js := dpv5.CodePb2(msg)
-	js := "ChsIAhACGAEgASgBMAE6DXdsc3QucnR1LjEyMDASBhCACBoBAqIGGsIBFwoVMjAxOS0wMS0zMCAxNToyNDo0NyAz"
-	js = "CiAIAhAGGAEwAToNd2xzdC5jb20uM2UwMkEAAAB0Z2rkQRIDGgEE0j55EBsaCQEAhwEBAwgBACIiCiBjbW5ldAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoUEgi0AacB9QHpARiFnQEoAUgFUHg6IQgBEgsxODkwMDAwMDAwMBoQQ1hMTAAAAAAAAAAAAAAAAEINCgsxODkwMDAwMDAwMA=="
+	var js string
+	js = base64.StdEncoding.EncodeToString(dpv5.CodePb2(msg))
+	// js = "ChsIAhACGAEgASgBMAE6DXdsc3QucnR1LjEyMDASBhCACBoBAqIGGsIBFwoVMjAxOS0wMS0zMCAxNToyNDo0NyAz"
+	// js = "CiAIAhAGGAEwAToNd2xzdC5jb20uM2UwMkEAAAB0Z2rkQRIDGgEE0j55EBsaCQEAhwEBAwgBACIiCiBjbW5ldAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoUEgi0AacB9QHpARiFnQEoAUgFUHg6IQgBEgsxODkwMDAwMDAwMBoQQ1hMTAAAAAAAAAAAAAAAAEINCgsxODkwMDAwMDAwMA=="
 
 	r := dpv5.ClassifyCtlData([]byte(fmt.Sprintf("`%s`", js)), &a)
 	println(fmt.Sprintf("%+v", r))

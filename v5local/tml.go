@@ -199,7 +199,7 @@ LOOP:
 					goto LOOP
 				}
 				// data := d[k : k+ll+4]
-				r.Do = append(r.Do, dataElu(d[k:k+ll+4], ip, 1, 0, portlocal)...)
+				r.Do = append(r.Do, dataD0(d[k:k+ll+4], ip, 1, 0, portlocal)...)
 				d = d[k+ll+4:]
 				goto LOOP
 			}
@@ -4371,9 +4371,8 @@ func dataAls(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			lstf = append(lstf, ffj)
 		}
 	case 0xa9: // 选测3
-		svrmsg.WlstTml.WlstAlsA700 = &msgctl.WlstAlsA700{}
 		svrmsg.Head.Cmd = "wlst.als.a700"
-		f.DataCmd = svrmsg.Head.Cmd
+		svrmsg.WlstTml.WlstAlsA700 = &msgctl.WlstAlsA700{}
 		svrmsg.WlstTml.WlstAlsA700.Addr = int32(d[5])
 		x, _ := strconv.ParseFloat(fmt.Sprintf("%d.%d", int32(d[6])+int32(d[7])*256, int32(d[8])+int32(d[9])*256), 10)
 		svrmsg.WlstTml.WlstAlsA700.Lux = x
@@ -6026,12 +6025,12 @@ func dataElu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 		Job:      JobSend,
 		Src:      gopsu.Bytes2String(d, "-"),
 	}
+
 	if !gopsu.CheckCrc16VB(d) {
 		f.Ex = fmt.Sprintf("Elu data validation fails")
 		lstf = append(lstf, f)
 		return lstf
 	}
-
 	var cid int32
 	cmd := d[4]
 	if tmladdr > 0 {
