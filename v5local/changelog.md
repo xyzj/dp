@@ -1,5 +1,9 @@
 # changelog
 
+## [2019-09-05]
+
+- 使用官方的github.com/golang/protobuf/proto替换github.com/gogo/protobuf/proto
+
 ## [2019-09-04]
 
 - 修正漏电直连主报解析错误问题

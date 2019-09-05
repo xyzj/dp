@@ -15,7 +15,7 @@ import (
 	msgnb "github.com/xyzj/proto/msgnb"
 	// msgctl "192.168.51.60/xy/proto/msgjk"
 	// msgnb "192.168.51.60/xy/proto/msgnb"
-	pb2 "github.com/gogo/protobuf/proto"
+	pb2 "github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/xyzj/gopsu"
 )

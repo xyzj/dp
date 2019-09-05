@@ -10,7 +10,7 @@ import (
 
 	msgctl "github.com/xyzj/proto/msgjk"
 
-	"github.com/gogo/protobuf/proto"
+	"github.com/golang/protobuf/proto"
 	"github.com/xyzj/gopsu"
 )
 
