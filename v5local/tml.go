@@ -5487,7 +5487,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			j++
 
 			// 回路数据（节能档位）
-			for k, _ := range cbd.LightData {
+			for k := range cbd.LightData {
 				cbd.LightData[k].PowerLevel = int32(d[j+k])
 			}
 			j += 4
@@ -5517,11 +5517,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 
 			// 回路数据（控制器上电开灯 额定功率）
 			m = fmt.Sprintf("%08b", d[j])
-			for k, _ := range m[4:8] {
+			for k := range m[4:8] {
 				cbd.LightData[k].SluitemPowerTurnon = gopsu.String2Int32(m[7-k:8-k], 2)
 			}
 			j++
-			for k, _ := range cbd.LightData {
+			for k := range cbd.LightData {
 				cbd.LightData[k].RatedPower = int32(d[j+2*k]) + int32(d[j+1+2*k])*256
 			}
 			j += 8
@@ -6217,11 +6217,11 @@ func dataD0(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf 
 	if d[3] == 0x62 { // 漏电保护
 		if tmladdr > 0 {
 			f.Addr = tmladdr
-			svrmsg.Args.Addr = append(svrmsg.Args.Addr, tmladdr)
+			svrmsg.Args.Addr = []int64{tmladdr}
 			svrmsg.Args.Cid = int32(d[4])
 		} else {
 			f.Addr = int64(d[4])
-			svrmsg.Args.Addr = append(svrmsg.Args.Addr, f.Addr)
+			svrmsg.Args.Addr = []int64{f.Addr}
 			svrmsg.Args.Cid = 1
 		}
 		// f.DataCmd = fmt.Sprintf("wlst.elu.62%02x", d[5])
