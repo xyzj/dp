@@ -1,5 +1,9 @@
 # changelog
 
+## [2019-09-12]
+
+- 修正引用错误
+
 ## [2019-09-05]
 
 - 使用官方的github.com/golang/protobuf/proto替换github.com/gogo/protobuf/proto

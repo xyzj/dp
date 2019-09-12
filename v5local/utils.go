@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	msgctl "github.com/xyzj/proto/msgjk"
+	msgctl "gitlab.local/proto/msgjk"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/xyzj/gopsu"

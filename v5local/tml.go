@@ -16,8 +16,8 @@ import (
 	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
 
-	pb2 "github.com/gogo/protobuf/proto"
-	msgctl "github.com/xyzj/proto/msgjk"
+	msgctl "gitlab.local/proto/msgjk"
+	pb2 "github.com/golang/protobuf/proto"
 )
 
 // ClassifyTmlDataNB NB数据解析
