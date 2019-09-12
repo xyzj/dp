@@ -16,8 +16,8 @@ import (
 	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
 
-	msgctl "gitlab.local/proto/msgjk"
 	pb2 "github.com/golang/protobuf/proto"
+	msgctl "gitlab.local/proto/msgjk"
 )
 
 // ClassifyTmlDataNB NB数据解析
@@ -2028,18 +2028,19 @@ func dataRtu70(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 		}
 		lstf = append(lstf, ff)
 
-		ff = &Fwd{
-			Addr:     f.Addr,
-			DataCmd:  "wlst.rtu.2000",
-			DataType: DataTypeBytes,
-			DataPT:   1000,
-			DataDst:  fmt.Sprintf("wlst-rtu-%d", f.Addr),
-			DstType:  SockTml,
-			Tra:      TraDirect,
-			Job:      JobSend,
-			DataMsg:  Send2000,
-		}
-		lstf = append(lstf, ff)
+		// 2019-09-12 石栋梁说新的94可以不选测
+		// ff = &Fwd{
+		// 	Addr:     f.Addr,
+		// 	DataCmd:  "wlst.rtu.2000",
+		// 	DataType: DataTypeBytes,
+		// 	DataPT:   1000,
+		// 	DataDst:  fmt.Sprintf("wlst-rtu-%d", f.Addr),
+		// 	DstType:  SockTml,
+		// 	Tra:      TraDirect,
+		// 	Job:      JobSend,
+		// 	DataMsg:  Send2000,
+		// }
+		// lstf = append(lstf, ff)
 	case 0xa1: // 设置终端参数应答（火零不平衡检测，24路周设置）
 		svrmsg.WlstTml.WlstRtu_70A1 = &msgctl.WlstRtu_7021{}
 		svrmsg.WlstTml.WlstRtu_70A1.CmdIdx = int32(d[7])
