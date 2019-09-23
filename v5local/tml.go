@@ -4844,7 +4844,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 				DstType:  1,
 				Tra:      tra,
 				Job:      JobSend,
-				DataMsg:  SendUdpKA,
+				DataMsg:  SendUDPKA,
 			}
 			lstf = append(lstf, ffj)
 		case 0xa3: // 单灯选测
@@ -4857,8 +4857,16 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			svrmsg.WlstTml.WlstSluFa00.SluitemVer = &msgctl.WlstSlu_9D00_SluitemVer{}
 			svrmsg.WlstTml.WlstSluFa00.SluitemSunriseset = &msgctl.WlstSlu_9D00_SluitemSunriseset{}
 			svrmsg.WlstTml.WlstSluFa00.SluitemDataNew = &msgctl.WlstSlu_9D00_SluitemDataNew{}
-			readMark := fmt.Sprintf("%08b%08b", dd[8], dd[7])
 			setMark := fmt.Sprintf("%08b%08b", dd[6], dd[5])
+			readMark := fmt.Sprintf("%08b%08b", dd[8], dd[7])
+			var setResult, readResult string
+			if setMark[15] == 49 {
+				setResult = fmt.Sprintf("%08b%08b", dd[10], dd[9])
+				readResult = fmt.Sprintf("%08b%08b", dd[12], dd[11])
+			} else {
+				setResult = fmt.Sprintf("%08b%08b", 0xff, 0xff)
+				readResult = fmt.Sprintf("1%08b%08b", 0xff, 0xff)
+			}
 			if gopsu.String2Int64(readMark[3:], 2) == 0 {
 				svrmsg.WlstTml.WlstSluFa00.Status = 0
 				if setMark[14:15] == "1" { // 设置时钟
@@ -4875,6 +4883,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					svrmsg.WlstTml.WlstSluF100 = &msgctl.WlstSluF100{
 						OptMark: 0,
 					}
+					if setResult[14] == 48 {
+						svrmsg.WlstTml.WlstSluF100.TimerStatus = &msgctl.WlstSluF100_TimerStatus{
+							TimeFault: 1,
+						}
+					}
 					svrmsg.Head.Cmd = ff.DataCmd
 					ff.DataMsg = CodePb2(svrmsg)
 					zm := svrmsg.WlstTml.WlstSluF100
@@ -4884,7 +4897,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					}
 					lstf = append(lstf, ff)
 					svrmsg.WlstTml.WlstSluFa00.SetMark.SetTimer = 1
-					svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					if setResult[14] == 48 {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x5a
+					} else {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					}
 					f.DataCmd = ""
 				}
 				if setMark[13:14] == "1" { // 设置参数
@@ -4908,7 +4925,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 							PowerOnStatus: 1,
 							RunStatus:     1,
 						},
-						Status: 1,
+						Status: int32(setResult[13]),
 					}
 					svrmsg.Head.Cmd = ff.DataCmd
 					ff.DataMsg = CodePb2(svrmsg)
@@ -4919,7 +4936,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					}
 					lstf = append(lstf, ff)
 					svrmsg.WlstTml.WlstSluFa00.SetMark.SetArgs = 1
-					svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					if setResult[13] == 48 {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x5a
+					} else {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					}
 					f.DataCmd = ""
 				}
 				if setMark[11:12] == "1" { // 设置分组
@@ -4940,7 +4961,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 							SetData: 1,
 							Group:   1,
 						},
-						Status: 1,
+						Status: int32(setResult[11]),
 					}
 					svrmsg.Head.Cmd = ff.DataCmd
 					ff.DataMsg = CodePb2(svrmsg)
@@ -4951,7 +4972,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					}
 					lstf = append(lstf, ff)
 					svrmsg.WlstTml.WlstSluFa00.SetMark.SetGroup = 1
-					svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					if setResult[11] == 48 {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x5a
+					} else {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					}
 					f.DataCmd = ""
 				}
 				if setMark[9:10] == "1" { // 复位
@@ -4976,7 +5001,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 							ZeroEerom:       1,
 							ZeroCount:       1,
 						},
-						Status: 0x5a,
+					}
+					if setResult[9] == 48 {
+						svrmsg.WlstTml.WlstSluEf00.Status = 0x5a
+					} else {
+						svrmsg.WlstTml.WlstSluEf00.Status = 0x3a
 					}
 					svrmsg.Head.Cmd = ff.DataCmd
 					ff.DataMsg = CodePb2(svrmsg)
@@ -4987,7 +5016,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					}
 					lstf = append(lstf, ff)
 					svrmsg.WlstTml.WlstSluFa00.SetMark.SetReset = 1
-					svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					if setResult[9] == 48 {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x5a
+					} else {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					}
 					f.DataCmd = ""
 				}
 				if setMark[6:7] == "1" { // 时间设置
@@ -5003,7 +5036,12 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					ff.DataCmd = "wlst.vslu.fc00"
 					svrmsg.WlstTml.WlstSluFc00 = &msgctl.WlstSluF400{
 						CmdIdx: 2,
-						Status: 0x3a}
+					}
+					if setResult[6] == 48 {
+						svrmsg.WlstTml.WlstSluFc00.Status = 0x5a
+					} else {
+						svrmsg.WlstTml.WlstSluFc00.Status = 0x3a
+					}
 					svrmsg.Head.Cmd = ff.DataCmd
 					ff.DataMsg = CodePb2(svrmsg)
 					zm := svrmsg.WlstTml.WlstSluFc00
@@ -5013,7 +5051,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					}
 					lstf = append(lstf, ff)
 					svrmsg.WlstTml.WlstSluFa00.SetMark.SetControl = 1
-					svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					if setResult[6] == 48 {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x5a
+					} else {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					}
 					f.DataCmd = ""
 				}
 				if setMark[5:6] == "1" { // 即时控制
@@ -5029,7 +5071,12 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					ff.DataCmd = "wlst.vslu.fc00"
 					svrmsg.WlstTml.WlstSluFc00 = &msgctl.WlstSluF400{
 						CmdIdx: 1,
-						Status: 0x3a}
+					}
+					if setResult[5] == 48 {
+						svrmsg.WlstTml.WlstSluFc00.Status = 0x5a
+					} else {
+						svrmsg.WlstTml.WlstSluFc00.Status = 0x3a
+					}
 					svrmsg.Head.Cmd = ff.DataCmd
 					ff.DataMsg = CodePb2(svrmsg)
 					zm := svrmsg.WlstTml.WlstSluFc00
@@ -5039,7 +5086,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					}
 					lstf = append(lstf, ff)
 					svrmsg.WlstTml.WlstSluFa00.SetMark.SetControl = 1
-					svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					if setResult[5] == 48 {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x5a
+					} else {
+						svrmsg.WlstTml.WlstSluFa00.Status = 0x3a
+					}
 					f.DataCmd = ""
 				}
 			} else {
@@ -5047,7 +5098,10 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 				loopCount := int(gopsu.String2Int32(readMark[:3], 2) + 1)
 				svrmsg.WlstTml.WlstSluFa00.LoopCount = int32(loopCount)
 				j := 9
-				if readMark[15:16] == "1" { // 选测
+				if len(readResult) == 16 {
+					j += 4
+				}
+				if readMark[15:16] == "1" && readResult[15] == 49 { // 选测
 					svrmsg.WlstTml.WlstSluFa00.DataMark.ReadData = 1
 					svrmsg.WlstTml.WlstSluFa00.SluitemData.Voltage = (float64(dd[j]) + float64(dd[j+1])*256) / 100.0
 					j += 2
@@ -5107,12 +5161,12 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					svrmsg.WlstTml.WlstSluFa00.SluitemData.ResetCount = int32(dd[j])
 					j += 6
 				}
-				if readMark[14:15] == "1" { // 读取时钟
+				if readMark[14:15] == "1" && readResult[14] == 49 { // 读取时钟
 					svrmsg.WlstTml.WlstSluFa00.DataMark.ReadTimer = 1
 					svrmsg.WlstTml.WlstSluFa00.SluitemTime = gopsu.Time2Stamp(fmt.Sprintf("20%02d-%02d-%02d %02d:%02d:%02d", dd[j], dd[j+1], dd[j+2], dd[j+3], dd[j+4], dd[j+5]))
 					j += 6
 				}
-				if readMark[13:14] == "1" { // 读取运行参数
+				if readMark[13:14] == "1" && readResult[13] == 49 { // 读取运行参数
 					svrmsg.WlstTml.WlstSluFa00.DataMark.ReadArgs = 1
 					x, _ := strconv.ParseFloat(fmt.Sprintf("%d.%02d", dd[j], int(dd[j+1])), 10)
 					svrmsg.WlstTml.WlstSluFa00.SluitemPara.Longitude = x
@@ -5165,12 +5219,12 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					}
 					j++
 				}
-				if readMark[11:12] == "1" { // 读取组地址
+				if readMark[11:12] == "1" && readResult[11] == 49 { // 读取组地址
 					svrmsg.WlstTml.WlstSluFa00.DataMark.ReadGroup = 1
 					svrmsg.WlstTml.WlstSluFa00.SluitemGroup = append(svrmsg.WlstTml.WlstSluFa00.SluitemGroup, int32(dd[j]), int32(dd[j+1]), int32(dd[j+2]), int32(dd[j+3]), int32(dd[j+4]))
 					j += 5
 				}
-				if readMark[10:11] == "1" { // 读取版本
+				if readMark[10:11] == "1" && readResult[10] == 49 { // 读取版本
 					svrmsg.WlstTml.WlstSluFa00.DataMark.ReadVer = 1
 					s := fmt.Sprintf("%08b%08b", dd[j+1], dd[j])
 					svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemLoop = gopsu.String2Int32(s[13:16], 2) + 1
@@ -5211,14 +5265,14 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					svrmsg.WlstTml.WlstSluFa00.SluitemVer.Ver = string(dd[j : j+20])
 					j += 20
 				}
-				if readMark[9:10] == "1" { // 读取当天日出日落
+				if readMark[9:10] == "1" && readResult[9] == 49 { // 读取当天日出日落
 					svrmsg.WlstTml.WlstSluFa00.DataMark.ReadSunriseset = 1
 					svrmsg.WlstTml.WlstSluFa00.SluitemSunriseset.Sunrise = int32(dd[j])*60 + int32(dd[j+1])
 					j += 2
 					svrmsg.WlstTml.WlstSluFa00.SluitemSunriseset.Sunset = int32(dd[j])*60 + int32(dd[j+1])
 					j += 2
 				}
-				if readMark[6:7] == "1" { // 读取本地参数（新）
+				if readMark[6:7] == "1" && readResult[6] == 49 { // 读取本地参数（新）
 					svrmsg.WlstTml.WlstSluFa00.DataMark.ReadTimetable = 1
 					s := fmt.Sprintf("%08b", dd[j])        // 后续条数
 					c := int(gopsu.String2Int32(s[2:], 2)) // 条数
@@ -5273,7 +5327,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 						svrmsg.WlstTml.WlstSluFa00.SluitemRuntime = append(svrmsg.WlstTml.WlstSluFa00.SluitemRuntime, cr)
 					}
 				}
-				if readMark[5:6] == "1" { // 选测（新）
+				if readMark[5:6] == "1" && readResult[5] == 49 { // 选测（新）
 					svrmsg.WlstTml.WlstSluFa00.SluitemIdx = f.Addr
 					svrmsg.WlstTml.WlstSluFa00.DataMark.ReadCtrldata = 1
 					for i := 0; i < loopCount; i++ {
@@ -5389,7 +5443,7 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 				DstType:  DataTypeBytes,
 				Tra:      tra,
 				Job:      JobSend,
-				DataMsg:  SendUdpKA,
+				DataMsg:  SendUDPKA,
 			}
 			lstf = append(lstf, ffj)
 

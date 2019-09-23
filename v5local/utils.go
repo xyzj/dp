@@ -15,38 +15,59 @@ import (
 )
 
 const (
+	// SockUnkonw 未知socket类型
 	SockUnkonw = iota
+	// SockTml 终端socket类型
 	SockTml
+	// SockData 数据层socket类型
 	SockData
+	// SockClient 客户端socket类型
 	SockClient
+	// SockSdcmp 串口软件socket类型
 	SockSdcmp
+	// SockFwdcs 前端管理socket类型
 	SockFwdcs
+	// SockUpgrade 升级程序socket类型
 	SockUpgrade
+	// SockIisi 接口socket类型
 	SockIisi
+	// SockVb6 VB6 socket类型
 	SockVb6
+	// SockUDP UDP socket类型
 	SockUDP
 )
 
 const (
+	// SendLevelNormal 常规发送
 	SendLevelNormal = iota
+	// SendLevelHigh 插队发送
 	SendLevelHigh
 )
 
 const (
+	// DataTypeUnknow 未知数据类型
 	DataTypeUnknow = iota
+	// DataTypeBytes 字节数据类型
 	DataTypeBytes
+	// DataTypeString 字符串数据类型
 	DataTypeString
+	// DataTypeBase64 base64码数据类型
 	DataTypeBase64
 )
 
 const (
+	// JobSend 普通数据转发任务
 	JobSend = iota
+	// JobDo 执行任务
 	JobDo
 )
 
 const (
+	// TraUnknow 未知传输方式
 	TraUnknow = iota
+	// TraDirect 直接传输
 	TraDirect
+	// Tra485 通过设备485传输
 	Tra485
 )
 
@@ -113,14 +134,15 @@ const (
 	mruHead = "h"
 	// SendGpsAT 采集gps信息
 	SendGpsAT = "AT+OPENAT=GPSINFO?\r"
-	// JSON data head
+	// JSONData data head
 	JSONData = `{"head":{"mod":2,"src":1,"ver":1,"tver":1,"tra":1,"ret":1,"cmd":""},"args":{"ip":[],"port":0,"addr":[],"cid":1},"data":{}}`
 	// 读模块版本信息
 	// SendIMEI = "3e-3c-0f-00-30-30-30-30-30-30-30-30-30-30-30-01-20-00-02-a5-18"
 )
 
 var (
-	SendUdpKA = []byte("Х")
+	// SendUDPKA udp心跳数据
+	SendUDPKA = []byte("Х")
 	// Send7004 上海路灯升级准备
 	Send7004 = gopsu.String2Bytes("7E-70-18-00-00-00-04-00-57-4A-33-30-30-36-42-5A-2D-31-00-00-3C-00-CC-CC-CC-CC-CC-CC-80-42", "-")
 	// Send7010 从终端复位模块
@@ -189,11 +211,11 @@ var (
 	LegalIPs []int64
 	// CheckLegalIP  CheckLegalIP
 	CheckLegalIP = false
-	// append json format back
+	// AnsJSON append json format back
 	AnsJSON = false
 )
 
-// 数据解析结果需发送内容结构体
+// Fwd 数据解析结果需发送内容结构体
 type Fwd struct {
 	DataMsg     []byte       // 发送数据
 	DataMQ      []byte       // zmq推送数据
@@ -330,6 +352,7 @@ func Pb2FromBytes(b []byte) *msgctl.MsgWithCtrl {
 	return nil
 }
 
+// Pb2FromB64String 从base64字符串解析pb2格式数据
 func Pb2FromB64String(s string) *msgctl.MsgWithCtrl {
 	defer func() *msgctl.MsgWithCtrl { return nil }()
 	if len(s) > 0 {
@@ -343,6 +366,7 @@ func Pb2FromB64String(s string) *msgctl.MsgWithCtrl {
 	return nil
 }
 
+// DecodePb2 从字节数组解析pb2格式数据
 func DecodePb2(s string, b []byte) *msgctl.MsgWithCtrl {
 	defer func() *msgctl.MsgWithCtrl { return nil }()
 	if b != nil {

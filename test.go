@@ -6,6 +6,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/golang/protobuf/proto"
+
 	// "github.com/tidwall/gjson"
 
 	// "math"
@@ -56,7 +58,7 @@ func testTmldata() {
 	// s := strings.Split("3e-3c-2e-00-30-30-30-30-30-30-30-30-30-30-30-81-55-20-06-00-34-36-30-30-30-37-34-35-33-31-37-34-35-39-30-38-36-37-32-32-33-30-32-37-30-38-38-34-38-33-b7-4b", "-")
 	s := strings.Split("68 01 00 00 00 00 00 68 9C 2F 7D 2B 00 00 A3 00 00 00 24 5F 56 5F 56 19 00 14 00 27 02 C1 01 0C 00 03 00 A0 02 00 A8 00 00 0C 0C 00 08 00 00 01 AA 15 00 28 00 00 00 69 FD 54 16", " ")
 	s = strings.Split("68 01 00 00 00 00 00 68 9C 0B 7D 07 00 00 A3 00 02 00 20 12 45 18 16", " ")
-	s = strings.Split("7e-70-ae-00-6f-00-a0-00-03-18-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-bc-2f-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-d2-2d-00-00-00-00-00-00-00-ff-ff-ff-ff-ff-00-00-00-00-00-00-00-00-11-1d-35-85-05-00-00-00-9d-7b", "-")
+	s = strings.Split("68-01-00-00-00-00-00-68-9C-0B-7D-07-01-00-A3-00-02-00-20-02-85-49-16", "-")
 
 	ss := make([]byte, len(s))
 	for k, v := range s {
@@ -85,11 +87,14 @@ func testTmldata() {
 			println("err-----------------------------------------------------------------", v.Ex, v.Src)
 		} else {
 			// println(fmt.Sprintf("%d, %+v", k, v))
+			msg := &msgctl.WlstSlu_9D00{}
+			proto.Unmarshal(v.DataMQ, msg)
+			// println(k, msg.String())
 			z := dpv5.Pb2FromBytes(v.DataMsg)
 			if z == nil {
 				println(fmt.Sprintf("%d, %+v", k, v.DataMsg))
 			} else {
-				println(fmt.Sprintf("%d, %+v", k, z))
+				println(fmt.Sprintf("%d, %+v", k, z.String()))
 			}
 		}
 	}
