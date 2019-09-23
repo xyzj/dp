@@ -6,8 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
-
 	// "github.com/tidwall/gjson"
 
 	// "math"
@@ -15,10 +13,15 @@ import (
 	// "time"
 
 	dpv5 "./v5local"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/xyzj/gopsu"
 	msgctl "gitlab.local/proto/msgjk"
 	// "github.com/pkg/errors"
 )
+
+var json = jsoniter.Config{
+	ObjectFieldMustBeSimpleString: true,
+}.Froze()
 
 // func callrecover() {
 //     if ex:=recover();ex!=nil {
@@ -88,13 +91,17 @@ func testTmldata() {
 		} else {
 			// println(fmt.Sprintf("%d, %+v", k, v))
 			msg := &msgctl.WlstSlu_9D00{}
-			proto.Unmarshal(v.DataMQ, msg)
+			// proto.Unmarshal(v.DataMQ, msg)
+			msg.Unmarshal(v.DataMQ)
+
+			println("---mq---", msg.String(), string(gopsu.PB2Json(msg)))
 			// println(k, msg.String())
-			z := dpv5.Pb2FromBytes(v.DataMsg)
+			z := dpv5.MsgCtlFromBytes(v.DataMsg)
 			if z == nil {
 				println(fmt.Sprintf("%d, %+v", k, v.DataMsg))
 			} else {
-				println(fmt.Sprintf("%d, %+v", k, z.String()))
+				println(fmt.Sprintf("--- %d, %+v", k, string(pb2json(z))))
+				println(fmt.Sprintf("=== %d, %s", k, gopsu.PB2Json(z)))
 			}
 		}
 	}
@@ -122,7 +129,13 @@ func f() (result int) {
 	}()
 	return 0
 }
-
+func pb2json(pb interface{}) []byte {
+	jsonBytes, err := json.Marshal(pb)
+	if err != nil {
+		return nil
+	}
+	return jsonBytes
+}
 func testCtldataPb2() {
 	t := true
 	// f := false

@@ -10,7 +10,6 @@ import (
 
 	msgctl "gitlab.local/proto/msgjk"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/xyzj/gopsu"
 )
 
@@ -330,7 +329,7 @@ func GetServerTimeMsg(addr int64, t int, nosecond bool, nocmd bool) []byte {
 
 // CodePb2 code msgctl
 func CodePb2(m *msgctl.MsgWithCtrl) []byte {
-	if b, ex := proto.Marshal(m); ex == nil {
+	if b, ex := m.Marshal(); ex == nil {
 		return b
 		// return []byte(b64.StdEncoding.EncodeToString(b))
 		// return b64.StdEncoding.EncodeToString(b)
@@ -338,46 +337,25 @@ func CodePb2(m *msgctl.MsgWithCtrl) []byte {
 	return []byte{}
 }
 
-// Pb2FromBytes decode msgcgtl
+// MsgCtlFromBytes decode msgcgtl
 // Args:
-// 	s: base64编码格式数据
 // 	b：pb2序列化数据
-// 	两个参数二选一，b为高优先级
-func Pb2FromBytes(b []byte) *msgctl.MsgWithCtrl {
+func MsgCtlFromBytes(b []byte) *msgctl.MsgWithCtrl {
 	defer func() *msgctl.MsgWithCtrl { return nil }()
 	msg := &msgctl.MsgWithCtrl{}
-	if ex := proto.Unmarshal(b, msg); ex == nil {
+	if ex := msg.Unmarshal(b); ex == nil {
 		return msg
 	}
 	return nil
 }
 
-// Pb2FromB64String 从base64字符串解析pb2格式数据
-func Pb2FromB64String(s string) *msgctl.MsgWithCtrl {
+// MsgCtlFromB64Str 从base64字符串解析pb2格式数据
+func MsgCtlFromB64Str(s string) *msgctl.MsgWithCtrl {
 	defer func() *msgctl.MsgWithCtrl { return nil }()
 	if len(s) > 0 {
 		if bb, ex := b64.StdEncoding.DecodeString(s); ex == nil {
 			msg := &msgctl.MsgWithCtrl{}
-			if ex := proto.Unmarshal(bb, msg); ex == nil {
-				return msg
-			}
-		}
-	}
-	return nil
-}
-
-// DecodePb2 从字节数组解析pb2格式数据
-func DecodePb2(s string, b []byte) *msgctl.MsgWithCtrl {
-	defer func() *msgctl.MsgWithCtrl { return nil }()
-	if b != nil {
-		msg := &msgctl.MsgWithCtrl{}
-		if ex := proto.Unmarshal(b, msg); ex == nil {
-			return msg
-		}
-	} else if len(s) > 0 {
-		if bb, ex := b64.StdEncoding.DecodeString(s); ex == nil {
-			msg := &msgctl.MsgWithCtrl{}
-			if ex := proto.Unmarshal(bb, msg); ex == nil {
+			if ex := msg.Unmarshal(bb); ex == nil {
 				return msg
 			}
 		}

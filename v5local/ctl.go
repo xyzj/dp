@@ -757,7 +757,7 @@ func dataCtl(data []byte, port *int) (lstf []*Fwd) {
 		}
 	}()
 	var pb2data *msgctl.MsgWithCtrl
-	pb2data = Pb2FromBytes(data)
+	pb2data = MsgCtlFromBytes(data)
 	// if nob64 {
 	// 	pb2data = DecodePb2("", data)
 	// } else {
