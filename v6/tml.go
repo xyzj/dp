@@ -10,8 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tidwall/gjson"
-
 	"github.com/pkg/errors"
 	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
@@ -771,8 +769,7 @@ func (dp *DataProcessor) dataRtu(d []byte, crc bool) (lstf []*Fwd) {
 		svrmsg.WlstTml.WlstRtuDc00 = &msgctl.WlstRtuDc00{}
 		svrmsg.WlstTml.WlstRtuDc00.Ver = string(d[5:25])
 		if strings.Contains(svrmsg.WlstTml.WlstRtuDc00.Ver, "3090") {
-			s, _ := sjson.Set(dp.ProcessFlag.Str, "timernosec", "1")
-			dp.ProcessFlag = gjson.Parse(s)
+			dp.TimerNoSec = true
 			svrmsg.Head.Cmd = "wlst.ldu.dc00"
 			f.DataCmd = "wlst.ldu.dc00"
 			svrmsg.WlstTml.WlstLduDc00 = svrmsg.WlstTml.WlstRtuDc00

@@ -8,24 +8,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/tidwall/gjson"
-
 	"github.com/xyzj/gopsu"
 	msgctl "gitlab.local/proto/msgjk"
 )
 
 // DataProcessor 数据处理
 type DataProcessor struct {
-	// AnsJSON 额外应答json（新版不用）
-	AnsJSON bool
 	// CheckRC 进行终端数据校验
 	CheckRC bool
 	// LocalPort 本地监听端口
 	LocalPort int
 	// RemoteIP 远端ip
 	RemoteIP int64
-	// ProcessFlag 用于标识各类数据解析标识位
-	ProcessFlag gjson.Result
+	// TimerNoSec 对时无秒字节
+	TimerNoSec bool
+}
+
+// Reset 复位
+func (dp *DataProcessor) Reset() {
+	dp.CheckRC = false
+	dp.RemoteIP = 0
+	dp.TimerNoSec = false
 }
 
 const (
