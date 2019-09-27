@@ -1504,6 +1504,7 @@ func (dp *DataProcessor) dataLdu(d []byte, tra byte, parentID int64) (lstf []*Fw
 	case 0xdc: // 招测版本
 		s := string(d[5 : 5+20])
 		if strings.Contains(s, "3090") {
+			dp.TimerNoSec = true
 			svrmsg.WlstTml.WlstLduDc00 = &msgctl.WlstRtuDc00{}
 			svrmsg.WlstTml.WlstLduDc00.Ver = s
 		} else {
@@ -1616,13 +1617,13 @@ func (dp *DataProcessor) dataLdu(d []byte, tra byte, parentID int64) (lstf []*Fw
 			lstf = append(lstf, f)
 			return lstf
 		}
-		if len(f.DataCmd) > 0 {
-			f.DataCmd = svrmsg.Head.Cmd
-			f.DataMsg = CodePb2(svrmsg)
-			lstf = append(lstf, f)
-		}
-
 	}
+	if len(f.DataCmd) > 0 {
+		f.DataCmd = svrmsg.Head.Cmd
+		f.DataMsg = CodePb2(svrmsg)
+		lstf = append(lstf, f)
+	}
+
 	return lstf
 }
 
@@ -4187,8 +4188,6 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 					Job:      JobSend,
 					DataMsg:  sendstr,
 				}
-				//ff.DstIMEI=
-				//println(fmt.Sprintf("%+v", ff))
 				lstf = append(lstf, ff)
 			}
 		default:
