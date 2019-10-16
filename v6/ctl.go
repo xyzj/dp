@@ -1213,7 +1213,7 @@ func (dp *DataProcessor) ProcessCtl(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
 								d.WriteByte(byte(pb2data.WlstTml.WlstEsu_1400.XAdjustValue[k] * 100 / 256))
 							}
 						case "1600": // 对时
-							d.Write(GetServerTimeMsg(0, 4, true, true))
+							d.Write(GetServerTimeMsg(0, 4, false, true))
 							// y, m, dd, h, mm, s, _ := gopsu.SplitDateTime(0)
 							// d.WriteByte(y)
 							// d.WriteByte(m)

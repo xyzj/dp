@@ -564,7 +564,7 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 							d.WriteByte(byte(ld.Get(fmt.Sprintf("v%d", i)).Int() * 100 / 256))
 						}
 					case "1600": // 对时
-						d.Write(GetServerTimeMsg(0, 4, true, true))
+						d.Write(GetServerTimeMsg(0, 4, false, true))
 						// y, m, dd, h, mm, s, _ := gopsu.SplitDateTime(gopsu.Time2Stamp(ld.Get("date").String()))
 						// d.WriteByte(y)
 						// d.WriteByte(m)
@@ -728,6 +728,22 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 							scmd[2] == "6800" {
 							f.DataPT = 10000
 						}
+						// 对时命令不带秒字节一起发
+						ff := &Fwd{
+							DataMsg: GetServerTimeMsg(v, 1, false, false),
+							// DataMsg:  gopsu.Bytes2String(DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int32(cid), cmd, d.Bytes(), br, rc), "-"),
+							DataDst:  ddst, // fmt.Sprintf("%s.%d", strings.Join(scmd[:2], "."), v),
+							DataCmd:  cmd,
+							DataSP:   ret,
+							DataPT:   500,
+							DataType: DataTypeBytes,
+							Job:      JobSend,
+							Tra:      tra,
+							Addr:     v,
+							// Src:      fmt.Sprintf("%v", pb2data),
+							DstType: 1,
+						}
+						lstf = append(lstf, ff)
 						lstf = append(lstf, f)
 					}
 				}
@@ -2000,7 +2016,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 								d.WriteByte(byte(pb2data.WlstTml.WlstEsu_1400.XAdjustValue[k] * 100 / 256))
 							}
 						case "1600": // 对时
-							d.Write(GetServerTimeMsg(0, 4, true, true))
+							d.Write(GetServerTimeMsg(0, 4, false, true))
 							// y, m, dd, h, mm, s, _ := gopsu.SplitDateTime(0)
 							// d.WriteByte(y)
 							// d.WriteByte(m)

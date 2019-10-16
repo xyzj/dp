@@ -289,11 +289,10 @@ func GetHelloMsg() *msgctl.MsgWithCtrl {
 }
 
 // GetServerTimeMsg 按服务器时间组装对时命令
-// Args:
-// 	t:设备时间格式1-rtu,2-slu,3-vslu,4-esu
-// 	nosecond：是否携带秒字节
-// 	nocmd：是否需要组装为完整命令
-func GetServerTimeMsg(addr int64, t int, nosecond bool, nocmd bool) []byte {
+// t:设备时间格式1-rtu,2-slu,3-vslu,4-esu
+// oneMoreByte：是否携带秒字节
+// nocmd：是否需要组装为完整命令
+func GetServerTimeMsg(addr int64, t int, oneMoreByte bool, nocmd bool) []byte {
 	var newdate = make([]byte, 0, 6)
 	var cmd string
 	switch t {
@@ -316,9 +315,7 @@ func GetServerTimeMsg(addr int64, t int, nosecond bool, nocmd bool) []byte {
 		byte(dt.Hour()),
 		byte(dt.Minute()),
 		byte(dt.Weekday()))
-	if !nosecond { // 不发秒字节时重复发送周字节
-		newdate = append(newdate, byte(dt.Second()))
-	} else {
+	if oneMoreByte { // 不发秒字节时重复发送周字节
 		newdate = append(newdate, byte(dt.Weekday()))
 	}
 	if nocmd {
