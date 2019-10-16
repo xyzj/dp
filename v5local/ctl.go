@@ -729,21 +729,23 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 							f.DataPT = 10000
 						}
 						// 对时命令不带秒字节一起发
-						ff := &Fwd{
-							DataMsg: GetServerTimeMsg(v, 1, false, false),
-							// DataMsg:  gopsu.Bytes2String(DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int32(cid), cmd, d.Bytes(), br, rc), "-"),
-							DataDst:  ddst, // fmt.Sprintf("%s.%d", strings.Join(scmd[:2], "."), v),
-							DataCmd:  cmd,
-							DataSP:   ret,
-							DataPT:   500,
-							DataType: DataTypeBytes,
-							Job:      JobSend,
-							Tra:      tra,
-							Addr:     v,
-							// Src:      fmt.Sprintf("%v", pb2data),
-							DstType: 1,
+						if cmd == "wlst.rtu.1200" {
+							ff := &Fwd{
+								DataMsg: GetServerTimeMsg(v, 1, false, false),
+								// DataMsg:  gopsu.Bytes2String(DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int32(cid), cmd, d.Bytes(), br, rc), "-"),
+								DataDst:  ddst, // fmt.Sprintf("%s.%d", strings.Join(scmd[:2], "."), v),
+								DataCmd:  cmd,
+								DataSP:   ret,
+								DataPT:   500,
+								DataType: DataTypeBytes,
+								Job:      JobSend,
+								Tra:      tra,
+								Addr:     v,
+								// Src:      fmt.Sprintf("%v", pb2data),
+								DstType: 1,
+							}
+							lstf = append(lstf, ff)
 						}
-						lstf = append(lstf, ff)
 						lstf = append(lstf, f)
 					}
 				}
