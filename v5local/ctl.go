@@ -736,7 +736,7 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 								DataDst:  ddst, // fmt.Sprintf("%s.%d", strings.Join(scmd[:2], "."), v),
 								DataCmd:  cmd,
 								DataSP:   ret,
-								DataPT:   500,
+								DataPT:   3000,
 								DataType: DataTypeBytes,
 								Job:      JobSend,
 								Tra:      tra,
