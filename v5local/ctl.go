@@ -728,12 +728,11 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 							scmd[2] == "6800" {
 							f.DataPT = 10000
 						}
-						// 对时命令不带秒字节一起发
+						// 对时命令为适应不同终端，增加不带秒字节的指令一起发
 						if cmd == "wlst.rtu.1200" {
 							ff := &Fwd{
-								DataMsg: GetServerTimeMsg(v, 1, false, false),
-								// DataMsg:  gopsu.Bytes2String(DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int32(cid), cmd, d.Bytes(), br, rc), "-"),
-								DataDst:  ddst, // fmt.Sprintf("%s.%d", strings.Join(scmd[:2], "."), v),
+								DataMsg:  GetServerTimeMsg(v, 1, false, false),
+								DataDst:  ddst,
 								DataCmd:  cmd,
 								DataSP:   ret,
 								DataPT:   3000,
@@ -741,8 +740,7 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 								Job:      JobSend,
 								Tra:      tra,
 								Addr:     v,
-								// Src:      fmt.Sprintf("%v", pb2data),
-								DstType: 1,
+								DstType:  1,
 							}
 							lstf = append(lstf, ff)
 						}

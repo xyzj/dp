@@ -64,7 +64,7 @@ func testTmldata() {
 	// s := strings.Split("3e-3c-2e-00-30-30-30-30-30-30-30-30-30-30-30-81-55-20-06-00-34-36-30-30-30-37-34-35-33-31-37-34-35-39-30-38-36-37-32-32-33-30-32-37-30-38-38-34-38-33-b7-4b", "-")
 	s := strings.Split("68 01 00 00 00 00 00 68 9C 2F 7D 2B 00 00 A3 00 00 00 24 5F 56 5F 56 19 00 14 00 27 02 C1 01 0C 00 03 00 A0 02 00 A8 00 00 0C 0C 00 08 00 00 01 AA 15 00 28 00 00 00 69 FD 54 16", " ")
 	s = strings.Split("68 01 00 00 00 00 00 68 9C 0B 7D 07 00 00 A3 00 02 00 20 12 45 18 16", " ")
-	s = strings.Split("3e-3c-15-00-30-30-30-30-30-30-30-30-30-30-30-84-16-05-00-19-87-99-a0-0d-dd-dc-e2", "-")
+	s = strings.Split("7e-30-01-00-b7-7e-62-26-01-d9-05-32-00-01-00-2e-06-00-00-03-32-00-01-00-00-00-00-00-03-32-00-01-00-00-00-00-00-03-32-00-01-00-00-00-00-00-a1-61-ba-4e-31-3e", "-")
 
 	ss := make([]byte, len(s))
 	for k, v := range s {
@@ -100,7 +100,8 @@ func testTmldata() {
 
 			// println("---mq---", msg.String(), string(gopsu.PB2Json(msg)))
 			// println(k, msg.String())
-			z := v6.MsgCtlFromBytes(v.DataMsg)
+			// z := v6.MsgCtlFromBytes(v.DataMsg)
+			z := dpv5.MsgCtlFromBytes(v.DataMsg)
 			if z == nil {
 				println(fmt.Sprintf("%d, %+v", k, v.DataMsg))
 			} else {
