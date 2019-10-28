@@ -147,15 +147,17 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 						d.WriteByte(0x1)
 						d.WriteByte(byte(ld.Get("ln").Int() + 1))
 						d.WriteByte(byte(ld.Get("vr").Int() / 5))
-						d.WriteByte(0)
-						d.WriteByte(0)
-						d.WriteByte(0)
+						d.Write(Single2Tribytes(float64(ld.Get("vr").Int()) / 0x3ff0))
+						// d.WriteByte(0)
+						// d.WriteByte(0)
+						// d.WriteByte(0)
 						l := int(ld.Get("ln").Int() + 1)
 						for i := 1; i < l; i++ {
 							d.WriteByte(byte(ld.Get(fmt.Sprintf("l%d", i)).Int() / 5))
-							d.WriteByte(0)
-							d.WriteByte(0)
-							d.WriteByte(0)
+							d.Write(Single2Tribytes(float64(ld.Get(fmt.Sprintf("l%d", i)).Int()) / 0x3ff0))
+							// d.WriteByte(0)
+							// d.WriteByte(0)
+							// d.WriteByte(0)
 						}
 					case "4102":
 						d.WriteByte(0x2)
