@@ -2216,15 +2216,17 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 							d.WriteByte(0x01)
 							d.WriteByte(byte(pb2data.WlstTml.WlstRtu_4101.AnalogSum + 1))
 							d.WriteByte(byte(pb2data.WlstTml.WlstRtu_4101.VoltageRange / 5))
-							d.WriteByte(0)
-							d.WriteByte(0)
-							d.WriteByte(0)
+							d.Write(Single2Tribytes(float64(pb2data.WlstTml.WlstRtu_4101.VoltageRange) / 0x3ff0))
+							// d.WriteByte(0)
+							// d.WriteByte(0)
+							// d.WriteByte(0)
 							l := pb2data.WlstTml.WlstRtu_4101.AnalogSum
 							for i := int32(0); i < l; i++ {
 								d.WriteByte(byte(pb2data.WlstTml.WlstRtu_4101.XCurrentRange[i] / 5))
-								d.WriteByte(0)
-								d.WriteByte(0)
-								d.WriteByte(0)
+								d.Write(Single2Tribytes(float64(pb2data.WlstTml.WlstRtu_4101.XCurrentRange[i]) / 0x3ff0))
+								// d.WriteByte(0)
+								// d.WriteByte(0)
+								// d.WriteByte(0)
 							}
 						case "4102":
 							d.WriteByte(0x02)

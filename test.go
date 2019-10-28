@@ -225,11 +225,14 @@ func main() {
 	// testCtldata()
 	// testCtldataPb2()
 	// testCtldatajson()
-	testTmldata()
+	// testTmldata()
 	// countCRC()
 	// for {
 	// 	time.Sleep(time.Second)
 	// }
+	// println(2^-64, 2^64-1)
+	a := dpv5.Single2Tribytes(300.0 / 0x3ff0)
+	println(fmt.Sprintf("%+v", a))
 	os.Exit(0)
 
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"math"
 	"net"
 	"strings"
 	"time"
@@ -865,4 +866,50 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 		return b.Bytes()
 	}
 	return []byte{}
+}
+
+// Single2Tribytes 量程转浮点参数
+// 输入：量程，输出：幂指数，尾数高位，尾数低位
+func Single2Tribytes(b float64) []byte {
+	var e int
+	var i float64
+	var exponet, mantissah, mantissal int
+	in := math.Abs(b)
+	if in < math.Exp2(-64) || in > math.Exp2(64)-1 {
+		return []byte{0, 0, 0}
+	}
+	if in >= 0.5 && in < 1 {
+		e = 0
+		i = in
+	} else if in < 0.5 {
+		e = 0
+		i = in
+		for {
+			if i < 0.5 {
+				i = i * 2
+				e = e - 1
+			} else {
+				break
+			}
+		}
+	} else if in > 1 {
+		e = 0
+		i = in
+		for {
+			if i >= 1 {
+				i = i / 2
+				e = e + 1
+			} else {
+				break
+			}
+		}
+	}
+	if e >= 0 {
+		exponet = e
+	} else {
+		exponet = e + 128
+	}
+	mantissah = int(i*math.Exp2(16)) / 256
+	mantissal = int(math.Ceil(i*math.Exp2(16))) % 256
+	return []byte{byte(exponet), byte(mantissah), byte(mantissal)}
 }
