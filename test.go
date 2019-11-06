@@ -83,6 +83,7 @@ func testTmldata() {
 	// c := 0
 	// t := false
 	// r := dpv5.ClassifyTmlData(ss, &a, &c, &c, &b, 193)
+	ss, _ = base64.StdEncoding.DecodeString("aAcglgAAAGickH2MAQC5AHGRTVtNWwAAAABZAOEAAAAAAFMHYBMAAAAAhAPTBgAAAAAgCIoUAAAAAMMA3AEAAAAAzhgAzhgAAAAAAAAAAAAAAAAAAABkZAAAEwsBAQMQbAAAACIAAABVA/oA+gD6APoABskCAICOAgCArgAAAOoAAABsAACA5gAAAMkJAAAAGAQLAAcHETbtksgW")
 	r := dproce.ProcessTml(ss)
 	fmt.Printf("%+v\n\n", r)
 	// println(r.Ex)
@@ -118,7 +119,7 @@ func testCtldatajson() {
 	// f := false
 	dpv5.AnsJSON = t
 	// dpv5.EnableCustomTimer = f
-	js := `{"mod":2,"src":2,"ver":1,"tra":1,"tver":1,"cmd":"wlst.rtu.4101","gid":0,"rcv":0,"ret":0},"args":{"port":10606,"addr":[826],"cid":0,"scid":0},"data":{"ln":12,"vr":300,"l1":100,"l2":100,"l3":100,"l4":100,"l5":100,"l6":100,"l7":100,"l8":100,"l9":100,"l10":100,"l11":100,"l12":100,"l13":0,"l14":0,"l15":0,"l16":0,"l17":0,"l18":0,"l19":0,"l20":0,"l21":0,"l22":0,"l23":0,"l24":0,"l25":0,"l26":0,"l27":0,"l28":0,"l29":0,"l30":0,"l31":0,"l32":0,"l33":0,"l34":0,"l35":0,"l36":0,"l37":0,"l38":0,"l39":0,"l40":0,"l41":0,"l42":0,"l43":0,"l44":0,"l45":0,"l46":0,"l47":0,"l48":0}}`
+	js := `{"head":{"mod":2,"src":2,"ver":1,"tra":1,"tver":1,"cmd":"wlst.rtu.4101","gid":0,"rcv":0,"ret":0},"args":{"port":10606,"addr":[826],"cid":0,"scid":0},"data":{"ln":12,"vr":300,"l1":100,"l2":100,"l3":100,"l4":100,"l5":100,"l6":100,"l7":100,"l8":100,"l9":100,"l10":100,"l11":100,"l12":100,"l13":0,"l14":0,"l15":0,"l16":0,"l17":0,"l18":0,"l19":0,"l20":0,"l21":0,"l22":0,"l23":0,"l24":0,"l25":0,"l26":0,"l27":0,"l28":0,"l29":0,"l30":0,"l31":0,"l32":0,"l33":0,"l34":0,"l35":0,"l36":0,"l37":0,"l38":0,"l39":0,"l40":0,"l41":0,"l42":0,"l43":0,"l44":0,"l45":0,"l46":0,"l47":0,"l48":0}}`
 
 	r := dpv5.ClassifyCtlData([]byte(fmt.Sprintf("`%s`", js)), &a)
 
@@ -224,8 +225,9 @@ func main() {
 	// os.Exit(0)
 	// testCtldata()
 	// testCtldataPb2()
-	testCtldatajson()
-	// testTmldata()
+	// testCtldatajson()
+	testTmldata()
+	println(962007 / 10000000000)
 	// countCRC()
 	// for {
 	// 	time.Sleep(time.Second)

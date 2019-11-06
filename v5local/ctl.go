@@ -3432,7 +3432,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 						msgnb.Imei = append(msgnb.Imei, pb2data.Args.Sims...)
 						if b, ex := pb2.Marshal(msgnb); ex == nil {
 							f := &Fwd{
-								DataMsg: gopsu.CompressData(b, gopsu.ArchiveLZ4HC),
+								DataMsg: b,
 								// DataMsg:  gopsu.Bytes2String(DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, d.Bytes(), br, rc), "-"),
 								DataDst:  fmt.Sprintf("%s-%s", strings.Join(scmd[:2], "-"), "GoWorkTask"),
 								DataCmd:  cmd,
