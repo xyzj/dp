@@ -227,22 +227,23 @@ var (
 
 // Fwd 数据解析结果需发送内容结构体
 type Fwd struct {
-	DataMsg     []byte       // 发送数据
-	DataCmd     string       // 指令命令
-	DataDst     string       // for tml, something like "wlst-rtu-1"
-	DataPT      int32        // command protect time
-	DataSP      byte         // data send level 0-normal, 1-high
-	DataType    byte         // 1-hex,2-string
-	DstType     byte         // 0-unknow,1-tml,2-data,3-client,4-sdcmp,5-fwdcs,6-upgrade,7-iisi,8-vb,9-udp
-	DstIP       int64        // 目标ip
-	DstIMEI     int64        // 目标imei
-	DataUDPAddr *net.UDPAddr // for udp only
-	Tra         byte         // 1-socket, 2-485
-	Addr        int64        // 设备地址
-	Ex          string       // 错误信息
-	Src         string       // 原始数据
-	Job         byte         // 0-just send,1-need do something else
-	Remark      string       // 备注信息，或其他想要传出的数据
+	DataMsg     []byte              // 发送数据
+	DataCmd     string              // 指令命令
+	DataDst     string              // for tml, something like "wlst-rtu-1"
+	DataPT      int32               // command protect time
+	DataSP      byte                // data send level 0-normal, 1-high
+	DataType    byte                // 1-hex,2-string
+	DstType     byte                // 0-unknow,1-tml,2-data,3-client,4-sdcmp,5-fwdcs,6-upgrade,7-iisi,8-vb,9-udp
+	DstIP       int64               // 目标ip
+	DstIMEI     int64               // 目标imei
+	DataUDPAddr *net.UDPAddr        // for udp only
+	Tra         byte                // 1-socket, 2-485
+	Addr        int64               // 设备地址
+	Ex          string              // 错误信息
+	Src         string              // 原始数据
+	Job         byte                // 0-just send,1-need do something else
+	Remark      string              // 备注信息，或其他想要传出的数据
+	DataSrc     *msgctl.MsgWithCtrl // msgwithctrl原始数据地址，预处理用
 }
 
 // Rtb 数据解析结果

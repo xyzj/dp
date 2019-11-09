@@ -12,6 +12,59 @@ import (
 	msgctl "gitlab.local/proto/msgjk"
 )
 
+// Prepare 数据预处理
+func (dp *DataProcessor) Prepare(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
+	defer func() {
+		if ex := recover(); ex != nil {
+			f := &Fwd{
+				Ex: fmt.Sprintf("%+v", errors.WithStack(ex.(error))),
+			}
+			lstf = append(lstf, f)
+		}
+	}()
+	scmd := strings.Split(pb2data.Head.Cmd, ".")
+	var xaddrs []int64
+	if pb2data.Args != nil {
+		if len(pb2data.Args.Addr) > 0 {
+			xaddrs = make([]int64, 0, len(pb2data.Args.Addr))
+			xaddrs = append(xaddrs, pb2data.Args.Addr...)
+		} else {
+			xaddrs = make([]int64, 0, len(pb2data.Args.Saddr))
+			for _, v := range pb2data.Args.Saddr {
+				if len(v) > 0 {
+					if strings.Contains(v, "-") {
+						s := strings.Split(v, "-")
+						for i := gopsu.String2Int64(s[0], 10); i <= gopsu.String2Int64(s[1], 10); i++ {
+							xaddrs = append(xaddrs, i)
+						}
+					} else {
+						xaddrs = append(xaddrs, gopsu.String2Int64(v, 10))
+					}
+				}
+			}
+		}
+	}
+	if len(xaddrs) == 0 {
+		f := &Fwd{
+			Ex: "no tml addr set",
+		}
+		lstf = append(lstf, f)
+		return lstf
+	}
+	if pb2data.Head.Tver == 2 {
+		scmd[1] = "rtu"
+	}
+	for _, v := range xaddrs {
+		f := &Fwd{
+			DataSrc: pb2data,
+			Job:     1,
+			DataDst: fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
+		}
+		lstf = append(lstf, f)
+	}
+	return lstf
+}
+
 // ProcessCtl 处理五零盛同 msgwithctrl数据
 func (dp *DataProcessor) ProcessCtl(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
 	defer func() {
@@ -1539,7 +1592,11 @@ func (dp *DataProcessor) ProcessCtl(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
 								}
 							}
 						case "1200": // 对时
-							d.Write(GetServerTimeMsg(0, 1, true, true))
+							if dp.TimerNoSec {
+								d.Write(GetServerTimeMsg(0, 1, false, true))
+							} else {
+								d.Write(GetServerTimeMsg(0, 1, true, true))
+							}
 							// a := strings.Split(pb2data.WlstTml.WlstRtu_1200.TmlDate, " ")
 							// y := strings.Split(a[0], "-")
 							// h := strings.Split(a[1], ":")
