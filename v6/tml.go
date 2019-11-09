@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/tidwall/sjson"
 	"github.com/xyzj/gopsu"
 	msgctl "gitlab.local/proto/msgjk"
 )
@@ -768,8 +767,10 @@ func (dp *DataProcessor) dataRtu(d []byte, crc bool) (lstf []*Fwd) {
 	case 0xdc: // 招测终端版本
 		svrmsg.WlstTml.WlstRtuDc00 = &msgctl.WlstRtuDc00{}
 		svrmsg.WlstTml.WlstRtuDc00.Ver = string(d[5:25])
+		dp.Verbose.Store("rtu", svrmsg.WlstTml.WlstRtuDc00.Ver)
 		if strings.Contains(svrmsg.WlstTml.WlstRtuDc00.Ver, "3090") {
 			dp.TimerNoSec = true
+			dp.Verbose.Store("ldu", svrmsg.WlstTml.WlstRtuDc00.Ver)
 			svrmsg.Head.Cmd = "wlst.ldu.dc00"
 			f.DataCmd = "wlst.ldu.dc00"
 			svrmsg.WlstTml.WlstLduDc00 = svrmsg.WlstTml.WlstRtuDc00
@@ -1030,6 +1031,7 @@ func (dp *DataProcessor) dataRtu70(d []byte) (lstf []*Fwd) {
 		svrmsg.Head.Cmd = "wlst.rtu.dc00"
 		svrmsg.WlstTml.WlstRtuDc00 = &msgctl.WlstRtuDc00{}
 		svrmsg.WlstTml.WlstRtuDc00.Ver = string(d[9 : 9+ll-7])
+		dp.Verbose.Store("rtu", svrmsg.WlstTml.WlstRtuDc00.Ver)
 	case 0x90: // 复位应答
 		svrmsg.WlstTml.WlstRtu_7090 = &msgctl.WlstRtu_7010{}
 		svrmsg.WlstTml.WlstRtu_7090.CmdIdx = int32(d[7])
@@ -1513,6 +1515,7 @@ func (dp *DataProcessor) dataLdu(d []byte, tra byte, parentID int64) (lstf []*Fw
 			f.DataCmd = "wlst.rtu.dc00"
 			svrmsg.WlstTml.WlstRtuDc00.Ver = s
 		}
+		dp.Verbose.Store("rtu", svrmsg.WlstTml.WlstLduDc00.Ver)
 	case 0xa6: // 选测
 		svrmsg.WlstTml.WlstLduA600 = &msgctl.WlstLduA600{}
 		svrmsg.WlstTml.WlstLduA600.LoopMark = int32(d[5])
@@ -1754,6 +1757,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 	case 0xd0: // 招测集中器版本
 		svrmsg.WlstTml.WlstSluD000 = &msgctl.WlstSluD000{}
 		svrmsg.WlstTml.WlstSluD000.Ver = string(d[7 : ll-5+7])
+		dp.Verbose.Store("slu", svrmsg.WlstTml.WlstSluD000.Ver)
 	case 0x99: // 复位网络
 		svrmsg.WlstTml.WlstSlu_9900 = &msgctl.WlstSlu_2400{}
 		svrmsg.WlstTml.WlstSlu_9900.Status = int32(d[7])
@@ -3265,6 +3269,7 @@ func (dp *DataProcessor) dataAls(d []byte, tra byte, parentID int64) (lstf []*Fw
 		svrmsg.WlstTml.WlstAlsCa00 = &msgctl.WlstAlsA700{}
 		svrmsg.WlstTml.WlstAlsCa00.Addr = int32(d[5])
 		svrmsg.WlstTml.WlstAlsCa00.Ver = string(d[6:26])
+		dp.Verbose.Store("als", svrmsg.WlstTml.WlstAlsCa00.Ver)
 	default:
 		f.Ex = fmt.Sprintf("Unhandled als protocol: %s", gopsu.Bytes2String(d, "-"))
 		lstf = append(lstf, f)
@@ -3407,6 +3412,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 			svrmsg.WlstTml.WlstSluFa00.SluitemVer = &msgctl.WlstSlu_9D00_SluitemVer{
 				Ver: string(dd[5 : len(dd)-5]),
 			}
+			dp.Verbose.Store("vslu", string(dd[5:len(dd)-5]))
 			// 按老孟要求，应答心跳
 			ffj := &Fwd{
 				DataCmd:  svrmsg.Head.Cmd,
@@ -4256,8 +4262,8 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 			svrmsg.WlstCom_3E84.NetType = int32(d[j])
 			j++
 		}
-		f.Remark, _ = sjson.Set(f.Remark, "net_type", svrmsg.WlstCom_3E84.NetType)
-		f.Remark, _ = sjson.Set(f.Remark, "signal", svrmsg.WlstCom_3E84.Signal)
+		dp.Verbose.Store("net_type", svrmsg.WlstCom_3E84.NetType)
+		dp.Verbose.Store("signal", svrmsg.WlstCom_3E84.Signal)
 
 		ff := &Fwd{}
 		ff.DataCmd = "wlst.com.3e04"
@@ -4456,7 +4462,7 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 				}
 				if m[13] == 49 { // imei（gsm）
 					svrmsg.WlstCom_3E81.Status.Imei = gopsu.String2Int64(string(d[j:j+15]), 10)
-					f.Remark, _ = sjson.Set(f.Remark, "imei", svrmsg.WlstCom_3E81.Status.Imei)
+					dp.Imei = svrmsg.WlstCom_3E81.Status.Imei
 					j += 15
 				}
 				if m[12] == 49 { // 射频软件版本
@@ -4481,7 +4487,7 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 				}
 				if m[6] == 49 { // 模块软件版本
 					svrmsg.WlstCom_3E81.Status.Ver = strings.TrimSpace(string(d[j : j+20]))
-					f.Remark, _ = sjson.Set(f.Remark, "ver", svrmsg.WlstCom_3E81.Status.Ver)
+					dp.Verbose.Store("com", svrmsg.WlstCom_3E81.Status.Ver)
 					j += 20
 				}
 				if m[5] == 49 { // 掉线原因
@@ -5674,6 +5680,7 @@ func (dp *DataProcessor) dataEsu(d []byte, tra byte, parentID int64) (lstf []*Fw
 	case 0x9b: // 招测版本号
 		svrmsg.WlstTml.WlstEsu_9B00 = &msgctl.WlstRtuDc00{}
 		svrmsg.WlstTml.WlstEsu_9B00.Ver = string(d[4:24])
+		dp.Verbose.Store("esu", svrmsg.WlstTml.WlstEsu_9B00.Ver)
 	case 0x9e: // 招测工作参数
 		svrmsg.WlstTml.WlstEsu_9E00 = &msgctl.WlstEsu_9E00{}
 		svrmsg.WlstTml.WlstEsu_9E00.WarmupTime = int32(d[4])

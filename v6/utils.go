@@ -7,6 +7,7 @@ import (
 	"math"
 	"net"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/xyzj/gopsu"
@@ -23,6 +24,10 @@ type DataProcessor struct {
 	RemoteIP int64
 	// TimerNoSec 对时无秒字节
 	TimerNoSec bool
+	// imei
+	Imei int64
+	// VerInfo
+	Verbose sync.Map
 }
 
 // Reset 复位
@@ -30,6 +35,11 @@ func (dp *DataProcessor) Reset() {
 	dp.CheckRC = false
 	dp.RemoteIP = 0
 	dp.TimerNoSec = false
+	dp.Imei = 0
+	dp.Verbose.Range(func(k, v interface{}) bool {
+		dp.Verbose.Delete(k)
+		return true
+	})
 }
 
 const (
