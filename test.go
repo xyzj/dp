@@ -212,7 +212,10 @@ func countCRC() {
 	bb = append(bb, bbb...)
 	println(gopsu.Bytes2String(bb, "-"))
 }
-
+func aaa(a ...interface{}) {
+	r := strings.NewReplacer("[", "", "]", "")
+	println(r.Replace((fmt.Sprintf("%+v", a))))
+}
 func main() {
 	// s := `{"opt":1,"loop":[1,3],"id":[1,2,3,4,5]}`
 	// b := gjson.Parse(s)
@@ -226,8 +229,8 @@ func main() {
 	// testCtldata()
 	// testCtldataPb2()
 	// testCtldatajson()
-	testTmldata()
-	println(962007 / 10000000000)
+	// testTmldata()
+	aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
 	// countCRC()
 	// for {
 	// 	time.Sleep(time.Second)

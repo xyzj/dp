@@ -4265,16 +4265,13 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 		dp.Verbose.Store("net_type", svrmsg.WlstCom_3E84.NetType)
 		dp.Verbose.Store("signal", svrmsg.WlstCom_3E84.Signal)
 
-		ff := &Fwd{}
-		ff.DataCmd = "wlst.com.3e04"
-		ff.Tra = TraDirect
-		ff.DataType = DataTypeBytes
-		ff.DataPT = 500
-		ff.DstType = SockTml
-		ff.Job = JobSend
-		ff.DataMsg = []byte{0x3e, 0x3c, 0x04, d[24]}
-		// ff.DataMsg = fmt.Sprintf("3e-3c-04-%02x", d[24])
-		lstf = append(lstf, ff)
+		f.DataCmd = "wlst.com.3e04"
+		f.Tra = TraDirect
+		f.DataType = DataTypeBytes
+		f.DataPT = 500
+		f.DstType = SockTml
+		f.Job = JobSend
+		f.DataMsg = []byte{0x3e, 0x3c, 0x04, d[24]}
 
 	case 0x85: // 上电对时
 		t := time.Now()
