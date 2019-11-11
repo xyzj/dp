@@ -1515,7 +1515,7 @@ func (dp *DataProcessor) dataLdu(d []byte, tra byte, parentID int64) (lstf []*Fw
 			f.DataCmd = "wlst.rtu.dc00"
 			svrmsg.WlstTml.WlstRtuDc00.Ver = s
 		}
-		dp.Verbose.Store("rtu", svrmsg.WlstTml.WlstLduDc00.Ver)
+		dp.Verbose.Store("rtu", s)
 	case 0xa6: // 选测
 		svrmsg.WlstTml.WlstLduA600 = &msgctl.WlstLduA600{}
 		svrmsg.WlstTml.WlstLduA600.LoopMark = int32(d[5])
