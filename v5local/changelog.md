@@ -1,5 +1,9 @@
 # changelog
 
+## [2019-11-14]
+
+- 修正nb主报数据HasEnable/IsRunning字段解析
+
 ## [2019-11-06]
 
 - udp-nb批量命令取消lz4压缩
