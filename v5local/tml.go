@@ -3489,7 +3489,7 @@ func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			}
 			var ctrlloop = make([]int32, 0)
 			for i := len(s); i > 0; i -= 2 {
-				ctrlloop = append(ctrlloop, gopsu.String2Int32(s[i-1:i], 2)+1)
+				ctrlloop = append(ctrlloop, gopsu.String2Int32(s[i-2:i], 2)+1)
 			}
 			j := 0
 			for i := 0; i < int(d[10]); i++ {
@@ -3593,7 +3593,7 @@ func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			}
 			var ctrlloop = make([]int32, 0)
 			for i := len(s); i > 0; i -= 2 {
-				ctrlloop = append(ctrlloop, gopsu.String2Int32(s[i-1:i], 2)+1)
+				ctrlloop = append(ctrlloop, gopsu.String2Int32(s[i-2:i], 2)+1)
 			}
 			j := int32(0)
 			x := ll - 7 - n

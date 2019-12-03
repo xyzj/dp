@@ -230,7 +230,9 @@ func main() {
 	// testCtldataPb2()
 	// testCtldatajson()
 	// testTmldata()
-	aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
+	// aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
+	a := []byte{0xa2, 0xae}
+	println(fmt.Sprintf("%.02f", (float64(a[0])+float64(int32(a[1])&0x3f*256))/0x3ff0*300))
 	// countCRC()
 	// for {
 	// 	time.Sleep(time.Second)
