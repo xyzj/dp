@@ -11,6 +11,7 @@ import (
 
 	"github.com/xyzj/gopsu"
 	msgctl "gitlab.local/proto/msgjk"
+	msgnb "gitlab.local/proto/msgnb"
 )
 
 // DataProcessor 数据处理
@@ -292,6 +293,35 @@ func initMsgCtl(cmd string, addr, ip int64, tver int32, tra byte, cid int32, por
 	return msg
 }
 
+// 创建初始化pb2结构
+// Args:
+// 	cmd: 协议指令
+// 	addr: 设备物理地址
+// 	ip：远端ip
+// 	tver：协议版本，默认1
+// 	tra：传输方式，1-socket，2-485
+// 	cid: 子设备物理地址
+func initMsgNB(cmd string, addr,imei, at int64) *msgnb.MsgNBOpen {
+	msg := &msgnb.MsgNBOpen{
+		Imei:          imei,
+		DtReceive:     at,
+		DataCmd:       cmd,
+		SluitemData:   &msgnb.SluitemData{},
+		SluitemConfig: &msgnb.SluitemConfig{},
+		SluitemReply:  &msgnb.SluitemReply{},
+		NbSlu_3100:  &msgnb.NBSlu_3100{},
+		NbSlu_3700:  &msgnb.NBSlu_3700{},
+		NbSlu_1400:  &msgnb.NBSlu_1400{},
+		NbSlu_5100:  &msgnb.NBSlu_5100{},
+		NbSlu_5200:  &msgnb.NBSlu_5200{},
+		NbSlu_5400:  &msgnb.NBSlu_5400{},
+		NbSlu_5500:  &msgnb.NBSlu_5500{},
+		NbSlu_5600:  &msgnb.NBSlu_5600{},
+	}
+
+	return msg
+}
+
 // GetHelloMsg send who is
 func GetHelloMsg() *msgctl.MsgWithCtrl {
 	a := int(0)
@@ -337,6 +367,16 @@ func GetServerTimeMsg(addr int64, t int, oneMoreByte bool, nocmd bool) []byte {
 
 // CodePb2 code msgctl
 func CodePb2(m *msgctl.MsgWithCtrl) []byte {
+	if b, ex := m.Marshal(); ex == nil {
+		return b
+		// return []byte(b64.StdEncoding.EncodeToString(b))
+		// return b64.StdEncoding.EncodeToString(b)
+	}
+	return []byte{}
+}
+
+// CodePb2 code msgctl
+func CodePb2NB(m *msgnb.MsgNBOpen) []byte {
 	if b, ex := m.Marshal(); ex == nil {
 		return b
 		// return []byte(b64.StdEncoding.EncodeToString(b))
