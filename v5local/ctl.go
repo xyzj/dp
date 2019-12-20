@@ -3536,6 +3536,20 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 										DstType:  1,
 									}
 									lstf = append(lstf, ff)
+									ff = &Fwd{
+										DataCmd:  "wlst.com.3e09",
+										DataMsg:  Send3e3c09,
+										DataSP:   SendLevelNormal,
+										DataDst:  fmt.Sprintf("wlst-com-%d", v),
+										DataPT:   500,
+										DataType: DataTypeBytes,
+										Job:      JobSend,
+										Tra:      TraDirect,
+										Addr:     v,
+										Src:      fmt.Sprintf("%v", pb2data),
+										DstType:  1,
+									}
+									lstf = append(lstf, ff)
 								}
 							}
 						}
