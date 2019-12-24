@@ -14,6 +14,81 @@ import (
 	msgctl "gitlab.local/proto/msgjk"
 )
 
+var (
+	// Prm100 启动站对应
+	Prm100 = map[byte]byte{
+		0x01: 1,  // 复位
+		0x02: 9,  // 链路接口测试
+		0x04: 10, // 设置参数
+		0x05: 10, // 控制命令
+		0x03: 11, // 中继站命令
+		0x06: 11, // 身份认证以及密钥协商
+		0x08: 11, // 请求被级联终端主动上报
+		0x09: 11, // 请求终端配置
+		0x0a: 11, // 查询参数
+		0x0b: 11, // 请求任务数据
+		0x0c: 11, // 请求实时数据
+		0x0d: 11, // 请求历史数据
+		0x0e: 11, // 请求事件数据
+		0x0f: 11, // 文件传输
+		0x10: 11, //数据转发
+	}
+	// Prm011 从动站对应prm=1功能码11
+	Prm011 = map[byte]byte{
+		0x03: 8, // 中继站命令
+		0x06: 8, // 身份认证以及密钥协商
+		0x08: 8, // 请求被级联终端主动上报
+		0x09: 8, // 请求终端配置
+		0x0a: 8, // 查询参数
+		0x0b: 8, // 请求任务数据
+		0x0c: 8, // 请求实时数据
+		0x0d: 8, // 请求历史数据
+		0x0e: 8, // 请求事件数据
+		0x10: 8, //数据转发
+	}
+	// Prm001  从动站对应prm=1功能码1
+	Prm001 = map[byte]byte{
+		0x00: 0, // 复位
+	}
+	// Prm009  从动站对应prm=1功能码9
+	Prm009 = map[byte]byte{
+		0x00: 11, // 复位
+	}
+)
+
+func getFunCode(prm1, prm0, afn byte) byte {
+	switch prm1 {
+	case 1: // 主动发送
+		return Prm100[afn]
+	default: // 0,应答
+		switch prm0 {
+		case 1:
+			return Prm001[afn]
+		case 9:
+			return Prm009[afn]
+		default: //10, 11:
+			return Prm011[afn]
+		}
+	}
+}
+
+func getPnFn(b []byte) int32 {
+	var idx int32
+	if b[0] == 0 {
+		idx = 0
+	} else {
+		idx = int32(math.Log2(float64(b[0]))) + 1
+	}
+	return int32(b[1])*8 + idx
+}
+
+func setPnFn(n int) []byte {
+	if n == 0 {
+		return []byte{0, 0}
+	}
+	return []byte{byte(math.Exp2(float64(n%8 - 1))), byte(n / 8)}
+}
+
 // DataProcessor 数据处理
 type DataProcessor struct {
 	// CheckRC 进行终端数据校验
@@ -30,8 +105,8 @@ type DataProcessor struct {
 	Verbose sync.Map
 	// AreaCode 区域码
 	AreaCode string
-	// seq
-	PSEQ int
+	// AreaBytes 区域码字节
+	AreaBytes []byte
 }
 
 // BuildCommand 创建命令
@@ -39,17 +114,28 @@ type DataProcessor struct {
 // area: 区域码
 // addr: 地址
 // prm: 启动标志位0-应答，1-主动下行
-// fcb:
 // fun: 链路层功能码
 // crypt: 是否加密0 为不加密(身份认∕否认(证及密钥协商用到),调整1 代表明文加 MAC,2 代表密文加 MAC,3 密码信封(证书方式)
 // ver: 版本，1
 // afn: 应用层功能码
-// tpv: 是否加时间戳，0-不加，1-255：命令有效分钟
-// con：是否应答，0-不需要，1-需要
 // seq: 序号，中间层提供
-func (dp *DataProcessor) BuildCommand(ll, area, addr int, prm, fcb, fcv, fun, crypt, ver, afn, tpv, con, seq byte) []byte {
+func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, fun, crypt, ver, afn, con, seq byte) []byte {
 	var b, d bytes.Buffer
-
+	// 控制码
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0%d00%04b", prm, fun), 2))
+	// 版本和加密
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%04b", crypt, ver), 2))
+	// 地址
+	d.Write(dp.MakeAddr(addr))
+	// afn
+	d.WriteByte(afn)
+	// seq
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0110%04b", seq), 2))
+	// 数据体，含pn，fn
+	d.Write(data)
+	// 数据体长度
+	ll := len(d.Bytes())
+	// 整体指令
 	b.Write([]byte{0x68, byte(ll % 256), byte(ll / 256), byte(ll % 256), byte(ll / 256), 0x68})
 	b.Write(d.Bytes())
 	b.WriteByte(dp.CalculateRC(d.Bytes()))
@@ -73,7 +159,7 @@ func (dp *DataProcessor) MakeAddr(addr int64) []byte {
 	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(dp.AreaCode[:2], 10)))
 	b.WriteByte(byte(addr % 256))
 	b.WriteByte(byte(addr / 256))
-	if addr == 65535 {
+	if addr == 0xffff {
 		b.WriteByte(1)
 	} else {
 		b.WriteByte(0)

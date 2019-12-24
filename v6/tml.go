@@ -292,13 +292,13 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 
 	f.Addr = int64(d[10]) + int64(d[11])*256
 	afn := d[13]
-	svrmsg := initMsgCtl(fmt.Sprintf("wlst.open.%02x%02x", byte(d[6]<<4)>>4, afn), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
+	fun := byte(d[6]<<4) >> 4
+	svrmsg := initMsgCtl(fmt.Sprintf("wlst.gb.%02x%02x", fun, afn), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
 	f.DataCmd = svrmsg.Head.Cmd
 	acd := int32(byte(d[6]<<2) >> 7)
 	tpv := byte(d[14]) >> 7
-	// con := byte(d[14]<<3) >> 7
-	// seq := byte(d[14]<<4) >> 4
-	var ec1, ec2 int32 // ec1,ec2,ec开始字节序号
+	seq := byte(d[14]<<4) >> 4
+	var ec1, ec2 int32 // ec1,ec2,重要事件/事件数量
 	var j, maxJ int    // 数据读取索引，数据单元最大索引
 	maxJ = len(d) - 2
 	if acd == 1 { // 有附加数据
@@ -311,39 +311,37 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 		ec2 = int32(d[maxJ+1])
 	}
 	j = 15
+	// 初始化框架
+	dataID := &msgctl.DataIdentification{
+		Acd: acd,
+		Ec1: ec1,
+		Ec2: ec2,
+		Afn: int32(afn),
+		Seq: int32(seq),
+	}
 	switch afn {
 	case 0x00: // 应答
 		svrmsg.WlstOpen_0000 = &msgctl.WlstOpen_0000{
-			DataID: &msgctl.DataIdentification{
-				Acd: acd,
-				Ec1: ec1,
-				Ec2: ec2,
-			},
+			DataID: dataID,
 		}
 	case 0x01: // 复位
 		svrmsg.WlstOpen_0101 = &msgctl.WlstOpen_0101{
-			DataID: &msgctl.DataIdentification{
-				Acd: acd,
-				Ec1: ec1,
-				Ec2: ec2,
-			},
+			DataID: dataID,
 		}
 	case 0x02: // 登录/心跳
 		svrmsg.WlstOpen_0902 = &msgctl.WlstOpen_0902{
-			DataID: &msgctl.DataIdentification{
-				Acd: acd,
-				Ec1: ec1,
-				Ec2: ec2,
-			},
+			DataID: dataID,
 		}
 	}
+	// 循环解析所有数据单元
 	for {
+		// 当读到最后时，跳出循环
 		if j >= maxJ { // 上行数据无视tp，pw
 			break
 		}
 		uid := &msgctl.UnitIdentification{
-			Pn: int32(d[j]) + (int32(d[j+1])*8 - 1),
-			Fn: int32(d[j+2]) + (int32(d[j+3])*8 - 1),
+			Pn: getPnFn(d[j : j+2]),
+			Fn: getPnFn(d[j+2 : j+4]),
 		}
 		j += 4
 		switch afn {
@@ -362,12 +360,17 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 		case 0x02: // 登录/心跳
 			svrmsg.WlstOpen_0902.DataID.UintID = append(svrmsg.WlstOpen_0902.DataID.UintID, uid)
 			if uid.Pn == 0 && uid.Fn == 1 { // 仅登录消息的areaid有效
-				dp.AreaCode = fmt.Sprintf("%02d%02d", d[9], d[8])
+				dp.AreaCode = fmt.Sprintf("%02x%02x", d[9], d[8])
 			}
+			var dd bytes.Buffer
+			dd.Write(setPnFn(0))
+			dd.Write(setPnFn(1))
+			dd.WriteByte(2)
 			var ff = &Fwd{
 				DataType: DataTypeBase64,
 				DataDst:  fmt.Sprintf("wlst-open-%05d%s", f.Addr, dp.AreaCode),
 				DstType:  SockData,
+				DataMsg:  dp.BuildCommand(dd.Bytes(), f.Addr, 0, 11, 0, 1, 0, 0, seq),
 				Tra:      TraDirect,
 				Job:      JobSend,
 				Src:      gopsu.Bytes2String(d, "-"),
