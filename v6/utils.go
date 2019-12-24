@@ -7,12 +7,88 @@ import (
 	"math"
 	"net"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/xyzj/gopsu"
 	msgctl "gitlab.local/proto/msgjk"
 	msgnb "gitlab.local/proto/msgnb"
 )
+
+var (
+	// Prm100 启动站对应
+	Prm100 = map[byte]byte{
+		0x01: 1,  // 复位
+		0x02: 9,  // 链路接口测试
+		0x04: 10, // 设置参数
+		0x05: 10, // 控制命令
+		0x03: 11, // 中继站命令
+		0x06: 11, // 身份认证以及密钥协商
+		0x08: 11, // 请求被级联终端主动上报
+		0x09: 11, // 请求终端配置
+		0x0a: 11, // 查询参数
+		0x0b: 11, // 请求任务数据
+		0x0c: 11, // 请求实时数据
+		0x0d: 11, // 请求历史数据
+		0x0e: 11, // 请求事件数据
+		0x0f: 11, // 文件传输
+		0x10: 11, //数据转发
+	}
+	// Prm011 从动站对应prm=1功能码11
+	Prm011 = map[byte]byte{
+		0x03: 8, // 中继站命令
+		0x06: 8, // 身份认证以及密钥协商
+		0x08: 8, // 请求被级联终端主动上报
+		0x09: 8, // 请求终端配置
+		0x0a: 8, // 查询参数
+		0x0b: 8, // 请求任务数据
+		0x0c: 8, // 请求实时数据
+		0x0d: 8, // 请求历史数据
+		0x0e: 8, // 请求事件数据
+		0x10: 8, //数据转发
+	}
+	// Prm001  从动站对应prm=1功能码1
+	Prm001 = map[byte]byte{
+		0x00: 0, // 复位
+	}
+	// Prm009  从动站对应prm=1功能码9
+	Prm009 = map[byte]byte{
+		0x00: 11, // 复位
+	}
+)
+
+func getFunCode(prm1, prm0, afn byte) byte {
+	switch prm1 {
+	case 1: // 主动发送
+		return Prm100[afn]
+	default: // 0,应答
+		switch prm0 {
+		case 1:
+			return Prm001[afn]
+		case 9:
+			return Prm009[afn]
+		default: //10, 11:
+			return Prm011[afn]
+		}
+	}
+}
+
+func getPnFn(b []byte) int32 {
+	var idx int32
+	if b[0] == 0 {
+		idx = 0
+	} else {
+		idx = int32(math.Log2(float64(b[0]))) + 1
+	}
+	return int32(b[1])*8 + idx
+}
+
+func setPnFn(n int) []byte {
+	if n == 0 {
+		return []byte{0, 0}
+	}
+	return []byte{byte(math.Exp2(float64(n%8 - 1))), byte(n / 8)}
+}
 
 // DataProcessor 数据处理
 type DataProcessor struct {
@@ -24,6 +100,72 @@ type DataProcessor struct {
 	RemoteIP int64
 	// TimerNoSec 对时无秒字节
 	TimerNoSec bool
+	// imei
+	Imei int64
+	// VerInfo
+	Verbose sync.Map
+	// AreaCode 区域码
+	AreaCode string
+	// AreaBytes 区域码字节
+	AreaBytes []byte
+}
+
+// BuildCommand 创建命令
+// ll: 长度
+// area: 区域码
+// addr: 地址
+// prm: 启动标志位0-应答，1-主动下行
+// fun: 链路层功能码
+// crypt: 是否加密0 为不加密(身份认∕否认(证及密钥协商用到),调整1 代表明文加 MAC,2 代表密文加 MAC,3 密码信封(证书方式)
+// ver: 版本，1
+// afn: 应用层功能码
+// seq: 序号，中间层提供
+func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, fun, crypt, ver, afn, con, seq byte) []byte {
+	var b, d bytes.Buffer
+	// 控制码
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0%d00%04b", prm, fun), 2))
+	// 版本和加密
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%04b", crypt, ver), 2))
+	// 地址
+	d.Write(dp.MakeAddr(addr))
+	// afn
+	d.WriteByte(afn)
+	// seq
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0110%04b", seq), 2))
+	// 数据体，含pn，fn
+	d.Write(data)
+	// 数据体长度
+	ll := len(d.Bytes())
+	// 整体指令
+	b.Write([]byte{0x68, byte(ll % 256), byte(ll / 256), byte(ll % 256), byte(ll / 256), 0x68})
+	b.Write(d.Bytes())
+	b.WriteByte(dp.CalculateRC(d.Bytes()))
+	b.WriteByte(0x16)
+	return b.Bytes()
+}
+
+// CalculateRC 计算校验值
+func (dp *DataProcessor) CalculateRC(d []byte) byte {
+	var a byte
+	for _, v := range d {
+		a += v
+	}
+	return a
+}
+
+// MakeAddr 组装国标协议格式地址
+func (dp *DataProcessor) MakeAddr(addr int64) []byte {
+	var b bytes.Buffer
+	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(dp.AreaCode[2:], 10)))
+	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(dp.AreaCode[:2], 10)))
+	b.WriteByte(byte(addr % 256))
+	b.WriteByte(byte(addr / 256))
+	if addr == 0xffff {
+		b.WriteByte(1)
+	} else {
+		b.WriteByte(0)
+	}
+	return b.Bytes()
 }
 
 // Reset 复位
@@ -31,6 +173,11 @@ func (dp *DataProcessor) Reset() {
 	dp.CheckRC = false
 	dp.RemoteIP = 0
 	dp.TimerNoSec = false
+	dp.Imei = 0
+	dp.Verbose.Range(func(k, v interface{}) bool {
+		dp.Verbose.Delete(k)
+		return true
+	})
 }
 
 const (
@@ -167,7 +314,7 @@ var (
 	// Send7010 从终端复位模块
 	Send7010 = gopsu.String2Bytes("7e-70-05-00-00-00-10-00-03-30-b2", "-")
 	// Send3e3c09 复位模块
-	Send3e3c09 = gopsu.String2Bytes("3e-3c-12-0-0-0-0-0-0-0-0-0-0-9-c0-85", "-")
+	Send3e3c09 = gopsu.String2Bytes("3e-3c-0c-0-30-30-30-30-30-30-30-30-30-30-30-09-58-c9", "-")
 	// Send6813 电表读地址
 	Send6813 = gopsu.String2Bytes("fe-fe-fe-fe-68-aa-aa-aa-aa-aa-aa-68-13-0-df-16", "-")
 	// Send9050 单灯读版本
@@ -224,26 +371,32 @@ var (
 	SendElu5900 = gopsu.String2Bytes("7e-62-02-00-59-72-48", "-")
 	// SendIMEI 读取模块imei
 	SendIMEI = gopsu.String2Bytes("3e-3c-0f-00-30-30-30-30-30-30-30-30-30-30-30-01-20-04-02-a7-d8", "-")
+
+	// 国标
+
+	// Resp0902 登录/心跳应答
+	Resp0902 = gopsu.String2Bytes("68 0E 00 0E 00 68 0B 01 01 12 04 00 00 00 60 00 00 01 00 02 86 16", " ")
 )
 
 // Fwd 数据解析结果需发送内容结构体
 type Fwd struct {
-	DataMsg     []byte       // 发送数据
-	DataCmd     string       // 指令命令
-	DataDst     string       // for tml, something like "wlst-rtu-1"
-	DataPT      int32        // command protect time
-	DataSP      byte         // data send level 0-normal, 1-high
-	DataType    byte         // 1-hex,2-string
-	DstType     byte         // 0-unknow,1-tml,2-data,3-client,4-sdcmp,5-fwdcs,6-upgrade,7-iisi,8-vb,9-udp
-	DstIP       int64        // 目标ip
-	DstIMEI     int64        // 目标imei
-	DataUDPAddr *net.UDPAddr // for udp only
-	Tra         byte         // 1-socket, 2-485
-	Addr        int64        // 设备地址
-	Ex          string       // 错误信息
-	Src         string       // 原始数据
-	Job         byte         // 0-just send,1-need do something else
-	Remark      string       // 备注信息，或其他想要传出的数据
+	DataMsg     []byte              // 发送数据
+	DataCmd     string              // 指令命令
+	DataDst     string              // for tml, something like "wlst-rtu-1"
+	DataPT      int32               // command protect time
+	DataSP      byte                // data send level 0-normal, 1-high
+	DataType    byte                // 1-hex,2-string
+	DstType     byte                // 0-unknow,1-tml,2-data,3-client,4-sdcmp,5-fwdcs,6-upgrade,7-iisi,8-vb,9-udp
+	DstIP       int64               // 目标ip
+	DstIMEI     int64               // 目标imei
+	DataUDPAddr *net.UDPAddr        // for udp only
+	Tra         byte                // 1-socket, 2-485
+	Addr        int64               // 设备地址
+	Ex          string              // 错误信息
+	Src         string              // 原始数据
+	Job         byte                // 0-just send,1-need do something else
+	Remark      string              // 备注信息，或其他想要传出的数据
+	DataSrc     *msgctl.MsgWithCtrl // msgwithctrl原始数据地址，预处理用
 }
 
 // Rtb 数据解析结果
