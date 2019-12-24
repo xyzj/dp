@@ -295,6 +295,11 @@ LOOP:
 				d = d[k+lMru+12:]
 				goto LOOP
 			}
+			// 国标协议
+			lGb := int(d[k+1]) + int(d[k+2])*256
+			if d[k+3] == 0x68 && d[k+lGb+5] == 0x16{
+				
+			}
 			// 勃洛克
 			lBlk := int(d[k+2])*256 + int(d[k+3])
 			if d[k+4] == 0x68 && d[k+lBlk+4] == 0x16 {
