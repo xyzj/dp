@@ -65,6 +65,7 @@ func testTmldata() {
 	s := strings.Split("68 01 00 00 00 00 00 68 9C 2F 7D 2B 00 00 A3 00 00 00 24 5F 56 5F 56 19 00 14 00 27 02 C1 01 0C 00 03 00 A0 02 00 A8 00 00 0C 0C 00 08 00 00 01 AA 15 00 28 00 00 00 69 FD 54 16", " ")
 	s = strings.Split("68 01 00 00 00 00 00 68 9C 0B 7D 07 00 00 A3 00 02 00 20 12 45 18 16", " ")
 	s = strings.Split("7e-30-01-00-b7-7e-62-26-01-d9-05-32-00-01-00-2e-06-00-00-03-32-00-01-00-00-00-00-00-03-32-00-01-00-00-00-00-00-03-32-00-01-00-00-00-00-00-a1-61-ba-4e-31-3e", "-")
+	s = strings.Split("68 0d 00 0d 00 68 c9 01 01 12 04 00 00 02 70 00 00 01 00 54 16", " ")
 
 	ss := make([]byte, len(s))
 	for k, v := range s {
@@ -83,7 +84,7 @@ func testTmldata() {
 	// c := 0
 	// t := false
 	// r := dpv5.ClassifyTmlData(ss, &a, &c, &c, &b, 193)
-	ss, _ = base64.StdEncoding.DecodeString("aAcglgAAAGickH2MAQC5AHGRTVtNWwAAAABZAOEAAAAAAFMHYBMAAAAAhAPTBgAAAAAgCIoUAAAAAMMA3AEAAAAAzhgAzhgAAAAAAAAAAAAAAAAAAABkZAAAEwsBAQMQbAAAACIAAABVA/oA+gD6APoABskCAICOAgCArgAAAOoAAABsAACA5gAAAMkJAAAAGAQLAAcHETbtksgW")
+	// ss, _ = base64.StdEncoding.DecodeString("aAcglgAAAGickH2MAQC5AHGRTVtNWwAAAABZAOEAAAAAAFMHYBMAAAAAhAPTBgAAAAAgCIoUAAAAAMMA3AEAAAAAzhgAzhgAAAAAAAAAAAAAAAAAAABkZAAAEwsBAQMQbAAAACIAAABVA/oA+gD6APoABskCAICOAgCArgAAAOoAAABsAACA5gAAAMkJAAAAGAQLAAcHETbtksgW")
 	r := dproce.ProcessTml(ss)
 	fmt.Printf("%+v\n\n", r)
 	// println(r.Ex)
@@ -229,10 +230,8 @@ func main() {
 	// testCtldata()
 	// testCtldataPb2()
 	// testCtldatajson()
-	// testTmldata()
+	testTmldata()
 	// aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
-	a := []byte{0xa2, 0xae}
-	println(fmt.Sprintf("%.02f", (float64(a[0])+float64(int32(a[1])&0x3f*256))/0x3ff0*300))
 	// countCRC()
 	// for {
 	// 	time.Sleep(time.Second)

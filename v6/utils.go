@@ -28,6 +28,57 @@ type DataProcessor struct {
 	Imei int64
 	// VerInfo
 	Verbose sync.Map
+	// AreaCode 区域码
+	AreaCode string
+	// seq
+	PSEQ int
+}
+
+// BuildCommand 创建命令
+// ll: 长度
+// area: 区域码
+// addr: 地址
+// prm: 启动标志位0-应答，1-主动下行
+// fcb:
+// fun: 链路层功能码
+// crypt: 是否加密0 为不加密(身份认∕否认(证及密钥协商用到),调整1 代表明文加 MAC,2 代表密文加 MAC,3 密码信封(证书方式)
+// ver: 版本，1
+// afn: 应用层功能码
+// tpv: 是否加时间戳，0-不加，1-255：命令有效分钟
+// con：是否应答，0-不需要，1-需要
+// seq: 序号，中间层提供
+func (dp *DataProcessor) BuildCommand(ll, area, addr int, prm, fcb, fcv, fun, crypt, ver, afn, tpv, con, seq byte) []byte {
+	var b, d bytes.Buffer
+
+	b.Write([]byte{0x68, byte(ll % 256), byte(ll / 256), byte(ll % 256), byte(ll / 256), 0x68})
+	b.Write(d.Bytes())
+	b.WriteByte(dp.CalculateRC(d.Bytes()))
+	b.WriteByte(0x16)
+	return b.Bytes()
+}
+
+// CalculateRC 计算校验值
+func (dp *DataProcessor) CalculateRC(d []byte) byte {
+	var a byte
+	for _, v := range d {
+		a += v
+	}
+	return a
+}
+
+// MakeAddr 组装国标协议格式地址
+func (dp *DataProcessor) MakeAddr(addr int64) []byte {
+	var b bytes.Buffer
+	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(dp.AreaCode[2:], 10)))
+	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(dp.AreaCode[:2], 10)))
+	b.WriteByte(byte(addr % 256))
+	b.WriteByte(byte(addr / 256))
+	if addr == 65535 {
+		b.WriteByte(1)
+	} else {
+		b.WriteByte(0)
+	}
+	return b.Bytes()
 }
 
 // Reset 复位
@@ -233,6 +284,11 @@ var (
 	SendElu5900 = gopsu.String2Bytes("7e-62-02-00-59-72-48", "-")
 	// SendIMEI 读取模块imei
 	SendIMEI = gopsu.String2Bytes("3e-3c-0f-00-30-30-30-30-30-30-30-30-30-30-30-01-20-04-02-a7-d8", "-")
+
+	// 国标
+
+	// Resp0902 登录/心跳应答
+	Resp0902 = gopsu.String2Bytes("68 0E 00 0E 00 68 0B 01 01 12 04 00 00 00 60 00 00 01 00 02 86 16", " ")
 )
 
 // Fwd 数据解析结果需发送内容结构体

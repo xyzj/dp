@@ -263,19 +263,125 @@ LOOP:
 				d = d[k+lMru+12:]
 				goto LOOP
 			}
-			// 上海路灯心跳（无视）
+			// 公司标准（天津版）
 			lShld := int(d[k+1]) + int(d[k+2])*256
-			if len(d[k:]) <= lShld+8 {
+			if d[k+5] == 0x68 && d[k+lShld+7] == 0x16 {
+				r.Do = append(r.Do, dp.dataWlst(d[k:k+lShld+8])...)
 				d = d[k+lShld+8:]
-				goto LOOP
-			}
-			if d[k+5] == 0x68 && d[k+lShld+8] == 0x16 {
-				d = d[k+lShld+9:]
 				goto LOOP
 			}
 		}
 	}
 	return r
+}
+
+func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
+	var f = &Fwd{
+		DataType: DataTypeBase64,
+		DataDst:  "2",
+		DstType:  SockData,
+		Tra:      TraDirect,
+		Job:      JobSend,
+		Src:      gopsu.Bytes2String(d, "-"),
+	}
+	ll := int(d[1]) + int(d[2])*256
+
+	if d[6+ll] != dp.CalculateRC(d[6:6+ll]) { // 校验失败，丢弃
+		return lstf
+	}
+
+	f.Addr = int64(d[10]) + int64(d[11])*256
+	afn := d[13]
+	svrmsg := initMsgCtl(fmt.Sprintf("wlst.open.%02x%02x", byte(d[6]<<4)>>4, afn), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
+	f.DataCmd = svrmsg.Head.Cmd
+	acd := int32(byte(d[6]<<2) >> 7)
+	tpv := byte(d[14]) >> 7
+	// con := byte(d[14]<<3) >> 7
+	// seq := byte(d[14]<<4) >> 4
+	var ec1, ec2 int32 // ec1,ec2,ec开始字节序号
+	var j, maxJ int    // 数据读取索引，数据单元最大索引
+	maxJ = len(d) - 2
+	if acd == 1 { // 有附加数据
+		if tpv == 1 { // 有时间戳
+			maxJ = len(d) - 10
+		} else {
+			maxJ = len(d) - 4
+		}
+		ec1 = int32(d[maxJ])
+		ec2 = int32(d[maxJ+1])
+	}
+	j = 15
+	switch afn {
+	case 0x00: // 应答
+		svrmsg.WlstOpen_0000 = &msgctl.WlstOpen_0000{
+			DataID: &msgctl.DataIdentification{
+				Acd: acd,
+				Ec1: ec1,
+				Ec2: ec2,
+			},
+		}
+	case 0x01: // 复位
+		svrmsg.WlstOpen_0101 = &msgctl.WlstOpen_0101{
+			DataID: &msgctl.DataIdentification{
+				Acd: acd,
+				Ec1: ec1,
+				Ec2: ec2,
+			},
+		}
+	case 0x02: // 登录/心跳
+		svrmsg.WlstOpen_0902 = &msgctl.WlstOpen_0902{
+			DataID: &msgctl.DataIdentification{
+				Acd: acd,
+				Ec1: ec1,
+				Ec2: ec2,
+			},
+		}
+	}
+	for {
+		if j >= maxJ { // 上行数据无视tp，pw
+			break
+		}
+		uid := &msgctl.UnitIdentification{
+			Pn: int32(d[j]) + (int32(d[j+1])*8 - 1),
+			Fn: int32(d[j+2]) + (int32(d[j+3])*8 - 1),
+		}
+		j += 4
+		switch afn {
+		case 0x00: // 应答
+			svrmsg.WlstOpen_0000.DataID.UintID = append(svrmsg.WlstOpen_0000.DataID.UintID, uid)
+			switch uid.Pn {
+			case 0:
+				switch uid.Fn {
+				case 1, 2: // 全部确认/否认
+					svrmsg.WlstOpen_0000.Afn = int32(d[j])
+					j++
+				case 3: // 部分确认/否认
+					// TODO:
+				}
+			}
+		case 0x02: // 登录/心跳
+			svrmsg.WlstOpen_0902.DataID.UintID = append(svrmsg.WlstOpen_0902.DataID.UintID, uid)
+			if uid.Pn == 0 && uid.Fn == 1 { // 仅登录消息的areaid有效
+				dp.AreaCode = fmt.Sprintf("%02d%02d", d[9], d[8])
+			}
+			var ff = &Fwd{
+				DataType: DataTypeBase64,
+				DataDst:  fmt.Sprintf("wlst-open-%05d%s", f.Addr, dp.AreaCode),
+				DstType:  SockData,
+				Tra:      TraDirect,
+				Job:      JobSend,
+				Src:      gopsu.Bytes2String(d, "-"),
+			}
+			lstf = append(lstf, ff)
+		}
+	}
+	if len(f.DataCmd) > 0 {
+		f.DataCmd = svrmsg.Head.Cmd
+		f.DataMsg = CodePb2(svrmsg)
+		lstf = append(lstf, f)
+	}
+
+	return lstf
 }
 
 // 处理终端数据
