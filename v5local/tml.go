@@ -7846,18 +7846,18 @@ func dataGb(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 			}
 		case 0x02: // 登录/心跳
 			svrmsg.WlstOpen_0902.DataID.UintID = append(svrmsg.WlstOpen_0902.DataID.UintID, uid)
-			area := ""
-			if uid.Pn == 0 && uid.Fn == 1 { // 仅登录消息的areaid有效
-				area = fmt.Sprintf("%02x%02x", d[9], d[8])
-			}
+			
+			// if uid.Pn == 0 && uid.Fn == 1 { // 仅登录消息的areaid有效
+			area := fmt.Sprintf("%02x%02x", d[9], d[8])
+			//}
 			var dd bytes.Buffer
 			dd.Write(setPnFn(0))
 			dd.Write(setPnFn(1))
 			dd.WriteByte(2)
 			var ff = &Fwd{
-				DataType: DataTypeBase64,
+				DataType: DataTypeBytes,
 				DataDst:  fmt.Sprintf("wlst-open-%05d%s", f.Addr, area),
-				DstType:  SockData,
+				DstType:  SockTml,
 				DataMsg:  BuildCommand(dd.Bytes(), f.Addr, area,0, 11, 0, 1, 0, 0, seq),
 				Tra:      TraDirect,
 				Job:      JobSend,
