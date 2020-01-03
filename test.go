@@ -17,6 +17,7 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/xyzj/gopsu"
 	msgctl "gitlab.local/proto/msgjk"
+	msgopen "gitlab.local/proto/msgwlst"
 	// "github.com/pkg/errors"
 )
 
@@ -65,7 +66,8 @@ func testTmldata() {
 	s := strings.Split("68 01 00 00 00 00 00 68 9C 2F 7D 2B 00 00 A3 00 00 00 24 5F 56 5F 56 19 00 14 00 27 02 C1 01 0C 00 03 00 A0 02 00 A8 00 00 0C 0C 00 08 00 00 01 AA 15 00 28 00 00 00 69 FD 54 16", " ")
 	s = strings.Split("68 01 00 00 00 00 00 68 9C 0B 7D 07 00 00 A3 00 02 00 20 12 45 18 16", " ")
 	s = strings.Split("7e-30-01-00-b7-7e-62-26-01-d9-05-32-00-01-00-2e-06-00-00-03-32-00-01-00-00-00-00-00-03-32-00-01-00-00-00-00-00-03-32-00-01-00-00-00-00-00-a1-61-ba-4e-31-3e", "-")
-	s = strings.Split("68 0d 00 0d 00 68 c9 01 01 12 04 00 00 02 70 00 00 01 00 54 16", " ")
+	s = strings.Split("68 0E 00 0E 00 68 0B 01 01 12 04 00 00 00 60 00 00 01 00 02 86 16", " ")
+	s = gopsu.SplitStringWithLen("685700570068A8010112160000096100000100353053545354574A33303036312E30300000000011111930303030303030303030303030303030312E353000000000010819312E353000000000010819312E3530000000000108195E006416", 2)
 
 	ss := make([]byte, len(s))
 	for k, v := range s {
@@ -86,7 +88,7 @@ func testTmldata() {
 	// r := dpv5.ClassifyTmlData(ss, &a, &c, &c, &b, 193)
 	// ss, _ = base64.StdEncoding.DecodeString("aAcglgAAAGickH2MAQC5AHGRTVtNWwAAAABZAOEAAAAAAFMHYBMAAAAAhAPTBgAAAAAgCIoUAAAAAMMA3AEAAAAAzhgAzhgAAAAAAAAAAAAAAAAAAABkZAAAEwsBAQMQbAAAACIAAABVA/oA+gD6APoABskCAICOAgCArgAAAOoAAABsAACA5gAAAMkJAAAAGAQLAAcHETbtksgW")
 	r := dproce.ProcessTml(ss)
-	fmt.Printf("%+v\n\n", r)
+	// fmt.Printf("%+v\n\n", r)
 	// println(r.Ex)
 	for k, v := range r.Do {
 
@@ -103,12 +105,22 @@ func testTmldata() {
 			// println("---mq---", msg.String(), string(gopsu.PB2Json(msg)))
 			// println(k, msg.String())
 			// z := v6.MsgCtlFromBytes(v.DataMsg)
-			z := dpv5.MsgCtlFromBytes(v.DataMsg)
-			if z == nil {
-				println(fmt.Sprintf("%d, %+v", k, v.DataMsg))
+			if strings.Contains(v.DataCmd, "open") { // 国标
+				msg := &msgopen.WlstGBOpen{}
+				err := msg.Unmarshal(v.DataMsg)
+				if err != nil {
+					println(fmt.Sprintf("--- %d, %s", k, gopsu.Bytes2String(v.DataMsg, "-")))
+				} else {
+					println(fmt.Sprintf("=== %d, %s", k, msg.String()))
+				}
 			} else {
-				println(fmt.Sprintf("--- %d, %+v", k, string(pb2json(z))))
-				println(fmt.Sprintf("=== %d, %s", k, gopsu.PB2Json(z)))
+				z := dpv5.MsgCtlFromBytes(v.DataMsg)
+				if z == nil {
+					println(fmt.Sprintf("%d, %+v", k, v.DataMsg))
+				} else {
+					// println(fmt.Sprintf("--- %d, %+v", k, string(pb2json(z))))
+					println(fmt.Sprintf("=== %d, %s", k, gopsu.PB2Json(z)))
+				}
 			}
 		}
 	}
@@ -230,7 +242,10 @@ func main() {
 	// testCtldata()
 	// testCtldataPb2()
 	// testCtldatajson()
-	testTmldata()
+	// testTmldata()
+	// s := "11010110"
+	println(1 ^ 1)
+	println(0 ^ 1)
 	// aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
 	// countCRC()
 	// for {

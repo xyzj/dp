@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"net"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -35,6 +37,7 @@ var (
 	}
 	// Prm011 从动站对应prm=1功能码11
 	Prm011 = map[byte]byte{
+		0x00: 0, // 复位
 		0x03: 8, // 中继站命令
 		0x06: 8, // 身份认证以及密钥协商
 		0x08: 8, // 请求被级联终端主动上报
@@ -46,30 +49,14 @@ var (
 		0x0e: 8, // 请求事件数据
 		0x10: 8, //数据转发
 	}
-	// Prm001  从动站对应prm=1功能码1
-	Prm001 = map[byte]byte{
-		0x00: 0, // 复位
-	}
-	// Prm009  从动站对应prm=1功能码9
-	Prm009 = map[byte]byte{
-		0x00: 11, // 复位
-	}
 )
 
-func getFunCode(prm1, prm0, afn byte) byte {
-	switch prm1 {
-	case 1: // 主动发送
-		return Prm100[afn]
-	default: // 0,应答
-		switch prm0 {
-		case 1:
-			return Prm001[afn]
-		case 9:
-			return Prm009[afn]
-		default: //10, 11:
-			return Prm011[afn]
-		}
-	}
+func getFunCodeMaster(afn byte) byte {
+	return Prm100[afn]
+}
+
+func getFunCodeSlave(afn byte) byte {
+	return Prm011[afn]
 }
 
 func getPnFn(b []byte) int32 {
@@ -105,20 +92,48 @@ type DataProcessor struct {
 	Verbose sync.Map
 	// AreaCode 区域码
 	AreaCode string
-	// AreaBytes 区域码字节
-	AreaBytes []byte
+	// PhyID
+	PhyID int64
+	// ec1
+	Ec1 byte
+	// ec2
+	Ec2 byte
+	// 日志
+	Logger gopsu.Logger
+}
+
+func (dp *DataProcessor) writeEC() {
+	ioutil.WriteFile(filepath.Join(gopsu.DefaultCacheDir, "ec", fmt.Sprintf("%s%05d", dp.AreaCode, dp.PhyID)), []byte(fmt.Sprintf("%d,%d", dp.Ec1, dp.Ec2)), 0664)
+}
+
+func (dp *DataProcessor) readEC() {
+	b, err := ioutil.ReadFile(filepath.Join(gopsu.DefaultCacheDir, "ec", fmt.Sprintf("%s%05d", dp.AreaCode, dp.PhyID)))
+	if err != nil {
+		dp.Ec1 = 0
+		dp.Ec2 = 0
+		return
+	}
+	s := strings.Split(string(b), ",")
+	if len(s) != 2 {
+		dp.Ec1 = 0
+		dp.Ec2 = 0
+		return
+	}
+	dp.Ec1 = gopsu.String2Int8(s[0], 10)
+	dp.Ec2 = gopsu.String2Int8(s[1], 10)
 }
 
 // BuildCommand 创建命令
-// ll: 长度
-// area: 区域码
-// addr: 地址
-// prm: 启动标志位0-应答，1-主动下行
-// fun: 链路层功能码
-// crypt: 是否加密0 为不加密(身份认∕否认(证及密钥协商用到),调整1 代表明文加 MAC,2 代表密文加 MAC,3 密码信封(证书方式)
-// ver: 版本，1
-// afn: 应用层功能码
-// seq: 序号，中间层提供
+// 	ll: 长度
+// 	area: 区域码
+// 	addr: 地址
+// 	prm: 启动标志位0-应答，1-主动下行
+// 	fun: 链路层功能码
+// 	crypt: 是否加密0 为不加密(身份认∕否认(证及密钥协商用到),调整1 代表明文加 MAC,2 代表密文加 MAC,3 密码信封(证书方式)
+// 	ver: 版本，1
+// 	afn: 应用层功能码
+//	con: 是否需要设备应答0-不需要，1-需要
+// 	seq: 序号，中间层提供
 func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, fun, crypt, ver, afn, con, seq byte) []byte {
 	var b, d bytes.Buffer
 	// 控制码
@@ -130,7 +145,7 @@ func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, fun, crypt, 
 	// afn
 	d.WriteByte(afn)
 	// seq
-	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0110%04b", seq), 2))
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("011%d%04b", con, seq), 2))
 	// 数据体，含pn，fn
 	d.Write(data)
 	// 数据体长度
@@ -173,6 +188,7 @@ func (dp *DataProcessor) Reset() {
 	dp.RemoteIP = 0
 	dp.TimerNoSec = false
 	dp.Imei = 0
+	dp.AreaCode = ""
 	dp.Verbose.Range(func(k, v interface{}) bool {
 		dp.Verbose.Delete(k)
 		return true
@@ -391,6 +407,7 @@ type Fwd struct {
 	DataUDPAddr *net.UDPAddr        // for udp only
 	Tra         byte                // 1-socket, 2-485
 	Addr        int64               // 设备地址
+	Area        string              // 设备区域码
 	Ex          string              // 错误信息
 	Src         string              // 原始数据
 	Job         byte                // 0-just send,1-need do something else
