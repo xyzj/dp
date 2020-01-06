@@ -10,10 +10,11 @@ import (
 	"github.com/pkg/errors"
 	"github.com/xyzj/gopsu"
 	msgctl "gitlab.local/proto/msgjk"
+	msgopen "gitlab.local/proto/msgwlst"
 )
 
-// Prepare 数据预处理
-func (dp *DataProcessor) Prepare(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
+// PrepareCtl 自有协议数据预处理
+func (dp *DataProcessor) PrepareCtl(b *[]byte) (lstf []*Fwd) {
 	defer func() {
 		if ex := recover(); ex != nil {
 			f := &Fwd{
@@ -22,6 +23,12 @@ func (dp *DataProcessor) Prepare(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
 			lstf = append(lstf, f)
 		}
 	}()
+	var pb2data *msgctl.MsgWithCtrl
+	err := pb2data.Unmarshal(*b)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	scmd := strings.Split(pb2data.Head.Cmd, ".")
 	var xaddrs []int64
 	if pb2data.Args != nil {
@@ -56,7 +63,7 @@ func (dp *DataProcessor) Prepare(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
 	}
 	for _, v := range xaddrs {
 		f := &Fwd{
-			DataSrc: pb2data,
+			DataSrc: b,
 			Job:     1,
 			DataDst: fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
 		}
@@ -65,8 +72,8 @@ func (dp *DataProcessor) Prepare(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
 	return lstf
 }
 
-// ProcessCtl 处理五零盛同 msgwithctrl数据
-func (dp *DataProcessor) ProcessCtl(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
+// PrepareOpen 自有协议数据预处理
+func (dp *DataProcessor) PrepareOpen(b *[]byte) (lstf []*Fwd) {
 	defer func() {
 		if ex := recover(); ex != nil {
 			f := &Fwd{
@@ -75,6 +82,36 @@ func (dp *DataProcessor) ProcessCtl(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
 			lstf = append(lstf, f)
 		}
 	}()
+	var pb2data *msgopen.MsgGBOpen
+	err := pb2data.Unmarshal(*b)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	f := &Fwd{
+		DataSrc: b,
+		Job:     1,
+		DataDst: fmt.Sprintf("wlst-open-%d-%s", pb2data.DataID.Addr, pb2data.DataID.Area),
+	}
+	lstf = append(lstf, f)
+	return lstf
+}
+
+// ProcessCtl 处理五零盛同 msgwithctrl数据
+func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
+	defer func() {
+		if ex := recover(); ex != nil {
+			f := &Fwd{
+				Ex: fmt.Sprintf("%+v", errors.WithStack(ex.(error))),
+			}
+			lstf = append(lstf, f)
+		}
+	}()
+	var pb2data *msgctl.MsgWithCtrl
+	err := pb2data.Unmarshal(*b)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	var ndata []byte
 	var ndatacmd string
@@ -2796,6 +2833,285 @@ func (dp *DataProcessor) ProcessCtl(pb2data *msgctl.MsgWithCtrl) (lstf []*Fwd) {
 			Src:     fmt.Sprintf("%v", pb2data),
 			Ex:      "unknow protocol",
 			DstType: byte(pb2data.Head.Src),
+		}
+		lstf = append(lstf, f)
+	}
+	return lstf
+}
+
+// ProcessOpen 处理五零盛同国标协议
+func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
+	defer func() {
+		if ex := recover(); ex != nil {
+			f := &Fwd{
+				Ex: fmt.Sprintf("%+v", errors.WithStack(ex.(error))),
+			}
+			lstf = append(lstf, f)
+		}
+	}()
+	var pb2data = &msgopen.MsgGBOpen{}
+	err := pb2data.Unmarshal(*b)
+	if err != nil {
+		panic(err.Error())
+	}
+	getprotocol := false
+	if pb2data.DataID.Area == "0000" && dp.AreaCode != "" {
+		pb2data.DataID.Area = dp.AreaCode
+	}
+	var cmd = fmt.Sprintf("%02x%02x", pb2data.DataID.Fun, pb2data.DataID.Afn)
+	var d bytes.Buffer
+	for _, v := range pb2data.DataID.UintID {
+		d.Reset()
+		switch cmd {
+		case "0101": // 复位
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 1, 2, 3, 4: // 硬件初始化(重启)/数据区初始化(预留)/参数及全体数据区初始化(即恢复至出厂配置)/参数(除与系统主站通信有关的)及全体数据区初始化
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				}
+			}
+		case "0a04": // 设置参数
+		case "0a05": // 控制命令
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 29, 37: // 允许/禁止主动上报
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				case 1: // 允许合闸/跳闸
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					sout := []string{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"}
+					sdo := []string{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"}
+					var donow = true
+					for _, sc := range pb2data.Afn05P0F1.SwitchoutCtrl {
+						sout[sc.SwitchoutNo-1] = "1"
+						sdo[sc.SwitchoutNo-1] = fmt.Sprintf("%d", sc.SwitchoutDo)
+						if sc.SwitchoutTime > 0 {
+							donow = false
+						}
+					}
+					s := gopsu.ReverseString(strings.Join(sout, ""))
+					d.Write([]byte{gopsu.String2Int8(s[8:], 2), gopsu.String2Int8(s[:8], 2)})
+					s = gopsu.ReverseString(strings.Join(sdo, ""))
+					d.Write([]byte{gopsu.String2Int8(s[8:], 2), gopsu.String2Int8(s[:8], 2)})
+					switch dp.AreaCode {
+					case "4201": // 武汉
+						if donow {
+							d.Write([]byte{0, 0, 0, 0, 0, 0})
+						} else {
+							for _, sc := range pb2data.Afn05P0F1.SwitchoutCtrl {
+								d.Write(gopsu.Stamp2BcdDT(sc.SwitchoutTime))
+							}
+						}
+					default:
+						for _, sc := range pb2data.Afn05P0F1.SwitchoutCtrl {
+							d.Write(gopsu.Stamp2BcdDT(sc.SwitchoutTime))
+						}
+					}
+				case 9: // 消除漏电分闸/报警
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(len(pb2data.Afn05P0F9.LoopMark)))
+					for _, v := range pb2data.Afn05P0F9.LoopMark {
+						d.WriteByte(byte(v))
+					}
+				case 31: // 对时命令
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.Write(gopsu.Stamp2BcdDT(pb2data.Afn05P0F31.TimeUnix))
+				}
+			}
+		case "0b03": // 中继站命令（未支持）
+		case "0b06": // 身份认证以及密钥协商（未支持）
+		case "0b08": // 请求被级联终端主动上报（未支持）
+		case "0b09": // 请求终端配置
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 1: // 终端版本信息
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				}
+			}
+		case "0b0a": // 查询参数
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 1, 3, 9, 10, 11, 14, 15, 41, 42, 46, 49, 50, 51, 52, 53, 57: // 终端上行通信口通信参数设置
+					// 主站 IP 地址  和端口
+					// 终端事件记录配置设置
+					// 设备状态输入参数
+					// GPS 地理位置信息
+					// 扩展设备配置参数
+					// 开关量输出参数关联
+					// 模拟量采集参数关联
+					// 周回路控制表
+					// 经纬度开关灯偏移
+					// 查询全数据上送周期
+					// 查询模拟量上下限
+					// 查询漏电保护参数
+					// 查询光照度限值 参数
+					// 停运/投运
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				}
+			}
+		case "0b0b": // 请求任务数据（未支持）
+		case "0b0c": // 请求实时数据
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 2, 3, 4, 6, 7, 99, 18, 19, 20: // 终端日历时钟
+					// 进线模拟量数据(全数据)(报警主报)
+					// 终端上行通信状态
+					// 终端当前控制状态
+					// 终端事件计数器当前值
+					// 终端状态量及变位标志(全数据)
+					// 终端回路事件报警状态(全数据)
+					// 漏电检测数据(全数据)
+					// 光照度数据(主报)
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				}
+			case 0xffff: // 出线模拟量数据(全数据)(报警主报)
+				switch v.Fn {
+				case 1:
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				}
+			}
+		case "0b0d": // 请求历史数据
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 2: // 模拟量历史数据曲线(进线)
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.Write(gopsu.Stamp2BcdDT(pb2data.Afn0DP0F2.DtStart)[1:])
+					d.WriteByte(byte(pb2data.Afn0DP0F2.DataDensity))
+					d.WriteByte(byte(pb2data.Afn0DP0F2.DataNum))
+					d.WriteByte(0)
+				}
+			default:
+				switch v.Fn {
+				case 1: // 模拟量历史数据曲线(出线)
+					// 循环分解为多条指令
+					for _, vv := range pb2data.Afn0DPnF1.LoopNo {
+						d.Write(setPnFn(vv))
+						d.Write(setPnFn(v.Fn))
+						d.Write(gopsu.Stamp2BcdDT(pb2data.Afn0DPnF1.DtStart)[1:])
+						d.WriteByte(byte(pb2data.Afn0DPnF1.DataDensity))
+						d.WriteByte(byte(pb2data.Afn0DPnF1.DataNum))
+						d.WriteByte(byte(vv))
+						f := &Fwd{
+							DataDst: fmt.Sprintf("wlst-open-%d-%s", pb2data.DataID.Addr, pb2data.DataID.Area),
+							DataMsg: dp.BuildCommand(d.Bytes(), pb2data.DataID.Addr, 1, pb2data.DataID.Fun, 0, 1, pb2data.DataID.Afn, 1, pb2data.DataID.Seq, pb2data.DataID.Area),
+							Src:     fmt.Sprintf("%v", pb2data),
+						}
+						lstf = append(lstf, f)
+						d.Reset()
+					}
+				case 3: // 漏电历史数据曲线
+					// 循环分解为多条指令
+					for _, vv := range pb2data.Afn0DPnF3.LoopNo {
+						d.Write(setPnFn(vv))
+						d.Write(setPnFn(v.Fn))
+						d.Write(gopsu.Stamp2BcdDT(pb2data.Afn0DPnF3.DtStart)[1:])
+						d.WriteByte(byte(pb2data.Afn0DPnF3.DataDensity))
+						d.WriteByte(byte(pb2data.Afn0DPnF3.DataNum))
+						d.WriteByte(byte(vv))
+						f := &Fwd{
+							DataDst: fmt.Sprintf("wlst-open-%d-%s", pb2data.DataID.Addr, pb2data.DataID.Area),
+							DataMsg: dp.BuildCommand(d.Bytes(), pb2data.DataID.Addr, 1, pb2data.DataID.Fun, 0, 1, pb2data.DataID.Afn, 1, pb2data.DataID.Seq, pb2data.DataID.Area),
+							Src:     fmt.Sprintf("%v", pb2data),
+						}
+						lstf = append(lstf, f)
+						d.Reset()
+					}
+				}
+			}
+		case "0b0e": // 请求事件数据
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 1, 2: // 查询重要事件/查询一般事件
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(pb2data.Afn0EP0F1.Pm))
+					d.WriteByte(byte(pb2data.Afn0EP0F1.Pn))
+				}
+			}
+		case "0b0f": // 文件传输（未支持）
+		case "0b10": // 数据转发
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 1: // 485转发
+				case 9: // ftp升级
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					// ftp-ip/port
+					ip := strings.Split(gopsu.IPInt642String(pb2data.Afn10P0F9.FtpIp), ".")
+					for _, v := range ip {
+						d.WriteByte(gopsu.String2Int8(v, 10))
+					}
+					d.Write([]byte{byte(pb2data.Afn10P0F9.FtpPort % 256), byte(pb2data.Afn10P0F9.FtpPort / 256)})
+					// 备用ftp参数为空
+					d.Write([]byte{0, 0, 0, 0, 0, 0})
+					// 用户名
+					for i := 0; i < 10; i++ {
+						if i < len(pb2data.Afn10P0F9.FtpUser) {
+							d.WriteByte(pb2data.Afn10P0F9.FtpUser[i])
+						} else {
+							d.WriteByte(0)
+						}
+					}
+					// 密码
+					for i := 0; i < 10; i++ {
+						if i < len(pb2data.Afn10P0F9.FtpPwd) {
+							d.WriteByte(pb2data.Afn10P0F9.FtpPwd[i])
+						} else {
+							d.WriteByte(0)
+						}
+					}
+					// 服务器路径+备用路径
+					for i := 0; i < 40; i++ {
+						if i < len(pb2data.Afn10P0F9.FtpDir) {
+							d.WriteByte(pb2data.Afn10P0F9.FtpDir[i])
+						} else {
+							d.WriteByte(0)
+						}
+					}
+					// 文件名(5个)
+					for i := 0; i < 50; i++ {
+						if i < len(pb2data.Afn10P0F9.FtpFile) {
+							d.WriteByte(pb2data.Afn10P0F9.FtpFile[i])
+						} else {
+							d.WriteByte(0)
+						}
+					}
+				}
+			}
+		}
+		if d.Len() > 0 {
+			f := &Fwd{
+				DataDst: fmt.Sprintf("wlst-open-%d-%s", pb2data.DataID.Addr, pb2data.DataID.Area),
+				DataMsg: dp.BuildCommand(d.Bytes(), pb2data.DataID.Addr, 1, pb2data.DataID.Fun, 0, 1, pb2data.DataID.Afn, 1, pb2data.DataID.Seq, pb2data.DataID.Area),
+				Src:     fmt.Sprintf("%v", pb2data),
+			}
+			lstf = append(lstf, f)
+			getprotocol = true
+		}
+	}
+	if !getprotocol {
+		f := &Fwd{
+			// DataCmd: cmd,
+			Src: fmt.Sprintf("%v", pb2data),
+			Ex:  "unknow protocol",
+			// DstType: byte(pb2data.Head.Src),
 		}
 		lstf = append(lstf, f)
 	}

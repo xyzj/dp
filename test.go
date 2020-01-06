@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"os"
@@ -106,7 +107,7 @@ func testTmldata() {
 			// println(k, msg.String())
 			// z := v6.MsgCtlFromBytes(v.DataMsg)
 			if strings.Contains(v.DataCmd, "open") { // 国标
-				msg := &msgopen.WlstGBOpen{}
+				msg := &msgopen.MsgGBOpen{}
 				err := msg.Unmarshal(v.DataMsg)
 				if err != nil {
 					println(fmt.Sprintf("--- %d, %s", k, gopsu.Bytes2String(v.DataMsg, "-")))
@@ -244,8 +245,12 @@ func main() {
 	// testCtldatajson()
 	// testTmldata()
 	// s := "11010110"
-	println(1 ^ 1)
-	println(0 ^ 1)
+	var d bytes.Buffer
+	s := "devupgrade"
+	for i := 0; i < len(s); i++ {
+		d.WriteByte(s[i])
+		println(byte(s[i]))
+	}
 	// aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
 	// countCRC()
 	// for {

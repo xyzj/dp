@@ -324,7 +324,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 	f.Addr = int64(d[10]) + int64(d[11])*256
 	f.Area = fmt.Sprintf("%02x%02x", d[9], d[8])
 	f.DataCmd = fmt.Sprintf("wlst.open.%02x%02x", fun, afn)
-	svrmsg := &msgopen.WlstGBOpen{
+	svrmsg := &msgopen.MsgGBOpen{
 		DataID: &msgopen.DataIdentification{
 			Ec1:  ec1,
 			Ec2:  ec2,
@@ -390,7 +390,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 				DataType: DataTypeBytes,
 				DataDst:  fmt.Sprintf("wlst-open-%d-%s", f.Addr, dp.AreaCode),
 				DstType:  SockTml,
-				DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 11, 0, 1, 0, 0, seq),
+				DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 11, 0, 1, 0, 0, int32(seq), dp.AreaCode),
 				Tra:      TraDirect,
 				Job:      JobSend,
 				Src:      gopsu.Bytes2String(d, "-"),
@@ -944,79 +944,67 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 			default:
 				switch uid.Fn {
 				case 1: // 模拟量历史数据曲线（出线）
-					if svrmsg.Afn0DPnF1 == nil {
-						svrmsg.Afn0DPnF1 = &msgopen.Afn0D_Pn_F1{}
-					}
-					pndata := &msgopen.Afn0D_Pn_F1_Pn_Data{
-						Pno: uid.Pn,
-					}
-					pndata.DtStart = gopsu.BcdDT2Stamp(d[j : j+5])
+					svrmsg.Afn0DPnF1 = &msgopen.Afn0D_Pn_F1{}
+					svrmsg.Afn0DPnF1.DtStart = gopsu.BcdDT2Stamp(d[j : j+5])
 					j += 5
-					pndata.DataDensity = int32(d[j])
+					svrmsg.Afn0DPnF1.DataDensity = int32(d[j])
 					j++
-					pndata.DataNum = int32(d[j])
+					svrmsg.Afn0DPnF1.DataNum = int32(d[j])
 					j++
-					pndata.LoopNo = int32(d[j])
+					svrmsg.Afn0DPnF1.LoopNo = append(svrmsg.Afn0DPnF1.LoopNo, int32(d[j]))
 					j++
-					pndata.LoopData = make([]*msgopen.Afn0D_Pn_F1_Loop_Data, int(pndata.DataNum))
+					svrmsg.Afn0DPnF1.LoopData = make([]*msgopen.Afn0D_Pn_F1_Loop_Data, int(svrmsg.Afn0DPnF1.DataNum))
 					// 填充电压数据
-					for i := 0; i < int(pndata.DataNum); i++ {
-						pndata.LoopData[i].Voltage = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
+					for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
+						svrmsg.Afn0DPnF1.LoopData[i].Voltage = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
 					}
 					// 填充所有结构，填充电压数据
-					// for i := 0; i < int(pndata.DataNum); i++ {
+					// for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
 					// 	ld := &msgopen.Afn0D_Pn_F1_Loop_Data{
 					// 		Voltage: gopsu.BcdBytes2Float64(d[j:j+2], 1, true),
 					// 	}
 					// 	j += 2
-					// 	pndata.LoopData = append(pndata.LoopData, ld)
+					// 	svrmsg.Afn0DPnF1.LoopData = append(svrmsg.Afn0DPnF1.LoopData, ld)
 					// }
 					// 填充电流数据
-					for i := 0; i < int(pndata.DataNum); i++ {
-						pndata.LoopData[i].Current = gopsu.BcdBytes2Float64(d[j:j+3], 3, false)
+					for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
+						svrmsg.Afn0DPnF1.LoopData[i].Current = gopsu.BcdBytes2Float64(d[j:j+3], 3, false)
 						j += 3
 					}
 					// 填充有功功率数据
-					for i := 0; i < int(pndata.DataNum); i++ {
-						pndata.LoopData[i].ActivePower = gopsu.BcdBytes2Float64(d[j:j+3], 4, false)
+					for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
+						svrmsg.Afn0DPnF1.LoopData[i].ActivePower = gopsu.BcdBytes2Float64(d[j:j+3], 4, false)
 						j += 3
 					}
 					// 填充无功功率数据
-					for i := 0; i < int(pndata.DataNum); i++ {
-						pndata.LoopData[i].ReactivePower = gopsu.BcdBytes2Float64(d[j:j+3], 4, false)
+					for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
+						svrmsg.Afn0DPnF1.LoopData[i].ReactivePower = gopsu.BcdBytes2Float64(d[j:j+3], 4, false)
 						j += 3
 					}
 					// 填充功率因数数据
-					for i := 0; i < int(pndata.DataNum); i++ {
-						pndata.LoopData[i].PowerFactor = gopsu.BcdBytes2Float64(d[j:j+2], 1, false)
+					for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
+						svrmsg.Afn0DPnF1.LoopData[i].PowerFactor = gopsu.BcdBytes2Float64(d[j:j+2], 1, false)
 						j += 2
 					}
 					// 填充光控值
-					for i := 0; i < int(pndata.DataNum); i++ {
-						pndata.LoopData[i].LuxValue = gopsu.BcdBytes2Float64(d[j:j+2], 1, false)
+					for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
+						svrmsg.Afn0DPnF1.LoopData[i].LuxValue = gopsu.BcdBytes2Float64(d[j:j+2], 1, false)
 						j += 2
 					}
-					svrmsg.Afn0DPnF1.PnData = append(svrmsg.Afn0DPnF1.PnData, pndata)
 				case 3: // 漏电历史数据曲线
-					if svrmsg.Afn0DPnF3 == nil {
-						svrmsg.Afn0DPnF3 = &msgopen.Afn0D_Pn_F3{}
-					}
-					pndata := &msgopen.Afn0D_Pn_F3_Pn_Data{
-						Pno: uid.Pn,
-					}
-					pndata.DtStart = gopsu.BcdDT2Stamp(d[j : j+5])
+					svrmsg.Afn0DPnF3 = &msgopen.Afn0D_Pn_F3{}
+					svrmsg.Afn0DPnF3.DtStart = gopsu.BcdDT2Stamp(d[j : j+5])
 					j += 5
-					pndata.DataDensity = int32(d[j])
+					svrmsg.Afn0DPnF3.DataDensity = int32(d[j])
 					j++
-					pndata.DataNum = int32(d[j])
+					svrmsg.Afn0DPnF3.DataNum = int32(d[j])
 					j++
-					pndata.LoopNo = int32(d[j])
+					svrmsg.Afn0DPnF3.LoopNo = append(svrmsg.Afn0DPnF3.LoopNo, int32(d[j]))
 					j++
-					for i := 0; i < int(pndata.DataNum); i++ {
-						pndata.LeakageCurrent = append(pndata.LeakageCurrent, gopsu.BcdBytes2Float64(d[j:j+3], 3, false))
+					for i := 0; i < int(svrmsg.Afn0DPnF3.DataNum); i++ {
+						svrmsg.Afn0DPnF3.LeakageCurrent = append(svrmsg.Afn0DPnF3.LeakageCurrent, gopsu.BcdBytes2Float64(d[j:j+3], 3, false))
 						j += 3
 					}
-					svrmsg.Afn0DPnF3.PnData = append(svrmsg.Afn0DPnF3.PnData, pndata)
 				}
 			}
 		case 0x0e: // 请求事件记录
@@ -1162,7 +1150,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 							DataType: DataTypeBytes,
 							DataDst:  fmt.Sprintf("wlst-open-%d-%s", f.Addr, dp.AreaCode),
 							DstType:  SockTml,
-							DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 8, 0, 1, afn, 0, seq),
+							DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 8, 0, 1, int32(afn), 0, int32(seq), dp.AreaCode),
 							Tra:      TraDirect,
 							Job:      JobSend,
 						}
@@ -1188,7 +1176,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 							DataType: DataTypeBytes,
 							DataDst:  fmt.Sprintf("wlst-open-%d-%s", f.Addr, dp.AreaCode),
 							DstType:  SockTml,
-							DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 8, 0, 1, afn, 0, seq),
+							DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 8, 0, 1, int32(afn), 0, int32(seq), dp.AreaCode),
 							Tra:      TraDirect,
 							Job:      JobSend,
 						}
