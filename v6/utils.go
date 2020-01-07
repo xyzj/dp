@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"net"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/xyzj/gopsu"
 	msgctl "gitlab.local/proto/msgjk"
@@ -36,6 +40,7 @@ var (
 	}
 	// Prm011 从动站对应prm=1功能码11
 	Prm011 = map[byte]byte{
+		0x00: 0, // 复位
 		0x03: 8, // 中继站命令
 		0x06: 8, // 身份认证以及密钥协商
 		0x08: 8, // 请求被级联终端主动上报
@@ -47,30 +52,14 @@ var (
 		0x0e: 8, // 请求事件数据
 		0x10: 8, //数据转发
 	}
-	// Prm001  从动站对应prm=1功能码1
-	Prm001 = map[byte]byte{
-		0x00: 0, // 复位
-	}
-	// Prm009  从动站对应prm=1功能码9
-	Prm009 = map[byte]byte{
-		0x00: 11, // 复位
-	}
 )
 
-func getFunCode(prm1, prm0, afn byte) byte {
-	switch prm1 {
-	case 1: // 主动发送
-		return Prm100[afn]
-	default: // 0,应答
-		switch prm0 {
-		case 1:
-			return Prm001[afn]
-		case 9:
-			return Prm009[afn]
-		default: //10, 11:
-			return Prm011[afn]
-		}
-	}
+func getFunCodeMaster(afn byte) byte {
+	return Prm100[afn]
+}
+
+func getFunCodeSlave(afn byte) byte {
+	return Prm011[afn]
 }
 
 func getPnFn(b []byte) int32 {
@@ -83,7 +72,7 @@ func getPnFn(b []byte) int32 {
 	return int32(b[1])*8 + idx
 }
 
-func setPnFn(n int) []byte {
+func setPnFn(n int32) []byte {
 	if n == 0 {
 		return []byte{0, 0}
 	}
@@ -106,32 +95,59 @@ type DataProcessor struct {
 	Verbose sync.Map
 	// AreaCode 区域码
 	AreaCode string
-	// AreaBytes 区域码字节
-	AreaBytes []byte
+	// PhyID
+	PhyID int64
+	// ec1
+	Ec1 byte
+	// ec2
+	Ec2 byte
+	// 日志
+	Logger gopsu.Logger
+}
+
+func (dp *DataProcessor) writeEC() {
+	ioutil.WriteFile(filepath.Join(gopsu.DefaultCacheDir, "ec", fmt.Sprintf("%s%05d", dp.AreaCode, dp.PhyID)), []byte(fmt.Sprintf("%d,%d", dp.Ec1, dp.Ec2)), 0664)
+}
+
+func (dp *DataProcessor) readEC() {
+	b, err := ioutil.ReadFile(filepath.Join(gopsu.DefaultCacheDir, "ec", fmt.Sprintf("%s%05d", dp.AreaCode, dp.PhyID)))
+	if err != nil {
+		dp.Ec1 = 0
+		dp.Ec2 = 0
+		return
+	}
+	s := strings.Split(string(b), ",")
+	if len(s) != 2 {
+		dp.Ec1 = 0
+		dp.Ec2 = 0
+		return
+	}
+	dp.Ec1 = gopsu.String2Int8(s[0], 10)
+	dp.Ec2 = gopsu.String2Int8(s[1], 10)
 }
 
 // BuildCommand 创建命令
-// ll: 长度
-// area: 区域码
-// addr: 地址
-// prm: 启动标志位0-应答，1-主动下行
-// fun: 链路层功能码
-// crypt: 是否加密0 为不加密(身份认∕否认(证及密钥协商用到),调整1 代表明文加 MAC,2 代表密文加 MAC,3 密码信封(证书方式)
-// ver: 版本，1
-// afn: 应用层功能码
-// seq: 序号，中间层提供
-func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, fun, crypt, ver, afn, con, seq byte) []byte {
+// 	addr: 地址
+// 	prm: 启动标志位0-应答，1-主动下行
+// 	fun: 链路层功能码
+// 	crypt: 是否加密0 为不加密(身份认∕否认(证及密钥协商用到),调整1 代表明文加 MAC,2 代表密文加 MAC,3 密码信封(证书方式)
+// 	ver: 版本，1
+// 	afn: 应用层功能码
+//	con: 是否需要设备应答0-不需要，1-需要
+// 	seq: 序号，中间层提供
+// 	area: 区域码
+func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, fun, crypt, ver, afn, con, seq int32, area string) []byte {
 	var b, d bytes.Buffer
 	// 控制码
 	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0%d00%04b", prm, fun), 2))
 	// 版本和加密
 	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%04b", crypt, ver), 2))
 	// 地址
-	d.Write(dp.MakeAddr(addr))
+	d.Write(dp.MakeAddr(addr, area))
 	// afn
-	d.WriteByte(afn)
+	d.WriteByte(byte(afn))
 	// seq
-	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0110%04b", seq), 2))
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("011%d%04b", con, seq), 2))
 	// 数据体，含pn，fn
 	d.Write(data)
 	// 数据体长度
@@ -154,10 +170,15 @@ func (dp *DataProcessor) CalculateRC(d []byte) byte {
 }
 
 // MakeAddr 组装国标协议格式地址
-func (dp *DataProcessor) MakeAddr(addr int64) []byte {
+func (dp *DataProcessor) MakeAddr(addr int64, area string) []byte {
 	var b bytes.Buffer
-	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(dp.AreaCode[2:], 10)))
-	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(dp.AreaCode[:2], 10)))
+	if area == "0000" { // 不限定区域，使用设备上行主报区域码
+		b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(dp.AreaCode[2:], 10)))
+		b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(dp.AreaCode[:2], 10)))
+	} else {
+		b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(area[2:], 10)))
+		b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(area[:2], 10)))
+	}
 	b.WriteByte(byte(addr % 256))
 	b.WriteByte(byte(addr / 256))
 	if addr == 0xffff {
@@ -174,6 +195,7 @@ func (dp *DataProcessor) Reset() {
 	dp.RemoteIP = 0
 	dp.TimerNoSec = false
 	dp.Imei = 0
+	dp.AreaCode = ""
 	dp.Verbose.Range(func(k, v interface{}) bool {
 		dp.Verbose.Delete(k)
 		return true
@@ -380,23 +402,24 @@ var (
 
 // Fwd 数据解析结果需发送内容结构体
 type Fwd struct {
-	DataMsg     []byte              // 发送数据
-	DataCmd     string              // 指令命令
-	DataDst     string              // for tml, something like "wlst-rtu-1"
-	DataPT      int32               // command protect time
-	DataSP      byte                // data send level 0-normal, 1-high
-	DataType    byte                // 1-hex,2-string
-	DstType     byte                // 0-unknow,1-tml,2-data,3-client,4-sdcmp,5-fwdcs,6-upgrade,7-iisi,8-vb,9-udp
-	DstIP       int64               // 目标ip
-	DstIMEI     int64               // 目标imei
-	DataUDPAddr *net.UDPAddr        // for udp only
-	Tra         byte                // 1-socket, 2-485
-	Addr        int64               // 设备地址
-	Ex          string              // 错误信息
-	Src         string              // 原始数据
-	Job         byte                // 0-just send,1-need do something else
-	Remark      string              // 备注信息，或其他想要传出的数据
-	DataSrc     *msgctl.MsgWithCtrl // msgwithctrl原始数据地址，预处理用
+	DataMsg     []byte       // 发送数据
+	DataCmd     string       // 指令命令
+	DataDst     string       // for tml, something like "wlst-rtu-1"
+	DataPT      int32        // command protect time
+	DataSP      byte         // data send level 0-normal, 1-high
+	DataType    byte         // 1-hex,2-string
+	DstType     byte         // 0-unknow,1-tml,2-data,3-client,4-sdcmp,5-fwdcs,6-upgrade,7-iisi,8-vb,9-udp
+	DstIP       int64        // 目标ip
+	DstIMEI     int64        // 目标imei
+	DataUDPAddr *net.UDPAddr // for udp only
+	Tra         byte         // 1-socket, 2-485
+	Addr        int64        // 设备地址
+	Area        string       // 设备区域码
+	Ex          string       // 错误信息
+	Src         string       // 原始数据
+	Job         byte         // 0-just send,1-need do something else
+	Remark      string       // 备注信息，或其他想要传出的数据
+	DataSrc     *[]byte      // 传递数据
 }
 
 // Rtb 数据解析结果
@@ -538,7 +561,7 @@ func CodePb2NB(m *msgnb.MsgNBOpen) []byte {
 	return []byte{}
 }
 
-// MsgCtlFromBytes decode msgcgtl
+// MsgCtlFromBytes decode MsgWithCtrl
 // Args:
 // 	b：pb2序列化数据
 func MsgCtlFromBytes(b []byte) *msgctl.MsgWithCtrl {
@@ -548,6 +571,18 @@ func MsgCtlFromBytes(b []byte) *msgctl.MsgWithCtrl {
 		return msg
 	}
 	return nil
+}
+
+// MsgFromBytes decode protomsg
+// Args:
+// 	b：pb2序列化数据
+//	pb: proto结构体
+func MsgFromBytes(b []byte, pb proto.Message) proto.Message {
+	err := proto.Unmarshal(b, pb)
+	if err != nil {
+		return nil
+	}
+	return pb
 }
 
 // MsgCtlFromB64Str 从base64字符串解析pb2格式数据
