@@ -18,47 +18,32 @@ import (
 	msgctl "gitlab.local/proto/msgjk"
 )
 
-var (
-	// Prm100 启动站对应
-	Prm100 = map[byte]byte{
-		0x01: 1,  // 复位
-		0x02: 9,  // 链路接口测试
-		0x04: 10, // 设置参数
-		0x05: 10, // 控制命令
-		0x03: 11, // 中继站命令
-		0x06: 11, // 身份认证以及密钥协商
-		0x08: 11, // 请求被级联终端主动上报
-		0x09: 11, // 请求终端配置
-		0x0a: 11, // 查询参数
-		0x0b: 11, // 请求任务数据
-		0x0c: 11, // 请求实时数据
-		0x0d: 11, // 请求历史数据
-		0x0e: 11, // 请求事件数据
-		0x0f: 11, // 文件传输
-		0x10: 11, //数据转发
+// 组装端口属性字节
+//	br:波特率,300,600,1200,2400,4800,7200,9600,19200
+//	stop：停止位0-1位，1-2位
+//	rc：是否有校验0-无校验，1-有校验
+//	rcodd：是否奇校验0-否（偶校验），1-是
+func setRSPort(br, stop, rc, rcodd int) byte {
+	var bps = 3
+	switch br {
+	case 300:
+		bps = 0
+	case 600:
+		bps = 1
+	case 1200:
+		bps = 2
+	case 2400:
+		bps = 3
+	case 4800:
+		bps = 4
+	case 7200:
+		bps = 5
+	case 9600:
+		bps = 6
+	case 19200:
+		bps = 7
 	}
-	// Prm011 从动站对应prm=1功能码11
-	Prm011 = map[byte]byte{
-		0x00: 0, // 复位
-		0x03: 8, // 中继站命令
-		0x06: 8, // 身份认证以及密钥协商
-		0x08: 8, // 请求被级联终端主动上报
-		0x09: 8, // 请求终端配置
-		0x0a: 8, // 查询参数
-		0x0b: 8, // 请求任务数据
-		0x0c: 8, // 请求实时数据
-		0x0d: 8, // 请求历史数据
-		0x0e: 8, // 请求事件数据
-		0x10: 8, //数据转发
-	}
-)
-
-func getFunCodeMaster(afn byte) byte {
-	return Prm100[afn]
-}
-
-func getFunCodeSlave(afn byte) byte {
-	return Prm011[afn]
+	return gopsu.String2Int8(fmt.Sprintf("%03b%1b%1b%1b11", bps, stop, rc, rcodd), 2)
 }
 
 func getPnFn(b []byte) int32 {

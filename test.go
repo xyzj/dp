@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/base64"
 	"fmt"
 	"os"
@@ -245,12 +244,12 @@ func main() {
 	// testCtldatajson()
 	// testTmldata()
 	// s := "11010110"
-	var d bytes.Buffer
-	s := "devupgrade"
-	for i := 0; i < len(s); i++ {
-		d.WriteByte(s[i])
-		println(byte(s[i]))
+	a := float64(6553)
+	b := gopsu.Float642BcdBytes(a, "%04.0f")
+	for _, v := range b {
+		println(fmt.Sprintf("%02x", v))
 	}
+	println(fmt.Sprintf("%.2f", gopsu.BcdBytes2Float64(b, 0, false)))
 	// aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
 	// countCRC()
 	// for {
