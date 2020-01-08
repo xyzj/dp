@@ -3091,7 +3091,8 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 				case 53: // 设置光照度限值参数
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
-					d.Write([]byte{byte(pb2data.Afn04P0F53.LuxThreshold%256),byte(pb2data.Afn04P0F53.LuxThreshold/256)})
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F53.LuxThreshold),"%04.0f"))
+					//d.Write([]byte{byte(pb2data.Afn04P0F53.LuxThreshold%256),byte(pb2data.Afn04P0F53.LuxThreshold/256)})
 					d.WriteByte(byte(pb2data.Afn04P0F53.TimeTick))
 				
 				case 57: // 停运/投运
