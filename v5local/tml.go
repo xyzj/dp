@@ -295,6 +295,13 @@ LOOP:
 				d = d[k+lMru+12:]
 				goto LOOP
 			}
+			// 公司标准（天津版）
+			lGb := int(d[k+1]) + int(d[k+2])*256
+			if d[k+5] == 0x68 && d[k+lGb+7] == 0x16 {
+				r.Do = append(r.Do, dataGb(d[k:k+lGb+8], ip, portlocal)...)
+				d = d[k+lGb+8:]
+				goto LOOP
+			}
 			// 勃洛克
 			lBlk := int(d[k+2])*256 + int(d[k+3])
 			if d[k+4] == 0x68 && d[k+lBlk+4] == 0x16 {
@@ -312,6 +319,7 @@ LOOP:
 				d = d[k+lShld+9:]
 				goto LOOP
 			}
+
 		}
 	}
 	return r
@@ -3372,7 +3380,7 @@ func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			}
 			var ctrlloop = make([]int32, 0)
 			for i := len(s); i > 0; i -= 2 {
-				ctrlloop = append(ctrlloop, gopsu.String2Int32(s[i-1:i], 2)+1)
+				ctrlloop = append(ctrlloop, gopsu.String2Int32(s[i-2:i], 2)+1)
 			}
 			j := 0
 			for i := byte(0); i < d[10]; i++ {
@@ -3931,7 +3939,7 @@ func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			j += n
 			var ctrlloop = make([]int32, 0)
 			for i := len(s); i > 0; i -= 2 {
-				ctrlloop = append(ctrlloop, gopsu.String2Int32(s[i-1:i], 2)+1)
+				ctrlloop = append(ctrlloop, gopsu.String2Int32(s[i-2:i], 2)+1)
 			}
 			for i := 0; i < c; i++ {
 				cd := &msgctl.WlstSlu_7300_BaseSluitemData{}
@@ -7747,3 +7755,123 @@ func dataUpgrade(d []byte, ip *int64, portlocal *int, oldaddr int64) (lstf []*Fw
 
 	return lstf
 }
+
+// 公司协议（天津）
+// Args:
+// 	d: 原始数据
+// 	ip：数据来源ip
+// Return:
+// 	lstf: 处理反馈结果
+func dataGb(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
+	var f = &Fwd{
+		DataType: DataTypeBase64,
+		DataDst:  "2",
+		DstType:  SockData,
+		Tra:      TraDirect,
+		Job:      JobSend,
+		Src:      gopsu.Bytes2String(d, "-"),
+	}
+	ll := int(d[1]) + int(d[2])*256
+
+	if d[6+ll] != CalculateRC(d[6:6+ll]) { // 校验失败，丢弃
+		return lstf
+	}
+
+	f.Addr = int64(d[10]) + int64(d[11])*256
+	afn := d[13]
+	fun := byte(d[6]<<4) >> 4	
+	svrmsg := initMsgCtl(fmt.Sprintf("wlst.gb.%02x%02x", fun, afn), f.Addr, *ip,1, 1, 1,portlocal)
+	f.DataCmd = svrmsg.Head.Cmd
+	acd := int32(byte(d[6]<<2) >> 7)
+	tpv := byte(d[14]) >> 7
+	seq := byte(d[14]<<4) >> 4
+	var ec1, ec2 int32 // ec1,ec2,重要事件/事件数量
+	var j, maxJ int    // 数据读取索引，数据单元最大索引
+	maxJ = len(d) - 2
+	if acd == 1 { // 有附加数据
+		if tpv == 1 { // 有时间戳
+			maxJ = len(d) - 10
+		} else {
+			maxJ = len(d) - 4
+		}
+		ec1 = int32(d[maxJ])
+		ec2 = int32(d[maxJ+1])
+	}
+	j = 15
+	// 初始化框架
+	dataID := &msgctl.DataIdentification{
+		Acd: acd,
+		Ec1: ec1,
+		Ec2: ec2,
+		Afn: int32(afn),
+		Seq: int32(seq),
+	}
+	switch afn {
+	case 0x00: // 应答
+		svrmsg.WlstOpen_0000 = &msgctl.WlstOpen_0000{
+			DataID: dataID,
+		}
+	case 0x01: // 复位
+		svrmsg.WlstOpen_0101 = &msgctl.WlstOpen_0101{
+			DataID: dataID,
+		}
+	case 0x02: // 登录/心跳
+		svrmsg.WlstOpen_0902 = &msgctl.WlstOpen_0902{
+			DataID: dataID,
+		}
+	}
+	// 循环解析所有数据单元
+	for {
+		// 当读到最后时，跳出循环
+		if j >= maxJ { // 上行数据无视tp，pw
+			break
+		}
+		uid := &msgctl.UnitIdentification{
+			Pn: getPnFn(d[j : j+2]),
+			Fn: getPnFn(d[j+2 : j+4]),
+		}
+		j += 4
+		switch afn {
+		case 0x00: // 应答
+			svrmsg.WlstOpen_0000.DataID.UintID = append(svrmsg.WlstOpen_0000.DataID.UintID, uid)
+			switch uid.Pn {
+			case 0:
+				switch uid.Fn {
+				case 1, 2: // 全部确认/否认
+					svrmsg.WlstOpen_0000.Afn = int32(d[j])
+					j++
+				case 3: // 部分确认/否认
+					// TODO:
+				}
+			}
+		case 0x02: // 登录/心跳
+			svrmsg.WlstOpen_0902.DataID.UintID = append(svrmsg.WlstOpen_0902.DataID.UintID, uid)
+			
+			// if uid.Pn == 0 && uid.Fn == 1 { // 仅登录消息的areaid有效
+			area := fmt.Sprintf("%02x%02x", d[9], d[8])
+			//}
+			var dd bytes.Buffer
+			dd.Write(setPnFn(0))
+			dd.Write(setPnFn(1))
+			dd.WriteByte(2)
+			var ff = &Fwd{
+				DataType: DataTypeBytes,
+				DataDst:  fmt.Sprintf("wlst-open-%05d%s", f.Addr, area),
+				DstType:  SockTml,
+				DataMsg:  BuildCommand(dd.Bytes(), f.Addr, area,0, 11, 0, 1, 0, 0, seq),
+				Tra:      TraDirect,
+				Job:      JobSend,
+				Src:      gopsu.Bytes2String(d, "-"),
+			}
+			lstf = append(lstf, ff)
+		}
+	}
+	if len(f.DataCmd) > 0 {
+		f.DataCmd = svrmsg.Head.Cmd
+		f.DataMsg = CodePb2(svrmsg)
+		lstf = append(lstf, f)
+	}
+
+	return lstf
+}
+

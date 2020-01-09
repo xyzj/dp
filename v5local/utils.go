@@ -903,3 +903,78 @@ func Single2Tribytes(b float64) []byte {
 	mantissal = int(math.Ceil(i*math.Exp2(16))) % 256
 	return []byte{byte(exponet), byte(mantissah), byte(mantissal)}
 }
+
+// BuildCommand 创建命令
+// ll: 长度
+// area: 区域码
+// addr: 地址
+// prm: 启动标志位0-应答，1-主动下行
+// fun: 链路层功能码
+// crypt: 是否加密0 为不加密(身份认∕否认(证及密钥协商用到),调整1 代表明文加 MAC,2 代表密文加 MAC,3 密码信封(证书方式)
+// ver: 版本，1
+// afn: 应用层功能码
+// seq: 序号，中间层提供
+func BuildCommand(data []byte, addr int64,area string, prm, fun, crypt, ver, afn, con, seq byte) []byte {
+	var b, d bytes.Buffer
+	// 控制码
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0%d00%04b", prm, fun), 2))
+	// 版本和加密
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%04b", crypt, ver), 2))
+	// 地址
+	d.Write(MakeAddr(addr,area))
+	// afn
+	d.WriteByte(afn)
+	// seq
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0110%04b", seq), 2))
+	// 数据体，含pn，fn
+	d.Write(data)
+	// 数据体长度
+	ll := len(d.Bytes())
+	// 整体指令
+	b.Write([]byte{0x68, byte(ll % 256), byte(ll / 256), byte(ll % 256), byte(ll / 256), 0x68})
+	b.Write(d.Bytes())
+	b.WriteByte(CalculateRC(d.Bytes()))
+	b.WriteByte(0x16)
+	return b.Bytes()
+}
+
+// CalculateRC 计算校验值
+func CalculateRC(d []byte) byte {
+	var a byte
+	for _, v := range d {
+		a += v
+	}
+	return a
+}
+
+// MakeAddr 组装国标协议格式地址
+func MakeAddr(addr int64,area string) []byte {
+	var b bytes.Buffer
+	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(area[2:], 10)))
+	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(area[:2], 10)))
+	b.WriteByte(byte(addr % 256))
+	b.WriteByte(byte(addr / 256))
+	if addr == 0xffff {
+		b.WriteByte(1)
+	} else {
+		b.WriteByte(0)
+	}
+	return b.Bytes()
+}
+
+func getPnFn(b []byte) int32 {
+	var idx int32
+	if b[0] == 0 {
+		idx = 0
+	} else {
+		idx = int32(math.Log2(float64(b[0]))) + 1
+	}
+	return int32(b[1])*8 + idx
+}
+
+func setPnFn(n int) []byte {
+	if n == 0 {
+		return []byte{0, 0}
+	}
+	return []byte{byte(math.Exp2(float64(n%8 - 1))), byte(n / 8)}
+}
