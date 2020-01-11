@@ -462,7 +462,7 @@ func initMsgCtl(cmd string, addr, ip int64, tver int32, tra byte, cid int32, por
 // 	tver：协议版本，默认1
 // 	tra：传输方式，1-socket，2-485
 // 	cid: 子设备物理地址
-func initMsgNB(cmd string, addr,imei, at int64) *msgnb.MsgNBOpen {
+func initMsgNB(cmd string, addr, imei, at int64) *msgnb.MsgNBOpen {
 	msg := &msgnb.MsgNBOpen{
 		Imei:          imei,
 		DtReceive:     at,
@@ -470,14 +470,14 @@ func initMsgNB(cmd string, addr,imei, at int64) *msgnb.MsgNBOpen {
 		SluitemData:   &msgnb.SluitemData{},
 		SluitemConfig: &msgnb.SluitemConfig{},
 		SluitemReply:  &msgnb.SluitemReply{},
-		NbSlu_3100:  &msgnb.NBSlu_3100{},
-		NbSlu_3700:  &msgnb.NBSlu_3700{},
-		NbSlu_1400:  &msgnb.NBSlu_1400{},
-		NbSlu_5100:  &msgnb.NBSlu_5100{},
-		NbSlu_5200:  &msgnb.NBSlu_5200{},
-		NbSlu_5400:  &msgnb.NBSlu_5400{},
-		NbSlu_5500:  &msgnb.NBSlu_5500{},
-		NbSlu_5600:  &msgnb.NBSlu_5600{},
+		NbSlu_3100:    &msgnb.NBSlu_3100{},
+		NbSlu_3700:    &msgnb.NBSlu_3700{},
+		NbSlu_1400:    &msgnb.NBSlu_1400{},
+		NbSlu_5100:    &msgnb.NBSlu_5100{},
+		NbSlu_5200:    &msgnb.NBSlu_5200{},
+		NbSlu_5400:    &msgnb.NBSlu_5400{},
+		NbSlu_5500:    &msgnb.NBSlu_5500{},
+		NbSlu_5600:    &msgnb.NBSlu_5600{},
 	}
 
 	return msg
@@ -536,7 +536,7 @@ func CodePb2(m *msgctl.MsgWithCtrl) []byte {
 	return []byte{}
 }
 
-// CodePb2 code msgctl
+// CodePb2NB code msgctl
 func CodePb2NB(m *msgnb.MsgNBOpen) []byte {
 	if b, ex := m.Marshal(); ex == nil {
 		return b
