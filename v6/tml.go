@@ -3813,6 +3813,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		svrmsg.WlstTml.WlstSluCd00.BluetoothPin = int32(d[19]) + int32(d[20])*256 + int32(d[21])*256*256 + int32(d[22])*256*256*256
 		svrmsg.WlstTml.WlstSluCd00.BluetoothMode = int32(d[23])
 		svrmsg.WlstTml.WlstSluCd00.Cct = int32(d[24])
+		svrmsg.WlstTml.WlstSluCd00.AlwaysOnline = int32(d[25])
 	case 0xee: // 招测/应答延迟巡测
 		svrmsg.WlstTml.WlstSluEe00 = &msgctl.WlstSlu_6E00{}
 		svrmsg.WlstTml.WlstSluEe00.CmdIdx = int32(d[7])

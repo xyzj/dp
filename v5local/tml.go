@@ -3144,6 +3144,7 @@ func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 		svrmsg.WlstTml.WlstSluCd00.BluetoothPin = int32(d[19]) + int32(d[20])*256 + int32(d[21])*256*256 + int32(d[22])*256*256*256
 		svrmsg.WlstTml.WlstSluCd00.BluetoothMode = int32(d[23])
 		svrmsg.WlstTml.WlstSluCd00.Cct = int32(d[24])
+		svrmsg.WlstTml.WlstSluCd00.AlwaysOnline = int32(d[25])
 		zm := svrmsg.WlstTml.WlstSluCd00
 		b, ex := pb2.Marshal(zm)
 		if ex == nil {
