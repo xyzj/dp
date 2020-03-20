@@ -279,14 +279,12 @@ LOOP:
 				d = []byte{}
 				goto LOOP
 			}
-			// 安徽合肥
-			lAhhf := int(d[k+1]) + int(d[k+2])*256
-			if len(d[k:]) >= lAhhf+7 {
-				if d[k+3] == 0x68 && d[k+lAhhf+6] == 0x56 {
-					r.Do = append(r.Do, dataAhhf(d[k:k+lAhhf+12], ip, portlocal)...)
-					d = d[k+lAhhf+7:]
-					goto LOOP
-				}
+			// 公司标准（天津版）
+			lGb := int(d[k+1]) + int(d[k+2])*256
+			if d[k+5] == 0x68 && d[k+lGb+7] == 0x16 {
+				r.Do = append(r.Do, dataGb(d[k:k+lGb+8], ip, portlocal)...)
+				d = d[k+lGb+8:]
+				goto LOOP
 			}
 			// 电表/udp单灯
 			lMru := int(d[k+9])
@@ -296,12 +294,21 @@ LOOP:
 				d = d[k+lMru+12:]
 				goto LOOP
 			}
-			// 公司标准（天津版）
-			lGb := int(d[k+1]) + int(d[k+2])*256
-			if d[k+5] == 0x68 && d[k+lGb+7] == 0x16 {
-				r.Do = append(r.Do, dataGb(d[k:k+lGb+8], ip, portlocal)...)
-				d = d[k+lGb+8:]
+			// 恒杰门禁
+			lhj := int(d[k+3])
+			if d[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{d[k+2]}) {
+				r.Do = append(r.Do, dataHJLock(d[k:k+lhj+7], 1, 0, ip, portlocal)...)
+				d = d[k+lhj+7:]
 				goto LOOP
+			}
+			// 安徽合肥
+			lAhhf := int(d[k+1]) + int(d[k+2])*256
+			if len(d[k:]) >= lAhhf+7 {
+				if d[k+3] == 0x68 && d[k+lAhhf+6] == 0x56 {
+					r.Do = append(r.Do, dataAhhf(d[k:k+lAhhf+12], ip, portlocal)...)
+					d = d[k+lAhhf+7:]
+					goto LOOP
+				}
 			}
 			// 勃洛克
 			lBlk := int(d[k+2])*256 + int(d[k+3])
@@ -339,6 +346,73 @@ func ClassifyNBSluData(d []byte, ip *int64, portlocal, portremote *int, checkrc 
 		}
 	}
 	return r
+}
+
+// 恒杰门禁
+func dataHJLock(d []byte, tra byte, parentID int64, ip *int64, portlocal *int) (lstf []*Fwd) {
+	var f = &Fwd{
+		DataType: DataTypeBase64,
+		DataDst:  "2",
+		DstType:  SockData,
+		Tra:      TraDirect,
+		Job:      JobSend,
+		Src:      gopsu.Bytes2String(d, "-"),
+	}
+
+	if !gopsu.CheckCrc16VBBigOrder(d[1 : len(d)-3]) {
+		f.Ex = fmt.Sprintf("locker data validation fails")
+		lstf = append(lstf, f)
+		return lstf
+	}
+	var cid int32
+	cmd := d[2]
+	if parentID == 0 {
+		f.Addr = int64(d[1])
+		cid = 1
+	} else {
+		f.Addr = parentID
+		cid = int32(d[1])
+	}
+	svrmsg := initMsgCtl(fmt.Sprintf("wlst.rtu.%02x00", cmd), f.Addr, *ip, 1, tra, cid, portlocal)
+	f.DataCmd = svrmsg.Head.Cmd
+	switch cmd {
+	case 0x81: // 设置地址
+		svrmsg.WlstTml.HjLock_8100.Status = int32(d[4])
+	case 0x82: // 读取状态
+		svrmsg.WlstTml.HjLock_8200.LockStatus = int32(d[4])
+		svrmsg.WlstTml.HjLock_8200.FreqLights = int32(d[5])
+		svrmsg.WlstTml.HjLock_8200.FreqBeep = int32(d[6])
+		svrmsg.WlstTml.HjLock_8200.TimeDelay = int32(d[7])
+		svrmsg.WlstTml.HjLock_8200.LockoffDelay = int32(d[8])
+		svrmsg.WlstTml.HjLock_8200.MasterCard1 = gopsu.Bytes2Uint64(d[9:13], false)
+		svrmsg.WlstTml.HjLock_8200.MasterCard2 = gopsu.Bytes2Uint64(d[13:17], false)
+		svrmsg.WlstTml.HjLock_8200.Cards = int32(gopsu.Bytes2Int64(d[17:19], false))
+		svrmsg.WlstTml.HjLock_8200.HardwareVer = gopsu.Bytes2Uint64(d[19:23], false)
+		svrmsg.WlstTml.HjLock_8200.LastCard = gopsu.Bytes2Uint64(d[23:27], false)
+		svrmsg.WlstTml.HjLock_8200.LastCardLegal = int32(d[27])
+		svrmsg.WlstTml.HjLock_8200.CardType = int32(d[28])
+		svrmsg.WlstTml.HjLock_8200.Status = int32(d[29])
+	case 0x83: // 开锁
+		svrmsg.WlstTml.HjLock_8300.Status = int32(d[4])
+	case 0x84: // 关锁
+		svrmsg.WlstTml.HjLock_8400.Status = int32(d[4])
+	case 0x85: // 设置启动提醒参数
+		svrmsg.WlstTml.HjLock_8500.Status = int32(d[4])
+	case 0x86: // 添加卡
+		svrmsg.WlstTml.HjLock_8600.Status = int32(d[4])
+	case 0x87: // 删除卡
+		svrmsg.WlstTml.HjLock_8700.Status = int32(d[4])
+	case 0x88: // 设置管理卡
+		svrmsg.WlstTml.HjLock_8800.Status = int32(d[4])
+	case 0x89: // 重启
+		svrmsg.WlstTml.HjLock_8900.Status = int32(d[4])
+	case 0x8a: // 恢复出厂
+		svrmsg.WlstTml.HjLock_8A00.Status = int32(d[4])
+	case 0x8b: // 读取一个卡号(没用，不做)
+	case 0x8c: // 设置开锁时间
+		svrmsg.WlstTml.HjLock_8C00.Status = int32(d[4])
+	}
+	return lstf
 }
 
 // 处理终端数据

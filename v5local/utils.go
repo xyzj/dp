@@ -127,6 +127,22 @@ var wj3005replyonly = []byte{
 	0xe5, // 节假日后4时段应答
 }
 
+// 恒杰门禁应答指令
+var hjlockreply = []byte{
+	0x81, // 设置地址
+	0x82, // 读取状态
+	0x83, // 开锁
+	0x84, // 关锁
+	0x85, // 设置启动提醒参数
+	0x86, // 添加卡
+	0x87, // 删除卡
+	0x88, // 设置管理卡
+	0x89, // 重启
+	0x8a, // 恢复出厂
+	0x8b, // 读取一个卡号
+	0x8c, // 设置开锁时间
+}
+
 const (
 	ctlHead = "`"
 	tmlHead = "~"
@@ -839,6 +855,45 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 					return nb
 				}
 			}
+		case "hj": // 恒杰门禁
+			switch lstcmd[1] {
+			case "lock": // 门禁
+				devaddr := addr
+				if tra == 2 {
+					devaddr = int64(cid)
+				}
+				b.WriteByte(0x68)
+				b.WriteByte(byte(devaddr))
+				b.WriteByte(cmd1)
+				b.WriteByte(byte(len(data)))
+				if len(data) > 0 {
+					b.Write(data)
+				}
+				a := b.Bytes()[1:]
+				crc := gopsu.CountCrc16VB(&a)
+				b.Write([]byte{crc[1], crc[0]})
+				b.WriteByte(0x16)
+				switch tra {
+				case 1:
+					return b.Bytes()
+				case 2:
+					var b485 bytes.Buffer
+					b485.WriteByte(0x7e)
+					b485.WriteByte(byte(b.Len() + 7))
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
+					b485.WriteByte(0)
+					a = b485.Bytes()
+					b485.WriteByte(gopsu.CountLrc(&a))
+					a = b485.Bytes()
+					b485.Write(gopsu.CountCrc16VB(&a))
+					return b485.Bytes()
+				}
+			}
 		}
 	case 2: // ahhf
 		l := len(data) + 8
@@ -914,14 +969,14 @@ func Single2Tribytes(b float64) []byte {
 // ver: 版本，1
 // afn: 应用层功能码
 // seq: 序号，中间层提供
-func BuildCommand(data []byte, addr int64,area string, prm, fun, crypt, ver, afn, con, seq byte) []byte {
+func BuildCommand(data []byte, addr int64, area string, prm, fun, crypt, ver, afn, con, seq byte) []byte {
 	var b, d bytes.Buffer
 	// 控制码
 	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0%d00%04b", prm, fun), 2))
 	// 版本和加密
 	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%04b", crypt, ver), 2))
 	// 地址
-	d.Write(MakeAddr(addr,area))
+	d.Write(MakeAddr(addr, area))
 	// afn
 	d.WriteByte(afn)
 	// seq
@@ -948,7 +1003,7 @@ func CalculateRC(d []byte) byte {
 }
 
 // MakeAddr 组装国标协议格式地址
-func MakeAddr(addr int64,area string) []byte {
+func MakeAddr(addr int64, area string) []byte {
 	var b bytes.Buffer
 	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(area[2:], 10)))
 	b.WriteByte(gopsu.Int82Bcd(gopsu.String2Int8(area[:2], 10)))

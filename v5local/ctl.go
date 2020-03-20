@@ -3413,6 +3413,34 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 					default:
 						getprotocol = false
 					}
+				case "hj":
+					br = 5
+					rc = 0
+					switch scmd[2] {
+					case "0100": // 设置地址
+						d.WriteByte(byte(pb2data.WlstTml.HjLock_0100.NewAddr))
+					case "0200": // 读取状态
+					case "0300": // 开锁
+					case "0400": // 关锁
+					case "0500": // 设置启动提醒参数
+						d.WriteByte(byte(pb2data.WlstTml.HjLock_0500.FreqLights))
+						d.WriteByte(byte(pb2data.WlstTml.HjLock_0500.FreqBeep))
+						d.WriteByte(byte(pb2data.WlstTml.HjLock_0500.TimeDelay))
+					case "0600": // 添加卡
+						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0600.Card, false))
+					case "0700": // 删除卡
+						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0700.Card, false))
+					case "0800": // 设置管理卡
+						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0800.MasterCard1, false))
+						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0800.MasterCard1, false))
+					case "0900": // 重启
+					case "0a00": // 恢复出厂
+					case "0b00": // 读取一个卡号(不做)
+					case "0c00": // 设置开锁时间
+						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0C00.Delay), false))
+					default:
+						getprotocol = false
+					}
 				default:
 					getprotocol = false
 				}
