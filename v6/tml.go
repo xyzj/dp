@@ -14,9 +14,10 @@ import (
 	"github.com/pkg/errors"
 	"github.com/xyzj/gopsu"
 	msgctl "gitlab.local/proto/msgjk"
-	msgopen "gitlab.local/proto/msgwlst"
 	msgnb "gitlab.local/proto/msgnb"
+	msgopen "gitlab.local/proto/msgwlst"
 )
+
 // ClassifyTmlDataNB NB数据解析
 // Args:
 // 	rawdata: base64原始数据
@@ -28,9 +29,8 @@ func ClassifyTmlDataNB(rawdata string, imei, at int64) (r *Rtb) {
 	if err != nil {
 		return r
 	}
-	return ClassifyTmlData(d, imei,at)
+	return ClassifyTmlData(d, imei, at)
 }
-
 
 // ClassifyTmlData 分类数据解析
 // Args:
@@ -40,7 +40,7 @@ func ClassifyTmlDataNB(rawdata string, imei, at int64) (r *Rtb) {
 //  checkrc：是否进行数据校验
 // Return:
 // 	r: 处理反馈结果
-func ClassifyTmlData(d []byte,imei, at int64 ) (r *Rtb) {
+func ClassifyTmlData(d []byte, imei, at int64) (r *Rtb) {
 	r = &Rtb{}
 	defer func() {
 		if ex := recover(); ex != nil {
@@ -58,7 +58,7 @@ LOOP:
 			return r
 		}
 		switch v {
-		case 0x68: 
+		case 0x68:
 			if len(d[k:]) < 12 {
 				r.Ex = fmt.Sprintf("Insufficient data length. %s", gopsu.Bytes2String(d[k:], "-"))
 				r.Unfinish = d
@@ -69,7 +69,7 @@ LOOP:
 			lMru := int(d[k+9])
 			if d[k+7] == 0x68 && d[k+lMru+11] == 0x16 &&
 				bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81, 0x9c}, []byte{d[k+8]}) {
-				r.Do = append(r.Do, dataNB(d[k:k+lMru+12], imei,at)...)
+				r.Do = append(r.Do, dataNB(d[k:k+lMru+12], imei, at)...)
 				d = d[k+lMru+12:]
 				goto LOOP
 			}
@@ -102,9 +102,9 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 	}
 	f.Addr = int64(gopsu.String2Int64(xaddr, 10))
 
-	svrmsg := initMsgNB("", int64(f.Addr), imei,at)
+	svrmsg := initMsgNB("", int64(f.Addr), imei, at)
 	switch d[8] {
-	case 0x9c: 
+	case 0x9c:
 		l := d[9]
 		dd := d[10 : 10+l]
 		if !gopsu.CheckCrc16VB(dd) {
@@ -141,7 +141,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 				readResult = fmt.Sprintf("1%08b%08b", 0xff, 0xff)
 			}
 			if gopsu.String2Int64(readMark[3:], 2) == 0 {
-				if setMark[14:15] == "1" { // 设置时钟					
+				if setMark[14:15] == "1" { // 设置时钟
 					svrmsg.DataCmd = "wlst.vslu.f100"
 					svrmsg.SluitemConfig.SetMark = &msgnb.SluitemConfig_SetMark{
 						SetTimer: 1,
@@ -275,7 +275,6 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 				}
 				if readMark[9:10] == "1" && readResult[9] == 49 { // 读取当天日出日落
 					svrmsg.SluitemConfig.DataMark.ReadSunriseset = 1
-					println(j,fmt.Sprintf("%+v",dd))
 					svrmsg.SluitemConfig.SluitemSunriseset.Sunrise = int32(dd[j])*60 + int32(dd[j+1])
 					j += 2
 					svrmsg.SluitemConfig.SluitemSunriseset.Sunset = int32(dd[j])*60 + int32(dd[j+1])
@@ -325,7 +324,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 							x, _ = strconv.ParseInt(n[:4], 2, 0)
 							cr.RelayOperate = append(cr.RelayOperate, int32(y), int32(x))
 						case 1: // 调光
-							cr.PwmLoop = append(cr.PwmLoop, gopsu.String2Int32(m[7:8],10), gopsu.String2Int32(m[6:7],10), gopsu.String2Int32(m[5:6], 10), gopsu.String2Int32(m[4:5], 10))
+							cr.PwmLoop = append(cr.PwmLoop, gopsu.String2Int32(m[7:8], 10), gopsu.String2Int32(m[6:7], 10), gopsu.String2Int32(m[5:6], 10), gopsu.String2Int32(m[4:5], 10))
 							x, _ := strconv.ParseInt(m[:4], 2, 0)
 							y, _ := strconv.ParseInt(n[:4], 2, 0)
 							cr.PwmPower = int32(x)*10 + int32(y)
@@ -336,7 +335,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 						svrmsg.SluitemConfig.SluitemRuntime = append(svrmsg.SluitemConfig.SluitemRuntime, cr)
 					}
 				}
-			}	
+			}
 		case 0xb9: // 控制器主报（仅NB）
 			f.DataCmd = "wlst.vslu.b900"
 			svrmsg.DataType = 1
@@ -513,7 +512,6 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 
 			svrmsg.SluitemData.LightData = cbd.LightData
 
-
 			if repflg == 1 && svrmsg.SluitemData.Reson != 0 {
 				sendstr := DoCommand(1, 1, 1, f.Addr, 1, "wlst.vslu.3900", []byte{d[6]}, 1, 1)
 				ff := &Fwd{
@@ -527,88 +525,86 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 					Job:      JobSend,
 					DataMsg:  sendstr,
 				}
-				//ff.DstIMEI=
-				//println(fmt.Sprintf("%+v", ff))
 				lstf = append(lstf, ff)
 			}
-		case 0x37: // 登录信息数据主报		
-			svrmsg.DataType = 4	
+		case 0x37: // 登录信息数据主报
+			svrmsg.DataType = 4
 			f.DataCmd = "wlst.vslu.b700"
 			svrmsg.NbSlu_3700 = &msgnb.NBSlu_3700{}
 			// 序号
-			j:=5
+			j := 5
 			svrmsg.NbSlu_3700.CmdIdx = int32(dd[j])
-			j+=1
+			j++
 			svrmsg.NbSlu_3700.Imei = string(dd[6:21])
-			j+=15
+			j += 15
 			svrmsg.NbSlu_3700.Imsi = string(dd[21:36])
-			j+=15
+			j += 15
 			svrmsg.NbSlu_3700.Iccid = string(dd[36:56])
-			j+=20
+			j += 20
 			svrmsg.NbSlu_3700.Band = int32(dd[56])
-			j+=1
+			j++
 			m := fmt.Sprintf("%08b%08b%08b%08b", dd[j+3], dd[j+2], dd[j+1], dd[j])
 			if gopsu.String2Int64(m[:1], 2) == 0 {
 				svrmsg.NbSlu_3700.Rsrp = gopsu.String2Int64(m[1:], 2)
 			} else {
 				svrmsg.NbSlu_3700.Rsrp = 0 - gopsu.String2Int64(m[1:], 2)
 			}
-			j+=4
+			j += 4
 			m = fmt.Sprintf("%08b%08b%08b%08b", dd[j+3], dd[j+2], dd[j+1], dd[j])
 			if gopsu.String2Int64(m[:1], 2) == 0 {
 				svrmsg.NbSlu_3700.Snr = gopsu.String2Int64(m[1:], 2)
 			} else {
 				svrmsg.NbSlu_3700.Snr = 0 - gopsu.String2Int64(m[1:], 2)
 			}
-		case 0x94: // 时间设置应答		
-			svrmsg.DataType = 4	
+		case 0x94: // 时间设置应答
+			svrmsg.DataType = 4
 			f.DataCmd = "wlst.vslu.1400"
 			svrmsg.NbSlu_1400 = &msgnb.NBSlu_1400{}
 			// 序号
-			j:=5
+			j := 5
 			svrmsg.NbSlu_1400.CmdIdx = int32(dd[j])
-			j+=1			
+			j++
 			svrmsg.NbSlu_1400.Status = int32(dd[j])
-		case 0x95: // 读取时钟		
-			svrmsg.DataType = 4	
+		case 0x95: // 读取时钟
+			svrmsg.DataType = 4
 			f.DataCmd = "wlst.vslu.1500"
 			svrmsg.NbSlu_1400 = &msgnb.NBSlu_1400{}
 			// 序号d
-			j:=5
+			j := 5
 			svrmsg.NbSlu_1400.CmdIdx = int32(dd[j])
-			j+=1			
-			svrmsg.NbSlu_1400.SluitemTime = gopsu.Time2Stamp(fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", int32(dd[j])+int32(dd[j+1])*256, dd[j+2], dd[j+3], dd[j+4], dd[j+5],dd[j+6]))
-			j+=7			
+			j++
+			svrmsg.NbSlu_1400.SluitemTime = gopsu.Time2Stamp(fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", int32(dd[j])+int32(dd[j+1])*256, dd[j+2], dd[j+3], dd[j+4], dd[j+5], dd[j+6]))
+			j += 7
 			svrmsg.NbSlu_1400.Week = int32(dd[j])
-		case 0xd1: // 读取版本		
-			svrmsg.DataType = 9	
+		case 0xd1: // 读取版本
+			svrmsg.DataType = 9
 			f.DataCmd = "wlst.vslu.5100"
 			svrmsg.NbSlu_5100 = &msgnb.NBSlu_5100{}
 			// 序号d
-			j:=5
+			j := 5
 			svrmsg.NbSlu_5100.CmdIdx = int32(dd[j])
-			j+=1					
-			svrmsg.NbSlu_5100.Ver = string(dd[j:j+20])
-			case 0xd2: // 设置运行参数应答		
-			svrmsg.DataType = 10	
+			j++
+			svrmsg.NbSlu_5100.Ver = string(dd[j : j+20])
+		case 0xd2: // 设置运行参数应答
+			svrmsg.DataType = 10
 			f.DataCmd = "wlst.vslu.5200"
 			svrmsg.NbSlu_5200 = &msgnb.NBSlu_5200{}
 			// 序号d
-			j:=5
+			j := 5
 			svrmsg.NbSlu_5200.CmdIdx = int32(dd[j])
-			j+=1			
+			j++
 			svrmsg.NbSlu_5200.Status = int32(dd[j])
-		case 0xd3: // 读取运行参数		
-			svrmsg.DataType = 10	
+		case 0xd3: // 读取运行参数
+			svrmsg.DataType = 10
 			f.DataCmd = "wlst.vslu.5200"
 			svrmsg.NbSlu_5200 = &msgnb.NBSlu_5200{}
 			// 序号dfloat
-			j:=5
+			j := 5
 			svrmsg.NbSlu_5200.CmdIdx = int32(dd[j])
-			j+=1
+			j++
 			// 经纬度
 			x, _ := strconv.ParseFloat(fmt.Sprintf("%d.%02d", dd[j], int(dd[j+1])), 10)
-			svrmsg.NbSlu_5200.Longitude = x		
+			svrmsg.NbSlu_5200.Longitude = x
 			j += 2
 			x, _ = strconv.ParseFloat(fmt.Sprintf("%d.%02d", dd[j], int(dd[j+1])), 10)
 			svrmsg.NbSlu_5200.Latitude = x
@@ -629,13 +625,13 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 			// 默认上电开关灯
 			m = fmt.Sprintf("%08b", dd[j])
 			for k := range m[4:8] {
-				svrmsg.NbSlu_5200.SluitemPowerTurnon = append(svrmsg.NbSlu_5200.SluitemPowerTurnon,gopsu.String2Int32(m[7-k:8-k], 2))
+				svrmsg.NbSlu_5200.SluitemPowerTurnon = append(svrmsg.NbSlu_5200.SluitemPowerTurnon, gopsu.String2Int32(m[7-k:8-k], 2))
 			}
 			j++
 			// 额定功率
-			for i:=0;i<4;i++{
-				svrmsg.NbSlu_5200.RatedPower =  append(svrmsg.NbSlu_5200.RatedPower,int32(dd[j])+int32(dd[j+1])*256)
-				j+=2
+			for i := 0; i < 4; i++ {
+				svrmsg.NbSlu_5200.RatedPower = append(svrmsg.NbSlu_5200.RatedPower, int32(dd[j])+int32(dd[j+1])*256)
+				j += 2
 			}
 			// 主报参数
 			m = fmt.Sprintf("%08b", dd[j])
@@ -647,50 +643,69 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 			}
 			j++
 			// 实际使用回路数
-			svrmsg.NbSlu_5200.UseLoop = int32(dd[j])+1
+			svrmsg.NbSlu_5200.UseLoop = int32(dd[j]) + 1
 			j++
-		case 0xd4: // 即时控制应答		
-			svrmsg.DataType = 6	
+		case 0xd4: // 即时控制应答
+			svrmsg.DataType = 6
 			f.DataCmd = "wlst.vslu.5400"
 			svrmsg.NbSlu_5400 = &msgnb.NBSlu_5400{}
 			// 序号
-			j:=5
+			j := 5
 			svrmsg.NbSlu_5400.CmdIdx = int32(dd[j])
-			j+=1			
+			j++
 			svrmsg.NbSlu_5400.Status = int32(dd[j])
-		case 0xd5: // 复位应答		
-			svrmsg.DataType = 7	
+		case 0xd5: // 复位应答
+			svrmsg.DataType = 7
 			f.DataCmd = "wlst.vslu.5500"
 			svrmsg.NbSlu_5500 = &msgnb.NBSlu_5500{}
 			// 序号
-			j:=5
+			j := 5
 			svrmsg.NbSlu_5500.CmdIdx = int32(dd[j])
-			j+=1			
-			svrmsg.NbSlu_5500.Status = int32(dd[j])
-		case 0xd6: // 设置本地控制方案应答		
-			svrmsg.DataType = 8	
+			j++
+			m := fmt.Sprintf("%08b", dd[j])
+			m1 := fmt.Sprintf("%08b", dd[j+1])
+			if m[2:3] == "1" {		
+				if m1[2:3] == "1" {
+					svrmsg.NbSlu_5500.InitializeElec = 1
+				}else{
+					svrmsg.NbSlu_5500.InitializeElec = 0
+				}
+			}else{
+				svrmsg.NbSlu_5500.InitializeElec = 2
+			}
+			if m[7:8] == "1"{		
+				if m1[7:8] == "1" {
+					svrmsg.NbSlu_5500.Mcu = 1
+				}else{
+					svrmsg.NbSlu_5500.Mcu = 0
+				}				
+			}else{
+				svrmsg.NbSlu_5500.Mcu = 2
+			}	
+		case 0xd6: // 设置本地控制方案应答
+			svrmsg.DataType = 8
 			f.DataCmd = "wlst.vslu.5600"
 			svrmsg.NbSlu_5600 = &msgnb.NBSlu_5600{}
 			// 序号
-			j:=5
+			j := 5
 			svrmsg.NbSlu_5600.CmdIdx = int32(dd[j])
-			j+=1			
+			j++
 			svrmsg.NbSlu_5600.Status = int32(dd[j])
-		case 0xd7: // 读取本地控制方案		
+		case 0xd7: // 读取本地控制方案
 			svrmsg.DataType = 8
 			f.DataCmd = "wlst.vslu.5700"
 			svrmsg.NbSlu_5600 = &msgnb.NBSlu_5600{}
 			// 序号
-			j:=5
+			j := 5
 			svrmsg.NbSlu_5600.CmdIdx = int32(dd[j])
-			j+=1	
+			j++
 			// 本地方案数量
 			s := fmt.Sprintf("%08b", dd[j])
 			if s[0] == 49 {
 				svrmsg.NbSlu_5600.DataContinue = 1
 			}
 			svrmsg.NbSlu_5600.SluitemRuntimeCount = int32(gopsu.String2Int32(s[2:], 2))
-			j+=1	
+			j++
 			// 本地方案参数
 			for i := int32(0); i < svrmsg.NbSlu_5600.SluitemRuntimeCount; i++ {
 				sr := &msgnb.NBSlu_5600_SluitemRuntime{}
@@ -698,13 +713,13 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 				m := fmt.Sprintf("%08b", dd[j])
 				sr.OutputType = gopsu.String2Int32(m[4:], 2)
 				sr.OperateType = gopsu.String2Int32(m[:4], 2)
-				j+=1
+				j++
 				// 周使能
 				m = fmt.Sprintf("%08b", dd[j])
-					for k := 0; k < 7; k++ {
-						sr.DateEnable = append(sr.DateEnable, gopsu.String2Int32(m[7-k:8-k], 2))
-					}				
-				j+=1
+				for k := 0; k < 7; k++ {
+					sr.DateEnable = append(sr.DateEnable, gopsu.String2Int32(m[7-k:8-k], 2))
+				}
+				j++
 				// 控制时刻
 				switch sr.OperateType {
 				case 1:
@@ -718,7 +733,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 						sr.OperateOffset = int32(y)
 					}
 				}
-				j+=2
+				j += 2
 				// 控制操作
 				m = fmt.Sprintf("%08b", dd[j])
 				n := fmt.Sprintf("%08b", dd[j+1])
@@ -731,7 +746,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 					x, _ = strconv.ParseInt(n[:4], 2, 0)
 					sr.RelayOperate = append(sr.RelayOperate, int32(y), int32(x))
 				case 1:
-					sr.PwmLoop = append(sr.PwmLoop, gopsu.String2Int32(m[7:8],10), gopsu.String2Int32(m[6:7],10), gopsu.String2Int32(m[5:6], 10), gopsu.String2Int32(m[4:5], 10))					
+					sr.PwmLoop = append(sr.PwmLoop, gopsu.String2Int32(m[7:8], 10), gopsu.String2Int32(m[6:7], 10), gopsu.String2Int32(m[5:6], 10), gopsu.String2Int32(m[4:5], 10))
 					x, _ := strconv.ParseInt(m[:4], 2, 0)
 					y, _ := strconv.ParseInt(n[:4], 2, 0)
 					sr.PwmPower = int32(x)*10 + int32(y)
@@ -741,46 +756,46 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 				j += 2
 
 				svrmsg.NbSlu_5600.SluitemRuntime = append(svrmsg.NbSlu_5600.SluitemRuntime, sr)
-			}	
+			}
 		case 0xb1: // 设置网络参数应答
 			svrmsg.DataType = 11
 			f.DataCmd = "wlst.vslu.3100"
 			svrmsg.NbSlu_3100 = &msgnb.NBSlu_3100{}
 			// 序号
-			j:=5
+			j := 5
 			svrmsg.NbSlu_3100.CmdIdx = int32(dd[j])
-			j+=1	
+			j++
 			svrmsg.NbSlu_3100.Status = int32(dd[j])
 		case 0xb3: // 查询网络参数
 			svrmsg.DataType = 11
 			f.DataCmd = "wlst.vslu.3300"
 			svrmsg.NbSlu_3100 = &msgnb.NBSlu_3100{}
 			// 序号
-			j:=5
+			j := 5
 			svrmsg.NbSlu_3100.CmdIdx = int32(dd[j])
-			j+=1	
-			svrmsg.NbSlu_3100.Apn=string(dd[j:j+32])
-			j+=32	
-			svrmsg.NbSlu_3100.UserName=string(dd[j:j+32])
-			j+=32	
-			svrmsg.NbSlu_3100.Password=string(dd[j:j+32])
-			j+=32	
-			svrmsg.NbSlu_3100.Operater=int32(dd[j])
-			j+=1	
-			svrmsg.NbSlu_3100.IpAddress=append(svrmsg.NbSlu_3100.IpAddress,int32(dd[j]),int32(dd[j+1]),int32(dd[j+2]),int32(dd[j+3]))
-			j+=4	
-			svrmsg.NbSlu_3100.Teleport=int32(dd[j])+int32(dd[j+1])*256
-			j+=2	
-			svrmsg.NbSlu_3100.Localport=int32(dd[j])+int32(dd[j+1])*256
-			j+=2	
-			svrmsg.NbSlu_3100.VlinkTime=int32(dd[j])+int32(dd[j+1])*256
-			j+=2	
-			svrmsg.NbSlu_3100.GroupAccessInterval=int32(dd[j])
-			j+=1	
-			svrmsg.NbSlu_3100.GroupDeviceCount=int32(dd[j])
-			j+=1	
-			svrmsg.NbSlu_3100.MaxDeviceCount=int32(dd[j])+int32(dd[j+1])*256
-			j+=2
+			j++
+			svrmsg.NbSlu_3100.Apn = string(dd[j : j+32])
+			j += 32
+			svrmsg.NbSlu_3100.UserName = string(dd[j : j+32])
+			j += 32
+			svrmsg.NbSlu_3100.Password = string(dd[j : j+32])
+			j += 32
+			svrmsg.NbSlu_3100.Operater = int32(dd[j])
+			j++
+			svrmsg.NbSlu_3100.IpAddress = append(svrmsg.NbSlu_3100.IpAddress, int32(dd[j]), int32(dd[j+1]), int32(dd[j+2]), int32(dd[j+3]))
+			j += 4
+			svrmsg.NbSlu_3100.Teleport = int32(dd[j]) + int32(dd[j+1])*256
+			j += 2
+			svrmsg.NbSlu_3100.Localport = int32(dd[j]) + int32(dd[j+1])*256
+			j += 2
+			svrmsg.NbSlu_3100.VlinkTime = int32(dd[j]) + int32(dd[j+1])*256
+			j += 2
+			svrmsg.NbSlu_3100.GroupAccessInterval = int32(dd[j])
+			j++
+			svrmsg.NbSlu_3100.GroupDeviceCount = int32(dd[j])
+			j++
+			svrmsg.NbSlu_3100.MaxDeviceCount = int32(dd[j]) + int32(dd[j+1])*256
+			j += 2
 		default:
 			f.Ex = "Unhandled vslu data"
 			lstf = append(lstf, f)
@@ -800,7 +815,6 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 
 	return lstf
 }
-
 
 // ProcessTml 终端数据解析
 // Args:
@@ -1134,6 +1148,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 			Pn: getPnFn(d[j : j+2]),
 			Fn: getPnFn(d[j+2 : j+4]),
 		}
+		println(fmt.Sprintf("--- 0x%02x", afn), uid.Pn, uid.Fn, con)
 		j += 4
 		svrmsg.DataID.UintID = append(svrmsg.DataID.UintID, uid)
 		switch afn {
@@ -1171,17 +1186,6 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 			if uid.Pn == 0 && uid.Fn == 1 { // 仅登录消息的areaid有效
 				dp.AreaCode = fmt.Sprintf("%02x%02x", d[9], d[8])
 			}
-			var ff = &Fwd{
-				DataCmd:  f.DataCmd,
-				DataType: DataTypeBytes,
-				DataDst:  fmt.Sprintf("wlst-open-%d-%s", f.Addr, dp.AreaCode),
-				DstType:  SockTml,
-				DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 11, 0, 1, 0, 0, int32(seq), dp.AreaCode),
-				Tra:      TraDirect,
-				Job:      JobSend,
-				Src:      gopsu.Bytes2String(d, "-"),
-			}
-			lstf = append(lstf, ff)
 			f.DataCmd = ""
 		case 0x09: // 请求终端配置及信息
 			switch uid.Pn {
@@ -1224,17 +1228,17 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					svrmsg.Afn0AP0F1.MasterRts = int32(d[j])
 					j++
 					s := fmt.Sprintf("%08b%08b", d[j+1], d[j])
+					j += 2
 					svrmsg.Afn0AP0F1.ResendTimeout = gopsu.String2Int32(s[2:4], 2)
 					svrmsg.Afn0AP0F1.ResendNum = gopsu.String2Int32(s[4:], 2)
-					j += 2
 					ss := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b", d[j])), 1)
+					j++
 					for _, v := range ss {
 						svrmsg.Afn0AP0F1.ReportMark = append(svrmsg.Afn0AP0F1.ReportMark, gopsu.String2Int32(v, 10))
 					}
-					j++
 					svrmsg.Afn0AP0F1.KeepAlive = int32(d[j])
 					j++
-				case 2: // 主站 IP 地址  和端口
+				case 3: // 主站 IP 地址  和端口
 					svrmsg.Afn0AP0F3 = &msgopen.Afn04_P0_F3{}
 					t := d[j]
 					j++
@@ -1268,30 +1272,30 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					svrmsg.Afn0AP0F9 = &msgopen.Afn04_P0_F9{}
 					svrmsg.Afn0AP0F9.EventsAvailable = make([]int32, 64)
 					ss := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3], d[j+4], d[j+5], d[j+6], d[j+7])), 1)
+					j += 8
 					for k, v := range ss {
 						svrmsg.Afn0AP0F9.EventsAvailable[k] = gopsu.String2Int32(v, 10)
 					}
-					j += 8
 					svrmsg.Afn0AP0F9.EventsReport = make([]int32, 64)
 					ss = gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3], d[j+4], d[j+5], d[j+6], d[j+7])), 1)
+					j += 8
 					for k, v := range ss {
 						svrmsg.Afn0AP0F9.EventsReport[k] = gopsu.String2Int32(v, 10)
 					}
-					j += 8
 				case 10: // 设备状态输入参数
 					svrmsg.Afn0AP0F10 = &msgopen.Afn04_P0_F10{}
 					svrmsg.Afn0AP0F10.SwitchinAvailable = make([]int32, 32)
 					ss := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3])), 1)
+					j += 4
 					for k, v := range ss {
 						svrmsg.Afn0AP0F10.SwitchinAvailable[k] = gopsu.String2Int32(v, 10)
 					}
-					j += 4
 					svrmsg.Afn0AP0F10.SwitchinHopping = make([]int32, 32)
 					ss = gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3])), 1)
+					j += 4
 					for k, v := range ss {
 						svrmsg.Afn0AP0F10.SwitchinHopping[k] = gopsu.String2Int32(v, 10)
 					}
-					j += 4
 				case 11: // GPS经纬度
 					svrmsg.Afn0AP0F11 = &msgopen.Afn04_P0_F11{}
 					svrmsg.Afn0AP0F11.LongitudeMark = int32(d[j])
@@ -1419,7 +1423,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					j += 3
 				case 53: // 设置光照度限值 参数
 					svrmsg.Afn0AP0F53 = &msgopen.Afn04_P0_F53{}
-					svrmsg.Afn0AP0F53.LuxThreshold = int32(gopsu.BcdBytes2Float64(d[j:j+2], 0, true))
+					svrmsg.Afn0AP0F53.LuxThreshold = int32(d[j]) + int32(d[j])*256
 					j += 2
 					svrmsg.Afn0AP0F53.TimeTick = int32(d[j])
 					j++
@@ -1437,11 +1441,9 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 				switch uid.Fn {
 				case 15: // 继电器输出控制方案（年设置）
 					if svrmsg.Afn0APnF15 == nil {
-						svrmsg.Afn0APnF15 = &msgopen.Afn04_Pn_F15{}
+						svrmsg.Afn0APnF15 = make([]*msgopen.Afn04_Pn_F15, 0)
 					}
-					pndata := &msgopen.Afn04_Pn_F15_Pn_Data{
-						Pno: uid.Pn,
-					}
+					pndata := &msgopen.Afn04_Pn_F15{}
 					pndata.DtStart = fmt.Sprintf("%d", int32(gopsu.BcdBytes2Float64(d[j:j+3], 0, true)))
 					j += 3
 					pndata.DtDays = int32(d[j])
@@ -1462,7 +1464,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 						j += 2
 						pndata.TimeSlot = append(pndata.TimeSlot, ts)
 					}
-					svrmsg.Afn0APnF15.PnData = append(svrmsg.Afn0APnF15.PnData, pndata)
+					svrmsg.Afn0APnF15 = append(svrmsg.Afn0APnF15, pndata)
 				}
 			}
 		case 0x0c: // 请求实时数据
@@ -1478,6 +1480,10 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					svrmsg.Afn0CP0F3.Frequency = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
 					j += 2
 					svrmsg.Afn0CP0F3.PhaseData = make([]*msgopen.Afn0C_P0_F3_Phase_Data, 3)
+					for i := 0; i < 3; i++ {
+						pd := &msgopen.Afn0C_P0_F3_Phase_Data{}
+						svrmsg.Afn0CP0F3.PhaseData[i] = pd
+					}
 					// 电压
 					svrmsg.Afn0CP0F3.PhaseData[0].Voltage = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
 					j += 2
@@ -1547,10 +1553,15 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 				case 9: // 终端状态量及变位标志(全数据)
 					svrmsg.Afn0CP0F9 = &msgopen.Afn0C_P0_F9{}
 					svrmsg.Afn0CP0F9.LoopStatus = make([]*msgopen.Afn0C_P0_F9_Loop_Status, 32)
+					for i := 0; i < 32; i++ {
+						ls := &msgopen.Afn0C_P0_F9_Loop_Status{}
+						svrmsg.Afn0CP0F9.LoopStatus[i] = ls
+					}
 					s := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])), 1)
 					j += 4
 					for k, v := range s {
 						svrmsg.Afn0CP0F9.LoopStatus[k].StNow = gopsu.String2Int32(v, 10)
+
 					}
 					s = gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])), 1)
 					j += 4
@@ -1565,6 +1576,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					j++
 					svrmsg.Afn0CP0F18.EventsDo = make([]int32, 64)
 					s := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b%08b%08b%08b%08b", d[j+7], d[j+6], d[j+5], d[j+4], d[j+3], d[j+2], d[j+1], d[j])), 1)
+					j += 8
 					for k, v := range s {
 						svrmsg.Afn0CP0F18.EventsDo[k] = gopsu.String2Int32(v, 10)
 					}
@@ -1592,9 +1604,14 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					x := int(d[j])
 					j++
 					svrmsg.Afn0CPnF1.LoopData = make([]*msgopen.Afn0C_Pn_F1_Loop_Data, x)
+					for i := 0; i < x; i++ {
+						ld := &msgopen.Afn0C_Pn_F1_Loop_Data{}
+						svrmsg.Afn0CPnF1.LoopData[i] = ld
+					}
 					// 电压
 					for i := 0; i < x; i++ {
 						svrmsg.Afn0CPnF1.LoopData[i].Voltage = gopsu.BcdBytes2Float64(d[j:j+2], 1, false)
+						j += 2
 					}
 					// 电流
 					for i := 0; i < x; i++ {
@@ -1637,25 +1654,23 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					j++
 					svrmsg.Afn0DP0F2.LoopNo = int32(d[j])
 					j++
+					// 填充所有结构
 					svrmsg.Afn0DP0F2.PhaseAData = make([]*msgopen.Afn0D_P0_F2_Phase_Data, int(svrmsg.Afn0DP0F2.DataNum))
 					svrmsg.Afn0DP0F2.PhaseBData = make([]*msgopen.Afn0D_P0_F2_Phase_Data, int(svrmsg.Afn0DP0F2.DataNum))
 					svrmsg.Afn0DP0F2.PhaseCData = make([]*msgopen.Afn0D_P0_F2_Phase_Data, int(svrmsg.Afn0DP0F2.DataNum))
-					// 填充所有结构，填充A相电压数据
+					for i := 0; i < int(svrmsg.Afn0DP0F2.DataNum); i++ {
+						pda := &msgopen.Afn0D_P0_F2_Phase_Data{}
+						pdb := &msgopen.Afn0D_P0_F2_Phase_Data{}
+						pdc := &msgopen.Afn0D_P0_F2_Phase_Data{}
+						svrmsg.Afn0DP0F2.PhaseAData[i] = pda
+						svrmsg.Afn0DP0F2.PhaseBData[i] = pdb
+						svrmsg.Afn0DP0F2.PhaseCData[i] = pdc
+					}
+					// 填充A相电压数据
 					for i := 0; i < int(svrmsg.Afn0DP0F2.DataNum); i++ {
 						svrmsg.Afn0DP0F2.PhaseAData[i].Voltage = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
 						j += 2
 					}
-					// for i := 0; i < int(svrmsg.Afn0DP0F2.DataNum); i++ {
-					// 	pda := &msgopen.Afn0D_P0_F2_Phase_Data{
-					// 		Voltage: gopsu.BcdBytes2Float64(d[j:j+2], 1, true),
-					// 	}
-					// 	j += 2
-					// 	pdb := &msgopen.Afn0D_P0_F2_Phase_Data{}
-					// 	pdc := &msgopen.Afn0D_P0_F2_Phase_Data{}
-					// 	svrmsg.Afn0DP0F2.PhaseAData = append(svrmsg.Afn0DP0F2.PhaseAData, pda)
-					// 	svrmsg.Afn0DP0F2.PhaseBData = append(svrmsg.Afn0DP0F2.PhaseAData, pdb)
-					// 	svrmsg.Afn0DP0F2.PhaseCData = append(svrmsg.Afn0DP0F2.PhaseAData, pdc)
-					// }
 					// 填充B相电压
 					for i := 0; i < int(svrmsg.Afn0DP0F2.DataNum); i++ {
 						svrmsg.Afn0DP0F2.PhaseBData[i].Voltage = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
@@ -1740,18 +1755,15 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					svrmsg.Afn0DPnF1.LoopNo = append(svrmsg.Afn0DPnF1.LoopNo, int32(d[j]))
 					j++
 					svrmsg.Afn0DPnF1.LoopData = make([]*msgopen.Afn0D_Pn_F1_Loop_Data, int(svrmsg.Afn0DPnF1.DataNum))
+					for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
+						ld := &msgopen.Afn0D_Pn_F1_Loop_Data{}
+						svrmsg.Afn0DPnF1.LoopData[i] = ld
+					}
 					// 填充电压数据
 					for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
 						svrmsg.Afn0DPnF1.LoopData[i].Voltage = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
+						j += 2
 					}
-					// 填充所有结构，填充电压数据
-					// for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
-					// 	ld := &msgopen.Afn0D_Pn_F1_Loop_Data{
-					// 		Voltage: gopsu.BcdBytes2Float64(d[j:j+2], 1, true),
-					// 	}
-					// 	j += 2
-					// 	svrmsg.Afn0DPnF1.LoopData = append(svrmsg.Afn0DPnF1.LoopData, ld)
-					// }
 					// 填充电流数据
 					for i := 0; i < int(svrmsg.Afn0DPnF1.DataNum); i++ {
 						svrmsg.Afn0DPnF1.LoopData[i].Current = gopsu.BcdBytes2Float64(d[j:j+3], 3, false)
@@ -1805,11 +1817,9 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					j++
 					svrmsg.Afn0EP0F1.Pn = int32(d[j])
 					j++
-					var x int
-					if svrmsg.Afn0EP0F1.Pn > svrmsg.Afn0EP0F1.Pm {
-						x = int(svrmsg.Afn0EP0F1.Pn - svrmsg.Afn0EP0F1.Pm)
-					} else {
-						x = int(256 + svrmsg.Afn0EP0F1.Pn - svrmsg.Afn0EP0F1.Pm)
+					var x = int(svrmsg.Afn0EP0F1.Pn - svrmsg.Afn0EP0F1.Pm)
+					if x < 0 {
+						x = 256 + x
 					}
 					svrmsg.Afn0EP0F1.EventsData = make([]*msgopen.Afn0E_P0_F1_Events_Data, x)
 					for i := 0; i < x; i++ { // 循环获取事件
@@ -1930,18 +1940,6 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					j += 3
 					svrmsg.Afn10P0F10.DtUpgrade = gopsu.BcdDT2Stamp(d[j : j+5])
 					j += 5
-					if con == 1 {
-						var ff = &Fwd{
-							DataCmd:  f.DataCmd,
-							DataType: DataTypeBytes,
-							DataDst:  fmt.Sprintf("wlst-open-%d-%s", f.Addr, dp.AreaCode),
-							DstType:  SockTml,
-							DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 8, 0, 1, int32(afn), 0, int32(seq), dp.AreaCode),
-							Tra:      TraDirect,
-							Job:      JobSend,
-						}
-						lstf = append(lstf, ff)
-					}
 				case 41: // 模块FTP升级结果
 					svrmsg.Afn10P0F41 = &msgopen.Afn10_P0_F10{}
 					svrmsg.Afn10P0F41.DevType = gopsu.TrimString(string(d[j : j+3]))
@@ -1956,21 +1954,38 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					j += 3
 					svrmsg.Afn10P0F41.DtUpgrade = gopsu.BcdDT2Stamp(d[j : j+5])
 					j += 5
-					if con == 1 {
-						var ff = &Fwd{
-							DataCmd:  f.DataCmd,
-							DataType: DataTypeBytes,
-							DataDst:  fmt.Sprintf("wlst-open-%d-%s", f.Addr, dp.AreaCode),
-							DstType:  SockTml,
-							DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 8, 0, 1, int32(afn), 0, int32(seq), dp.AreaCode),
-							Tra:      TraDirect,
-							Job:      JobSend,
-						}
-						lstf = append(lstf, ff)
-					}
 				}
 			default:
 			}
+		}
+	}
+	// 设备需要应答
+	if con == 1 {
+		switch afn {
+		case 0x02: // 登录,心跳
+			var ff = &Fwd{
+				DataCmd:  fmt.Sprintf("wlst.open.%02x%02x", fun, afn),
+				DataType: DataTypeBytes,
+				DataDst:  fmt.Sprintf("wlst-open-%d-%s", f.Addr, dp.AreaCode),
+				DstType:  SockTml,
+				DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 11, 0, 1, 0, 0, int32(seq), dp.AreaCode),
+				Tra:      TraDirect,
+				Job:      JobSend,
+				Src:      gopsu.Bytes2String(d, "-"),
+			}
+			lstf = append(lstf, ff)
+		case 0x0c, 0x10: // 请求实时数据,数据转发
+			var ff = &Fwd{
+				DataCmd:  fmt.Sprintf("wlst.open.%02x%02x", fun, afn),
+				DataType: DataTypeBytes,
+				DataDst:  fmt.Sprintf("wlst-open-%d-%s", f.Addr, dp.AreaCode),
+				DstType:  SockTml,
+				DataMsg:  dp.BuildCommand(dAns, f.Addr, 0, 8, 0, 1, int32(afn), 0, int32(seq), dp.AreaCode),
+				Tra:      TraDirect,
+				Job:      JobSend,
+				DataSP:   SendLevelHigh,
+			}
+			lstf = append(lstf, ff)
 		}
 	}
 	if len(f.DataCmd) > 0 {
@@ -3817,6 +3832,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		svrmsg.WlstTml.WlstSluCd00.BluetoothPin = int32(d[19]) + int32(d[20])*256 + int32(d[21])*256*256 + int32(d[22])*256*256*256
 		svrmsg.WlstTml.WlstSluCd00.BluetoothMode = int32(d[23])
 		svrmsg.WlstTml.WlstSluCd00.Cct = int32(d[24])
+		svrmsg.WlstTml.WlstSluCd00.AlwaysOnline = int32(d[25])
 	case 0xee: // 招测/应答延迟巡测
 		svrmsg.WlstTml.WlstSluEe00 = &msgctl.WlstSlu_6E00{}
 		svrmsg.WlstTml.WlstSluEe00.CmdIdx = int32(d[7])
@@ -5026,12 +5042,22 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 	svrmsg := initMsgCtl("", int64(f.Addr), dp.RemoteIP, 1, tra, 1, &dp.LocalPort)
 	switch d[8] {
 	case 0x93, 0xd3: // 2007读地址
+		if !gopsu.CheckRCMru(d) {
+			f.Ex = "mru data validation fails"
+			lstf = append(lstf, f)
+			return lstf
+		}
 		f.DataCmd = "wlst.mru.9300"
 		svrmsg.WlstTml.WlstMru_9300 = &msgctl.WlstMru_9100{}
 		for i := 1; i < 7; i++ {
 			svrmsg.WlstTml.WlstMru_9300.Addr = append(svrmsg.WlstTml.WlstMru_9300.Addr, int32(d[i]))
 		}
 	case 0x91: // 2007读数据
+		if !gopsu.CheckRCMru(d) {
+			f.Ex = "mru data validation fails"
+			lstf = append(lstf, f)
+			return lstf
+		}
 		f.DataCmd = "wlst.mru.9100"
 		svrmsg.WlstTml.WlstMru_9100 = &msgctl.WlstMru_9100{}
 		for i := 1; i < 7; i++ {
@@ -5053,6 +5079,11 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 		mdata := float64(gopsu.Bcd2Int8(d[14]-0x33))*0.01 + float64(gopsu.Bcd2Int8(d[15]-0x33)) + float64(gopsu.Bcd2Int8(d[16]-0x33))*100 + float64(gopsu.Bcd2Int8(d[17]-0x33))*10000.0
 		svrmsg.WlstTml.WlstMru_9100.MeterValue = mdata
 	case 0x81: // 1997读数据
+		if !gopsu.CheckRCMru(d) {
+			f.Ex = "mru data validation fails"
+			lstf = append(lstf, f)
+			return lstf
+		}
 		f.DataCmd = "wlst.mru.9100"
 		svrmsg.WlstTml.WlstMru_9100 = &msgctl.WlstMru_9100{}
 		for i := 1; i < 7; i++ {
@@ -5900,7 +5931,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 				}
 				lstf = append(lstf, ff)
 			}
-		
+
 		default:
 			f.Ex = "Unhandled vslu data"
 			lstf = append(lstf, f)

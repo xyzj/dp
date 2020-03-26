@@ -18,6 +18,7 @@ import (
 
 	pb2 "github.com/golang/protobuf/proto"
 	msgctl "gitlab.local/proto/msgjk"
+	msgopen "gitlab.local/proto/msgwlst"
 )
 
 // ClassifyTmlDataNB NB数据解析
@@ -3143,6 +3144,7 @@ func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 		svrmsg.WlstTml.WlstSluCd00.BluetoothPin = int32(d[19]) + int32(d[20])*256 + int32(d[21])*256*256 + int32(d[22])*256*256*256
 		svrmsg.WlstTml.WlstSluCd00.BluetoothMode = int32(d[23])
 		svrmsg.WlstTml.WlstSluCd00.Cct = int32(d[24])
+		svrmsg.WlstTml.WlstSluCd00.AlwaysOnline = int32(d[25])
 		zm := svrmsg.WlstTml.WlstSluCd00
 		b, ex := pb2.Marshal(zm)
 		if ex == nil {
@@ -4674,6 +4676,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 	svrmsg := initMsgCtl("", int64(f.Addr), *ip, 1, tra, 1, portlocal)
 	switch d[8] {
 	case 0x93, 0xd3: // 2007读地址
+		if !gopsu.CheckRCMru(d) {
+			f.Ex = "mru data validation fails"
+			lstf = append(lstf, f)
+			return lstf
+		}
 		f.DataCmd = "wlst.mru.9300"
 		svrmsg.WlstTml.WlstMru_9300 = &msgctl.WlstMru_9100{}
 		for i := 1; i < 7; i++ {
@@ -4705,6 +4712,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			lstf = append(lstf, ffj)
 		}
 	case 0x91: // 2007读数据
+		if !gopsu.CheckRCMru(d) {
+			f.Ex = "mru data validation fails"
+			lstf = append(lstf, f)
+			return lstf
+		}
 		f.DataCmd = "wlst.mru.9100"
 		svrmsg.WlstTml.WlstMru_9100 = &msgctl.WlstMru_9100{}
 		for i := 1; i < 7; i++ {
@@ -4754,6 +4766,11 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			lstf = append(lstf, ffj)
 		}
 	case 0x81: // 1997读数据
+		if !gopsu.CheckRCMru(d) {
+			f.Ex = "mru data validation fails"
+			lstf = append(lstf, f)
+			return lstf
+		}
 		f.DataCmd = "wlst.mru.9100"
 		svrmsg.WlstTml.WlstMru_9100 = &msgctl.WlstMru_9100{}
 		for i := 1; i < 7; i++ {
@@ -7777,14 +7794,13 @@ func dataGb(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 		return lstf
 	}
 
-	f.Addr = int64(d[10]) + int64(d[11])*256
-	afn := d[13]
-	fun := byte(d[6]<<4) >> 4	
-	svrmsg := initMsgCtl(fmt.Sprintf("wlst.gb.%02x%02x", fun, afn), f.Addr, *ip,1, 1, 1,portlocal)
-	f.DataCmd = svrmsg.Head.Cmd
-	acd := int32(byte(d[6]<<2) >> 7)
-	tpv := byte(d[14]) >> 7
-	seq := byte(d[14]<<4) >> 4
+	afn := d[13]                     // 应用功能码
+	fun := byte(d[6]<<4) >> 4        // 链路功能码
+	dir := d[6] >> 7                 // 数据方向
+	acd := int32(byte(d[6]<<2) >> 7) // 是否含附加数据
+	tpv := byte(d[14]) >> 7          // 是否含时间标签
+	seq := byte(d[14]<<4) >> 4       // 上行序号
+	// con := byte(d[14]<<3) >> 7       // 主动上行数据，0-不需要应答，1-应答
 	var ec1, ec2 int32 // ec1,ec2,重要事件/事件数量
 	var j, maxJ int    // 数据读取索引，数据单元最大索引
 	maxJ = len(d) - 2
@@ -7799,26 +7815,20 @@ func dataGb(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 	}
 	j = 15
 	// 初始化框架
-	dataID := &msgctl.DataIdentification{
-		Acd: acd,
-		Ec1: ec1,
-		Ec2: ec2,
-		Afn: int32(afn),
-		Seq: int32(seq),
-	}
-	switch afn {
-	case 0x00: // 应答
-		svrmsg.WlstOpen_0000 = &msgctl.WlstOpen_0000{
-			DataID: dataID,
-		}
-	case 0x01: // 复位
-		svrmsg.WlstOpen_0101 = &msgctl.WlstOpen_0101{
-			DataID: dataID,
-		}
-	case 0x02: // 登录/心跳
-		svrmsg.WlstOpen_0902 = &msgctl.WlstOpen_0902{
-			DataID: dataID,
-		}
+	f.Addr = int64(d[10]) + int64(d[11])*256
+	// f.Area = fmt.Sprintf("%02x%02x", d[9], d[8])
+	f.DataCmd = fmt.Sprintf("wlst.open.%02x%02x", fun, afn)
+	svrmsg := &msgopen.MsgGBOpen{
+		DataID: &msgopen.DataIdentification{
+			Ec1:  ec1,
+			Ec2:  ec2,
+			Afn:  int32(afn),
+			Fun:  int32(fun),
+			Seq:  int32(seq),
+			Dir:  int32(dir),
+			Addr: f.Addr,
+			// Area: f.Area,
+		},
 	}
 	// 循环解析所有数据单元
 	for {
@@ -7826,27 +7836,27 @@ func dataGb(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 		if j >= maxJ { // 上行数据无视tp，pw
 			break
 		}
-		uid := &msgctl.UnitIdentification{
+		uid := &msgopen.UnitIdentification{
 			Pn: getPnFn(d[j : j+2]),
 			Fn: getPnFn(d[j+2 : j+4]),
 		}
 		j += 4
 		switch afn {
 		case 0x00: // 应答
-			svrmsg.WlstOpen_0000.DataID.UintID = append(svrmsg.WlstOpen_0000.DataID.UintID, uid)
+			svrmsg.DataID.UintID = append(svrmsg.DataID.UintID, uid)
 			switch uid.Pn {
 			case 0:
 				switch uid.Fn {
 				case 1, 2: // 全部确认/否认
-					svrmsg.WlstOpen_0000.Afn = int32(d[j])
+					svrmsg.DataID.Afn = int32(d[j])
 					j++
 				case 3: // 部分确认/否认
 					// TODO:
 				}
 			}
 		case 0x02: // 登录/心跳
-			svrmsg.WlstOpen_0902.DataID.UintID = append(svrmsg.WlstOpen_0902.DataID.UintID, uid)
-			
+			svrmsg.DataID.UintID = append(svrmsg.DataID.UintID, uid)
+
 			// if uid.Pn == 0 && uid.Fn == 1 { // 仅登录消息的areaid有效
 			area := fmt.Sprintf("%02x%02x", d[9], d[8])
 			//}
@@ -7858,7 +7868,7 @@ func dataGb(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 				DataType: DataTypeBytes,
 				DataDst:  fmt.Sprintf("wlst-open-%05d%s", f.Addr, area),
 				DstType:  SockTml,
-				DataMsg:  BuildCommand(dd.Bytes(), f.Addr, area,0, 11, 0, 1, 0, 0, seq),
+				DataMsg:  BuildCommand(dd.Bytes(), f.Addr, area, 0, 11, 0, 1, 0, 0, seq),
 				Tra:      TraDirect,
 				Job:      JobSend,
 				Src:      gopsu.Bytes2String(d, "-"),
@@ -7867,11 +7877,10 @@ func dataGb(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 		}
 	}
 	if len(f.DataCmd) > 0 {
-		f.DataCmd = svrmsg.Head.Cmd
-		f.DataMsg = CodePb2(svrmsg)
+		b, _ := svrmsg.Marshal()
+		f.DataMsg = b
 		lstf = append(lstf, f)
 	}
 
 	return lstf
 }
-
