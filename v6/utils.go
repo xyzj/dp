@@ -19,47 +19,32 @@ import (
 	msgnb "gitlab.local/proto/msgnb"
 )
 
-var (
-	// Prm100 启动站对应
-	Prm100 = map[byte]byte{
-		0x01: 1,  // 复位
-		0x02: 9,  // 链路接口测试
-		0x04: 10, // 设置参数
-		0x05: 10, // 控制命令
-		0x03: 11, // 中继站命令
-		0x06: 11, // 身份认证以及密钥协商
-		0x08: 11, // 请求被级联终端主动上报
-		0x09: 11, // 请求终端配置
-		0x0a: 11, // 查询参数
-		0x0b: 11, // 请求任务数据
-		0x0c: 11, // 请求实时数据
-		0x0d: 11, // 请求历史数据
-		0x0e: 11, // 请求事件数据
-		0x0f: 11, // 文件传输
-		0x10: 11, //数据转发
+// 组装端口属性字节
+//	br:波特率,300,600,1200,2400,4800,7200,9600,19200
+//	stop：停止位0-1位，1-2位
+//	rc：是否有校验0-无校验，1-有校验
+//	rcodd：是否奇校验0-否（偶校验），1-是
+func setRSPort(br, stop, rc, rcodd int) byte {
+	var bps = 3
+	switch br {
+	case 300:
+		bps = 0
+	case 600:
+		bps = 1
+	case 1200:
+		bps = 2
+	case 2400:
+		bps = 3
+	case 4800:
+		bps = 4
+	case 7200:
+		bps = 5
+	case 9600:
+		bps = 6
+	case 19200:
+		bps = 7
 	}
-	// Prm011 从动站对应prm=1功能码11
-	Prm011 = map[byte]byte{
-		0x00: 0, // 复位
-		0x03: 8, // 中继站命令
-		0x06: 8, // 身份认证以及密钥协商
-		0x08: 8, // 请求被级联终端主动上报
-		0x09: 8, // 请求终端配置
-		0x0a: 8, // 查询参数
-		0x0b: 8, // 请求任务数据
-		0x0c: 8, // 请求实时数据
-		0x0d: 8, // 请求历史数据
-		0x0e: 8, // 请求事件数据
-		0x10: 8, //数据转发
-	}
-)
-
-func getFunCodeMaster(afn byte) byte {
-	return Prm100[afn]
-}
-
-func getFunCodeSlave(afn byte) byte {
-	return Prm011[afn]
+	return gopsu.String2Int8(fmt.Sprintf("%03b%1b%1b%1b11", bps, stop, rc, rcodd), 2)
 }
 
 func getPnFn(b []byte) int32 {
@@ -315,6 +300,22 @@ var wj3005replyonly = []byte{
 	0xe5, // 节假日后4时段应答
 }
 
+// 恒杰门禁应答指令
+var hjlockreply = []byte{
+	0x81, // 设置地址
+	0x82, // 读取状态
+	0x83, // 开锁
+	0x84, // 关锁
+	0x85, // 设置启动提醒参数
+	0x86, // 添加卡
+	0x87, // 删除卡
+	0x88, // 设置管理卡
+	0x89, // 重启
+	0x8a, // 恢复出厂
+	0x8b, // 读取一个卡号
+	0x8c, // 设置开锁时间
+}
+
 const (
 	ctlHead = "`"
 	tmlHead = "~"
@@ -477,7 +478,7 @@ func initMsgCtl(cmd string, addr, ip int64, tver int32, tra byte, cid int32, por
 // 	tver：协议版本，默认1
 // 	tra：传输方式，1-socket，2-485
 // 	cid: 子设备物理地址
-func initMsgNB(cmd string, addr,imei, at int64) *msgnb.MsgNBOpen {
+func initMsgNB(cmd string, addr, imei, at int64) *msgnb.MsgNBOpen {
 	msg := &msgnb.MsgNBOpen{
 		Imei:          imei,
 		DtReceive:     at,
@@ -485,14 +486,14 @@ func initMsgNB(cmd string, addr,imei, at int64) *msgnb.MsgNBOpen {
 		SluitemData:   &msgnb.SluitemData{},
 		SluitemConfig: &msgnb.SluitemConfig{},
 		SluitemReply:  &msgnb.SluitemReply{},
-		NbSlu_3100:  &msgnb.NBSlu_3100{},
-		NbSlu_3700:  &msgnb.NBSlu_3700{},
-		NbSlu_1400:  &msgnb.NBSlu_1400{},
-		NbSlu_5100:  &msgnb.NBSlu_5100{},
-		NbSlu_5200:  &msgnb.NBSlu_5200{},
-		NbSlu_5400:  &msgnb.NBSlu_5400{},
-		NbSlu_5500:  &msgnb.NBSlu_5500{},
-		NbSlu_5600:  &msgnb.NBSlu_5600{},
+		NbSlu_3100:    &msgnb.NBSlu_3100{},
+		NbSlu_3700:    &msgnb.NBSlu_3700{},
+		NbSlu_1400:    &msgnb.NBSlu_1400{},
+		NbSlu_5100:    &msgnb.NBSlu_5100{},
+		NbSlu_5200:    &msgnb.NBSlu_5200{},
+		NbSlu_5400:    &msgnb.NBSlu_5400{},
+		NbSlu_5500:    &msgnb.NBSlu_5500{},
+		NbSlu_5600:    &msgnb.NBSlu_5600{},
 	}
 
 	return msg
@@ -551,7 +552,7 @@ func CodePb2(m *msgctl.MsgWithCtrl) []byte {
 	return []byte{}
 }
 
-// CodePb2 code msgctl
+// CodePb2NB code msgctl
 func CodePb2NB(m *msgnb.MsgNBOpen) []byte {
 	if b, ex := m.Marshal(); ex == nil {
 		return b
@@ -689,277 +690,216 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 					return b.Bytes()
 				}
 			case "elu":
-				switch tra {
-				case 1:
-					l := len(data) + 2
-					b.WriteByte(0x7e)
-					b.WriteByte(0x62)
-					b.WriteByte(byte(l))
-					b.WriteByte(byte(addr))
-					b.WriteByte(cmd2)
-					b.Write(data)
-					a := b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
-					return b.Bytes()
-				case 2:
-					var b485 bytes.Buffer
-					b485.WriteByte(0x7e)
-					b485.WriteByte((0x62))
-					b485.WriteByte(byte(len(data) + 2))
-					b485.WriteByte(byte(cid))
-					b485.WriteByte(cmd2)
-					b485.Write(data)
-					a := b485.Bytes()
-					b485.Write(gopsu.CountCrc16VB(&a))
-					b.WriteByte(0x7e)
-					b.WriteByte(byte(b485.Len()) + 7)
-					b.WriteByte(byte(addr % 256))
-					b.WriteByte(byte(addr / 256))
-					b.WriteByte(0x37)
-					b.WriteByte(br)
-					b.WriteByte(rc)
-					b.Write(b485.Bytes())
-					b.WriteByte(0)
-					a = b.Bytes()
-					b.WriteByte(gopsu.CountLrc(&a))
-					a = b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
-					return b.Bytes()
+				devaddr := addr
+				if tra == 2 {
+					devaddr = int64(cid)
 				}
-			case "als":
+				b.WriteByte(0x7e)
+				b.WriteByte(0x62)
+				b.WriteByte(byte(len(data) + 2))
+				b.WriteByte(byte(devaddr))
+				b.WriteByte(cmd2)
+				b.Write(data)
+				a := b.Bytes()
+				b.Write(gopsu.CountCrc16VB(&a))
 				switch tra {
 				case 1:
-					l := len(data) + 3
-					b.WriteByte(0x7e)
-					b.WriteByte(0x5a)
-					b.WriteByte(byte(l))
-					b.WriteByte(cmd1)
-					b.Write(data)
-					a := b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
 					return b.Bytes()
 				case 2:
 					var b485 bytes.Buffer
 					b485.WriteByte(0x7e)
-					b485.WriteByte(0x5a)
-					b485.WriteByte(byte(len(data) + 3))
-					b485.WriteByte(cmd1)
-					b485.Write(data)
-					a := b485.Bytes()
-					b485.Write(gopsu.CountCrc16VB(&a))
-					b.WriteByte(0x7e)
-					b.WriteByte(byte(b485.Len()) + 7)
-					b.WriteByte(byte(addr % 256))
-					b.WriteByte(byte(addr / 256))
-					b.WriteByte(0x37)
-					b.WriteByte(br)
-					b.WriteByte(rc)
-					b.Write(b485.Bytes())
-					b.WriteByte(0)
-					a = b.Bytes()
-					b.WriteByte(gopsu.CountLrc(&a))
-					a = b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
-					return b.Bytes()
-				}
-			case "esu":
-				switch tra {
-				case 1:
-					l := len(data) + 1
-					b.WriteByte(0x7e)
-					b.WriteByte(0x80)
-					b.WriteByte(byte(l))
-					b.WriteByte(cmd1)
-					b.Write(data)
-					a := b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
-					return b.Bytes()
-				case 2:
-					var b485 bytes.Buffer
-					b485.WriteByte(0x7e)
-					b485.WriteByte(0x80)
-					b485.WriteByte(byte(len(data) + 1))
-					b485.WriteByte(cmd1)
-					b485.Write(data)
-					a := b485.Bytes()
-					b485.Write(gopsu.CountCrc16VB(&a))
-					b.WriteByte(0x7e)
-					b.WriteByte(byte(b485.Len()) + 7)
-					b.WriteByte(byte(addr % 256))
-					b.WriteByte(byte(addr / 256))
-					b.WriteByte(0x37)
-					b.WriteByte(br)
-					b.WriteByte(rc)
-					b.Write(b485.Bytes())
-					b.WriteByte(0)
-					a = b.Bytes()
-					b.WriteByte(gopsu.CountLrc(&a))
-					a = b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
-					return b.Bytes()
-				}
-			case "ldu":
-				switch tra {
-				case 1:
-					l := len(data) + 4
-					b.WriteByte(0x7e)
-					b.WriteByte(byte(l + 1))
-					b.WriteByte(byte(addr % 256))
-					b.WriteByte(byte(addr / 256))
-					b.WriteByte(cmd1)
-					b.Write(data)
-					b.WriteByte(0)
-					a := b.Bytes()
-					b.WriteByte(gopsu.CountLrc(&a))
-					a = b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
-					return b.Bytes()
-				case 2:
-					var b485 bytes.Buffer
-					b485.WriteByte(0x7e)
-					b485.WriteByte(byte(len(data) + 5))
-					b485.WriteByte(byte(cid % 256))
-					b485.WriteByte(byte(cid / 256))
-					b485.WriteByte(cmd1)
-					b485.Write(data)
+					b485.WriteByte(byte(b.Len()) + 7)
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
 					b485.WriteByte(0)
-					a := b485.Bytes()
+					a = b485.Bytes()
 					b485.WriteByte(gopsu.CountLrc(&a))
 					a = b485.Bytes()
 					b485.Write(gopsu.CountCrc16VB(&a))
-					b.WriteByte(0x7e)
-					b.WriteByte(byte(b485.Len()) + 7)
-					b.WriteByte(byte(addr % 256))
-					b.WriteByte(byte(addr / 256))
-					b.WriteByte(0x37)
-					b.WriteByte(br)
-					b.WriteByte(rc)
-					b.Write(b485.Bytes())
-					b.WriteByte(0)
-					a = b.Bytes()
-					b.WriteByte(gopsu.CountLrc(&a))
-					a = b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
-					return b.Bytes()
+					return b485.Bytes()
 				}
-			case "slu":
+			case "als":
+				b.WriteByte(0x7e)
+				b.WriteByte(0x5a)
+				b.WriteByte(byte(len(data) + 3))
+				b.WriteByte(cmd1)
+				b.Write(data)
+				a := b.Bytes()
+				b.Write(gopsu.CountCrc16VB(&a))
 				switch tra {
 				case 1:
-					l := len(data) + 3
-					b.WriteByte(0x7e)
-					if cmd1 != 0x90 && cmd2 > 0 {
-						b.WriteByte(cmd2)
-					} else {
-						b.WriteByte(0x90)
-					}
-					b.WriteByte(byte(l % 256))
-					b.WriteByte(byte(l / 256))
-					b.WriteByte(byte(addr % 256))
-					b.WriteByte(byte(addr / 256))
-					if cmd2 > 0 && (cmd1 == 0x71 || cmd1 == 0x72) {
-						b.WriteByte(cmd2)
-					} else {
-						b.WriteByte(cmd1)
-					}
-					b.Write(data)
-					a := b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
 					return b.Bytes()
 				case 2:
 					var b485 bytes.Buffer
-					l := len(data) + 3
 					b485.WriteByte(0x7e)
-					if cmd1 != 0x90 && cmd2 > 0 {
-						b485.WriteByte(cmd2)
-					} else {
-						b485.WriteByte(0x90)
-					}
-					b485.WriteByte(byte(l % 256))
-					b485.WriteByte(byte(l / 256))
-					b485.WriteByte(byte(cid % 256))
-					b485.WriteByte(byte(cid / 256))
-					b485.WriteByte(cmd1)
-					b485.Write(data)
-					a := b485.Bytes()
-					b485.Write(gopsu.CountCrc16VB(&a))
-					b.WriteByte(0x7e)
-					b.WriteByte(byte(b485.Len()) + 7)
-					b.WriteByte(byte(addr % 256))
-					b.WriteByte(byte(addr / 256))
-					b.WriteByte(0x37)
-					b.WriteByte(br)
-					b.WriteByte(rc)
-					b.Write(b485.Bytes())
-					b.WriteByte(0)
-					a = b.Bytes()
-					b.WriteByte(gopsu.CountLrc(&a))
-					a = b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
-					return b.Bytes()
-				}
-			case "mru":
-				switch tra {
-				case 1:
-					b.WriteByte(0xfe)
-					b.WriteByte(0xfe)
-					b.WriteByte(0xfe)
-					b.WriteByte(0xfe)
-					b.WriteByte(0x68)
-					for k, v := range data {
-						b.WriteByte(v)
-						if k == 5 {
-							b.WriteByte(0x68)
-						}
-					}
-					a := b.Bytes()
-					l := len(a)
-					x := 0
-					for i := 4; i < l; i++ {
-						x += int(a[i])
-					}
-					b.WriteByte(byte(x % 256))
-					b.WriteByte(0x16)
-					return b.Bytes()
-				case 2:
-					var b485 bytes.Buffer
-					b485.WriteByte(0xfe)
-					b485.WriteByte(0xfe)
-					b485.WriteByte(0xfe)
-					b485.WriteByte(0xfe)
-					b485.WriteByte(0x68)
-					for k, v := range data {
-						if k == len(data)-1 {
-							break
-						}
-						b485.WriteByte(v)
-						if k == 5 {
-							b485.WriteByte(0x68)
-						}
-					}
-					a := b485.Bytes()
-					l := len(a)
-					x := 0
-					for i := 4; i < l; i++ {
-						x += int(a[i])
-					}
-					b485.WriteByte(byte(x % 256))
-					b485.WriteByte(0x16)
+					b485.WriteByte(byte(b.Len()) + 7)
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
 					b485.WriteByte(0)
 					a = b485.Bytes()
-					b.WriteByte(0x7e)
-					b.WriteByte(byte(len(a) + 6))
-					b.WriteByte(byte(addr % 256))
-					b.WriteByte(byte(addr / 256))
-					b.WriteByte(0x37)
-					b.WriteByte(br)
-					// b.WriteByte(byte(data[len(data)-1]))
-					b.WriteByte(rc)
-					b.Write(b485.Bytes())
-					a = b.Bytes()
-					b.WriteByte(gopsu.CountLrc(&a))
-					a = b.Bytes()
-					b.Write(gopsu.CountCrc16VB(&a))
+					b485.WriteByte(gopsu.CountLrc(&a))
+					a = b485.Bytes()
+					b485.Write(gopsu.CountCrc16VB(&a))
+					return b485.Bytes()
+				}
+			case "esu":
+				b.WriteByte(0x7e)
+				b.WriteByte(0x80)
+				b.WriteByte(byte(len(data) + 1))
+				b.WriteByte(cmd1)
+				b.Write(data)
+				a := b.Bytes()
+				b.Write(gopsu.CountCrc16VB(&a))
+				switch tra {
+				case 1:
 					return b.Bytes()
+				case 2:
+					var b485 bytes.Buffer
+					b485.WriteByte(0x7e)
+					b485.WriteByte(byte(b.Len()) + 7)
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
+					b485.WriteByte(0)
+					a = b485.Bytes()
+					b485.WriteByte(gopsu.CountLrc(&a))
+					a = b485.Bytes()
+					b485.Write(gopsu.CountCrc16VB(&a))
+					return b485.Bytes()
+				}
+			case "ldu":
+				devaddr := addr
+				if tra == 2 {
+					devaddr = int64(cid)
+				}
+				b.WriteByte(0x7e)
+				b.WriteByte(byte(len(data) + 5))
+				b.WriteByte(byte(devaddr % 256))
+				b.WriteByte(byte(devaddr / 256))
+				b.WriteByte(cmd1)
+				b.Write(data)
+				b.WriteByte(0)
+				a := b.Bytes()
+				b.WriteByte(gopsu.CountLrc(&a))
+				a = b.Bytes()
+				b.Write(gopsu.CountCrc16VB(&a))
+				switch tra {
+				case 1:
+					return b.Bytes()
+				case 2:
+					var b485 bytes.Buffer
+					b485.WriteByte(0x7e)
+					b485.WriteByte(byte(b.Len()) + 7)
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
+					b485.WriteByte(0)
+					a = b485.Bytes()
+					b485.WriteByte(gopsu.CountLrc(&a))
+					a = b485.Bytes()
+					b485.Write(gopsu.CountCrc16VB(&a))
+					return b485.Bytes()
+				}
+			case "slu":
+				devaddr := addr
+				if tra == 2 {
+					devaddr = int64(cid)
+				}
+				l := len(data) + 3
+				b.WriteByte(0x7e)
+				if cmd1 != 0x90 && cmd2 > 0 {
+					b.WriteByte(cmd2)
+				} else {
+					b.WriteByte(0x90)
+				}
+				b.WriteByte(byte(l % 256))
+				b.WriteByte(byte(l / 256))
+				b.WriteByte(byte(devaddr % 256))
+				b.WriteByte(byte(devaddr / 256))
+				if cmd2 > 0 && (cmd1 == 0x71 || cmd1 == 0x72) {
+					b.WriteByte(cmd2)
+				} else {
+					b.WriteByte(cmd1)
+				}
+				b.Write(data)
+				a := b.Bytes()
+				b.Write(gopsu.CountCrc16VB(&a))
+				switch tra {
+				case 1:
+					return b.Bytes()
+				case 2:
+					var b485 bytes.Buffer
+					b485.WriteByte(0x7e)
+					b485.WriteByte(byte(b.Len()) + 7)
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
+					b485.WriteByte(0)
+					a = b485.Bytes()
+					b485.WriteByte(gopsu.CountLrc(&a))
+					a = b485.Bytes()
+					b485.Write(gopsu.CountCrc16VB(&a))
+					return b485.Bytes()
+				}
+			case "mru":
+				b.WriteByte(0xfe)
+				b.WriteByte(0xfe)
+				b.WriteByte(0xfe)
+				b.WriteByte(0xfe)
+				b.WriteByte(0x68)
+				for k, v := range data {
+					if k == len(data)-1 {
+						break
+					}
+					b.WriteByte(v)
+					if k == 5 {
+						b.WriteByte(0x68)
+					}
+				}
+				a := b.Bytes()
+				l := len(a)
+				x := 0
+				for i := 4; i < l; i++ {
+					x += int(a[i])
+				}
+				b.WriteByte(byte(x % 256))
+				b.WriteByte(0x16)
+				switch tra {
+				case 1:
+					return b.Bytes()
+				case 2:
+					var b485 bytes.Buffer
+					b485.WriteByte(0x7e)
+					b485.WriteByte(byte(b.Len() + 6))
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					// b485.WriteByte(byte(data[len(data)-1]))
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
+					a = b485.Bytes()
+					b485.WriteByte(gopsu.CountLrc(&a))
+					a = b485.Bytes()
+					b485.Write(gopsu.CountCrc16VB(&a))
+					return b485.Bytes()
 				}
 			case "vslu":
 				b.WriteByte(0x68)
@@ -1075,6 +1015,45 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 					nb = append(nb, gopsu.CountLrc(&nb))
 					nb = append(nb, gopsu.CountCrc16VB(&nb)...)
 					return nb
+				}
+			}
+		case "hj": // 恒杰门禁
+			switch lstcmd[1] {
+			case "lock": // 门禁
+				devaddr := addr
+				if tra == 2 {
+					devaddr = int64(cid)
+				}
+				b.WriteByte(0x68)
+				b.WriteByte(byte(devaddr))
+				b.WriteByte(cmd1)
+				b.WriteByte(byte(len(data)))
+				if len(data) > 0 {
+					b.Write(data)
+				}
+				a := b.Bytes()[1:]
+				crc := gopsu.CountCrc16VB(&a)
+				b.Write([]byte{crc[1], crc[0]})
+				b.WriteByte(0x16)
+				switch tra {
+				case 1:
+					return b.Bytes()
+				case 2:
+					var b485 bytes.Buffer
+					b485.WriteByte(0x7e)
+					b485.WriteByte(byte(b.Len() + 7))
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
+					b485.WriteByte(0)
+					a = b485.Bytes()
+					b485.WriteByte(gopsu.CountLrc(&a))
+					a = b485.Bytes()
+					b485.Write(gopsu.CountCrc16VB(&a))
+					return b485.Bytes()
 				}
 			}
 		}
