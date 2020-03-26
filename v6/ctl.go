@@ -114,7 +114,6 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 	if err != nil {
 		panic(err.Error())
 	}
-
 	var ndata []byte
 	var ndatacmd string
 
@@ -750,9 +749,9 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 										}
 									}
 									d.WriteByte(gopsu.String2Int8(strings.Join(mm, ""), 2))
-									if pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale < 10 {
-										pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale = pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale * 10
-									}
+									// if pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale < 10 {
+									// 	pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale = pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale * 10
+									// }
 									d.WriteByte(byte(pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale))
 									d.WriteByte(byte(pb2data.WlstTml.WlstSlu_7400.CmdPwm.Rate / 100))
 									d.WriteByte(0)
@@ -844,9 +843,9 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 										m[v-1] = "1"
 									}
 									var m1, m2 string
-									if pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale < 10 {
-										pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale = pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale * 10
-									}
+									// if pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale < 10 {
+									// 	pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale = pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale * 10
+									// }
 									m1 = fmt.Sprintf("%04b", pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale/10) + gopsu.ReverseString(strings.Join(m, ""))
 									m2 = fmt.Sprintf("%04b%04b", pb2data.WlstTml.WlstSlu_7400.CmdPwm.Scale%10, pb2data.WlstTml.WlstSlu_7400.CmdPwm.Rate/100)
 									d.WriteByte(gopsu.String2Int8(m1, 2))
@@ -1068,9 +1067,9 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 										n[v-1] = "1"
 									}
 									m = gopsu.ReverseString(strings.Join(n, ""))
-									if pb2data.WlstTml.WlstSlu_7C00.OperationData[i].CmdPwm.Scale < 10 {
-										pb2data.WlstTml.WlstSlu_7C00.OperationData[i].CmdPwm.Scale = pb2data.WlstTml.WlstSlu_7C00.OperationData[i].CmdPwm.Scale * 10
-									}
+									// if pb2data.WlstTml.WlstSlu_7C00.OperationData[i].CmdPwm.Scale < 10 {
+									// 	pb2data.WlstTml.WlstSlu_7C00.OperationData[i].CmdPwm.Scale = pb2data.WlstTml.WlstSlu_7C00.OperationData[i].CmdPwm.Scale * 10
+									// }
 									d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%s", pb2data.WlstTml.WlstSlu_7C00.OperationData[i].CmdPwm.Scale/10, m), 2))
 									d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04b%04b", pb2data.WlstTml.WlstSlu_7C00.OperationData[i].CmdPwm.Scale%10, pb2data.WlstTml.WlstSlu_7C00.OperationData[i].CmdPwm.Rate/100), 2))
 								}

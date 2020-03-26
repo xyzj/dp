@@ -662,7 +662,26 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 			j := 5
 			svrmsg.NbSlu_5500.CmdIdx = int32(dd[j])
 			j++
-			svrmsg.NbSlu_5500.Status = int32(dd[j])
+			m := fmt.Sprintf("%08b", dd[j])
+			m1 := fmt.Sprintf("%08b", dd[j+1])
+			if m[2:3] == "1" {
+				if m1[2:3] == "1" {
+					svrmsg.NbSlu_5500.InitializeElec = 1
+				} else {
+					svrmsg.NbSlu_5500.InitializeElec = 0
+				}
+			} else {
+				svrmsg.NbSlu_5500.InitializeElec = 2
+			}
+			if m[7:8] == "1" {
+				if m1[7:8] == "1" {
+					svrmsg.NbSlu_5500.Mcu = 1
+				} else {
+					svrmsg.NbSlu_5500.Mcu = 0
+				}
+			} else {
+				svrmsg.NbSlu_5500.Mcu = 2
+			}
 		case 0xd6: // 设置本地控制方案应答
 			svrmsg.DataType = 8
 			f.DataCmd = "wlst.vslu.5600"
@@ -1204,6 +1223,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 			Pn: getPnFn(d[j : j+2]),
 			Fn: getPnFn(d[j+2 : j+4]),
 		}
+		println(fmt.Sprintf("--- 0x%02x", afn), uid.Pn, uid.Fn, con)
 		j += 4
 		svrmsg.DataID.UintID = append(svrmsg.DataID.UintID, uid)
 		switch afn {
