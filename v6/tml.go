@@ -1099,7 +1099,7 @@ func (dp *DataProcessor) dataHJLock(d []byte, tra byte, parentID int64) (lstf []
 		DataType: DataTypeBase64,
 		DataDst:  "2",
 		DstType:  SockData,
-		Tra:      TraDirect,
+		Tra:      Tra485,
 		Job:      JobSend,
 		Src:      gopsu.Bytes2String(d, "-"),
 	}
@@ -3460,11 +3460,11 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		cmd = 0xf4
 	}
 	if parentID > 0 {
-		tra = 2
+		tra = Tra485
 		f.Addr = parentID
 		cid = int32(d[4]) + int32(d[5])*256
 	} else {
-		tra = 1
+		tra = TraDirect
 		cid = 1
 		f.Addr = int64(d[4]) + int64(d[5])*256
 	}
@@ -6426,11 +6426,11 @@ func (dp *DataProcessor) dataElu(d []byte, tra byte, parentID int64) (lstf []*Fw
 	var cid int32
 	cmd := d[4]
 	if parentID > 0 {
-		tra = 2
+		tra = Tra485
 		f.Addr = parentID
 		cid = int32(d[3])
 	} else {
-		tra = 1
+		tra = TraDirect
 		cid = 1
 		f.Addr = int64(d[3])
 	}

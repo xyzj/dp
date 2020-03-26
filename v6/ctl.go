@@ -58,7 +58,7 @@ func (dp *DataProcessor) PrepareCtl(b *[]byte) (lstf []*Fwd) {
 		lstf = append(lstf, f)
 		return lstf
 	}
-	if pb2data.Head.Tver == 2 {
+	if pb2data.Head.Tra == 2 {
 		scmd[1] = "rtu"
 	}
 	for _, v := range xaddrs {
