@@ -243,7 +243,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 					x, _ := strconv.ParseInt(s[:4], 2, 0)
 					switch x {
 					case 0:
-						svrmsg.SluitemConfig.SluitemVer.SluitemType = "unknow"
+						svrmsg.SluitemConfig.SluitemVer.SluitemType = "未知"
 					case 1:
 						svrmsg.SluitemConfig.SluitemVer.SluitemType = "wj2190"
 					case 2:
@@ -267,7 +267,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 					case 14:
 						svrmsg.SluitemConfig.SluitemVer.SluitemType = "wj4090a"
 					default:
-						svrmsg.SluitemConfig.SluitemVer.SluitemType = "unknow"
+						svrmsg.SluitemConfig.SluitemVer.SluitemType = "未知"
 					}
 					j += 2
 					svrmsg.SluitemConfig.SluitemVer.Ver = string(dd[j : j+20])
@@ -359,7 +359,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 			case 9:
 				mi.SluitemType = "NBV0.1"
 			default:
-				mi.SluitemType = "unknow"
+				mi.SluitemType = "未知"
 			}
 			mi.HasTimer = gopsu.String2Int32(m[7:8], 2)
 			mi.HasTemperature = gopsu.String2Int32(m[8:9], 2)
@@ -527,7 +527,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 				}
 				lstf = append(lstf, ff)
 			}
-		case 0x37: // 登录信息数据主报
+		case 0xb7: // 登录信息数据主报
 			svrmsg.DataType = 4
 			f.DataCmd = "wlst.vslu.b700"
 			svrmsg.NbSlu_3700 = &msgnb.NBSlu_3700{}
@@ -3742,7 +3742,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 			x, _ := strconv.ParseInt(s[:4], 2, 0)
 			switch x {
 			case 0:
-				d9d.SluitemVer.SluitemType = "unknow"
+				d9d.SluitemVer.SluitemType = "未知"
 			case 1:
 				d9d.SluitemVer.SluitemType = "wj2190"
 			case 2:
@@ -3766,7 +3766,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 			case 14:
 				d9d.SluitemVer.SluitemType = "wj4090a"
 			default:
-				d9d.SluitemVer.SluitemType = "unknow"
+				d9d.SluitemVer.SluitemType = "未知"
 			}
 			j += 2
 			d9d.SluitemVer.Ver = string(d[j : j+20])
@@ -4199,7 +4199,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 				uc.ModelInfo.Model = gopsu.String2Int32(m[:4], 2)
 				switch uc.ModelInfo.Model {
 				case 0:
-					uc.ModelInfo.SluitemType = "unknow"
+					uc.ModelInfo.SluitemType = "未知"
 				case 1:
 					uc.ModelInfo.SluitemType = "wj2190"
 				case 2:
@@ -4223,7 +4223,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 				case 14:
 					uc.ModelInfo.SluitemType = "wj4090a"
 				default:
-					uc.ModelInfo.SluitemType = "unknow"
+					uc.ModelInfo.SluitemType = "未知"
 				}
 				uc.ModelInfo.HasTimer = gopsu.String2Int32(m[7:8], 2)
 				uc.ModelInfo.HasTemperature = gopsu.String2Int32(m[8:9], 2)
@@ -4297,7 +4297,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 				pi.ModelInfo.Model = gopsu.String2Int32(mi[:4], 2)
 				switch pi.ModelInfo.Model {
 				case 0:
-					pi.ModelInfo.SluitemType = "unknow"
+					pi.ModelInfo.SluitemType = "未知"
 				case 1:
 					pi.ModelInfo.SluitemType = "wj2190"
 				case 2:
@@ -4321,7 +4321,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 				case 14:
 					pi.ModelInfo.SluitemType = "wj4090a"
 				default:
-					pi.ModelInfo.SluitemType = "unknow"
+					pi.ModelInfo.SluitemType = "未知"
 				}
 				pi.ModelInfo.HasTimer = gopsu.String2Int32(mi[5:6], 2)
 				pi.ModelInfo.HasTemperature = gopsu.String2Int32(mi[6:7], 2)
@@ -5599,7 +5599,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 					x, _ := strconv.ParseInt(s[:4], 2, 0)
 					switch x {
 					case 0:
-						svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "unknow"
+						svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "未知"
 					case 1:
 						svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "wj2190"
 					case 2:
@@ -5623,7 +5623,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 					case 14:
 						svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "wj4090a"
 					default:
-						svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "unknow"
+						svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "未知"
 					}
 					j += 2
 					svrmsg.WlstTml.WlstSluFa00.SluitemVer.Ver = string(dd[j : j+20])
@@ -5767,7 +5767,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 			x, _ := strconv.ParseInt(s[:4], 2, 0)
 			switch x {
 			case 0:
-				svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "unknow"
+				svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "未知"
 			case 1:
 				svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "wj2190"
 			case 2:
@@ -5791,7 +5791,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 			case 14:
 				svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "wj4090a"
 			default:
-				svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "unknow"
+				svrmsg.WlstTml.WlstSluFa00.SluitemVer.SluitemType = "未知"
 			}
 			svrmsg.WlstTml.WlstSluFa00.Status = 1
 			// 按老孟要求，应答心跳
@@ -5823,7 +5823,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 			mi.Model = gopsu.String2Int32(m[:4], 2)
 			switch mi.Model {
 			case 0:
-				mi.SluitemType = "unknow"
+				mi.SluitemType = "未知"
 			case 1:
 				mi.SluitemType = "wj2190"
 			case 2:
@@ -5847,7 +5847,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 			case 14:
 				mi.SluitemType = "wj4090a"
 			default:
-				mi.SluitemType = "unknow"
+				mi.SluitemType = "未知"
 			}
 			mi.HasTimer = gopsu.String2Int32(m[7:8], 2)
 			mi.HasTemperature = gopsu.String2Int32(m[8:9], 2)
