@@ -411,6 +411,17 @@ func dataHJLock(d []byte, tra byte, parentID int64, ip *int64, portlocal *int) (
 	case 0x8b: // 读取一个卡号(没用，不做)
 	case 0x8c: // 设置开锁时间
 		svrmsg.WlstTml.HjLock_8C00.Status = int32(d[4])
+	case 0x8d: // 设置是否刷卡上报
+		svrmsg.WlstTml.HjLock_8D00.Status = int32(d[4])
+	case 0x8e: // 刷卡上报
+		svrmsg.WlstTml.HjLock_8E00.LastCard = gopsu.Bytes2Uint64(d[4:8], false)
+		svrmsg.WlstTml.HjLock_8E00.LastCardLegal = int32(d[8])
+	}
+
+	if len(f.DataCmd) > 0 {
+		b, _ := svrmsg.Marshal()
+		f.DataMsg = b
+		lstf = append(lstf, f)
 	}
 	return lstf
 }
@@ -6368,6 +6379,9 @@ func dataD0(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf 
 	// }()
 
 	svrmsg := initMsgCtl("", tmladdr, *ip, 1, tra, 1, portlocal)
+	if d[2] == 0x68 && d[4] == 0x8e { // 恒杰门禁刷卡上报
+		return dataHJLock(d[2:], tra, tmladdr, ip, portlocal)
+	}
 	if d[3] == 0x62 { // 漏电保护
 		if tmladdr > 0 {
 			f.Addr = tmladdr
