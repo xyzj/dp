@@ -377,8 +377,10 @@ func dataHJLock(d []byte, tra byte, parentID int64, ip *int64, portlocal *int) (
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0x81: // 设置地址
+		svrmsg.WlstTml.HjLock_8100 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8100.Status = int32(d[4])
 	case 0x82: // 读取状态
+		svrmsg.WlstTml.HjLock_8200 = &msgctl.HjLock_0200{}
 		svrmsg.WlstTml.HjLock_8200.LockStatus = int32(d[4])
 		svrmsg.WlstTml.HjLock_8200.FreqLights = int32(d[5])
 		svrmsg.WlstTml.HjLock_8200.FreqBeep = int32(d[6])
@@ -393,27 +395,38 @@ func dataHJLock(d []byte, tra byte, parentID int64, ip *int64, portlocal *int) (
 		svrmsg.WlstTml.HjLock_8200.CardType = int32(d[28])
 		svrmsg.WlstTml.HjLock_8200.Status = int32(d[29])
 	case 0x83: // 开锁
+		svrmsg.WlstTml.HjLock_8300 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8300.Status = int32(d[4])
 	case 0x84: // 关锁
+		svrmsg.WlstTml.HjLock_8400 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8400.Status = int32(d[4])
 	case 0x85: // 设置启动提醒参数
+		svrmsg.WlstTml.HjLock_8500 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8500.Status = int32(d[4])
 	case 0x86: // 添加卡
+		svrmsg.WlstTml.HjLock_8600 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8600.Status = int32(d[4])
 	case 0x87: // 删除卡
+		svrmsg.WlstTml.HjLock_8700 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8700.Status = int32(d[4])
 	case 0x88: // 设置管理卡
+		svrmsg.WlstTml.HjLock_8800 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8800.Status = int32(d[4])
 	case 0x89: // 重启
+		svrmsg.WlstTml.HjLock_8900 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8900.Status = int32(d[4])
 	case 0x8a: // 恢复出厂
+		svrmsg.WlstTml.HjLock_8A00 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8A00.Status = int32(d[4])
 	case 0x8b: // 读取一个卡号(没用，不做)
 	case 0x8c: // 设置开锁时间
+		svrmsg.WlstTml.HjLock_8C00 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8C00.Status = int32(d[4])
 	case 0x8d: // 设置是否刷卡上报
+		svrmsg.WlstTml.HjLock_8D00 = &msgctl.HjLock_0000{}
 		svrmsg.WlstTml.HjLock_8D00.Status = int32(d[4])
 	case 0x8e: // 刷卡上报
+		svrmsg.WlstTml.HjLock_8E00 = &msgctl.HjLock_0200{}
 		svrmsg.WlstTml.HjLock_8E00.LastCard = gopsu.Bytes2Uint64(d[4:8], false)
 		svrmsg.WlstTml.HjLock_8E00.LastCardLegal = int32(d[8])
 	}
@@ -1480,6 +1493,12 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 				if dd[k+7] == 0x68 && dd[k+lMru+11] == 0x16 && bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81}, []byte{dd[k+8]}) { // 电表
 					found = true
 					return dataMru(dd[k:], ip, 2, f.Addr, portlocal)
+				}
+				// 门禁
+				lhj := int(dd[k+3])
+				if dd[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{dd[k+2]}) {
+					found = true
+					return dataHJLock(dd[k:], 2, f.Addr, ip, portlocal)
 				}
 			}
 			// if v == 0x7e {
@@ -5773,8 +5792,6 @@ func dataMru(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 					Job:      JobSend,
 					DataMsg:  sendstr,
 				}
-				//ff.DstIMEI=
-				//println(fmt.Sprintf("%+v", ff))
 				lstf = append(lstf, ff)
 			}
 		default:

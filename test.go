@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	// "github.com/tidwall/gjson"
 
@@ -71,8 +70,8 @@ func testTmldata() {
 	s = strings.Split("7e-30-01-00-b7-7e-62-26-01-d9-05-32-00-01-00-2e-06-00-00-03-32-00-01-00-00-00-00-00-03-32-00-01-00-00-00-00-00-03-32-00-01-00-00-00-00-00-a1-61-ba-4e-31-3e", "-")
 	s = strings.Split("68 0E 00 0E 00 68 0B 01 01 12 04 00 00 00 60 00 00 01 00 02 86 16", " ")
 	s = gopsu.SplitStringWithLen("681E001E0068A80101421600000E610000010034010205010508300910012000020534117216", 2)
-	s = strings.Split("7e-19-14-00-b7-68-95-36-34-00-00-00-68-91-08-33-33-33-33-5b-73-4a-33-7f-16-81-73", "-")
-	s = strings.Split("68 19 00 19 00 68 A8 01 01 42 16 00 00 0A 61 00 00 04 01 00 1D 3A D0 07 00 71 35 54 0B DC 0D 8E 16", " ")
+	s = strings.Split("7e-27-fa-13-b7-68-01-82-1b-01-ff-ff-0a-88-13-00-0c-99-cd-00-0c-85-47-00-00-ce-1a-00-00-00-3d-f8-7c-00-00-00-c8-31-16-81-f2", "-")
+	// s = strings.Split("68 19 00 19 00 68 A8 01 01 42 16 00 00 0A 61 00 00 04 01 00 1D 3A D0 07 00 71 35 54 0B DC 0D 8E 16", " ")
 
 	ss := make([]byte, len(s))
 	for k, v := range s {
@@ -85,7 +84,7 @@ func testTmldata() {
 	// 	return
 	// }
 	// ss = sa
-	println(gopsu.Bytes2String(ss, "-"))
+	println("-=+", gopsu.Bytes2String(ss, "-"))
 	// a := int64(0)
 	// b := true
 	// c := 0
@@ -249,18 +248,7 @@ func main() {
 	// testCtldata()
 	// testCtldataPb2()
 	// testCtldatajson()
-	// testTmldata()
-	lon := gopsu.DFM2GPS(113, 53, 29.00)
-	lat := gopsu.DFM2GPS(29, 58, 20.00)
-	println(fmt.Sprintf("%.8f,%.8f", lon, lat))
-	t := time.Unix(gopsu.Time2Stamp("2020-01-19 01:01:01"), 8)
-	lon = 121.4890497
-	lat = 31.2252985
-	a, b, _ := gopsu.GetSunriseSunset(lat, lon, 8, t)
-	println(a.Format("15:04"), b.Format("15:04"))
-	t = time.Unix(gopsu.Time2Stamp("2020-05-03 00:00:00"), 8)
-	a, b, _ = gopsu.GetSunriseSunset(lat, lon, 8, t)
-	println(a.Format("15:04"), b.Format("15:04"))
+	testTmldata()
 	// aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
 	// countCRC()
 	// for {
