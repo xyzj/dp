@@ -359,7 +359,7 @@ func dataHJLock(d []byte, tra byte, parentID int64, ip *int64, portlocal *int) (
 		Src:      gopsu.Bytes2String(d, "-"),
 	}
 
-	if !gopsu.CheckCrc16VBBigOrder(d[1 : len(d)-3]) {
+	if !gopsu.CheckCrc16VBBigOrder(d[1 : len(d)-1]) {
 		f.Ex = fmt.Sprintf("locker data validation fails")
 		lstf = append(lstf, f)
 		return lstf
