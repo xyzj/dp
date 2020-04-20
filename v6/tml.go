@@ -1122,7 +1122,7 @@ func (dp *DataProcessor) dataHJLock(d []byte, tra byte, parentID int64) (lstf []
 		f.Addr = parentID
 		cid = int32(d[1])
 	}
-	svrmsg := initMsgCtl(fmt.Sprintf("wlst.rtu.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
+	svrmsg := initMsgCtl(fmt.Sprintf("hj.lock.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0x81: // 设置地址
