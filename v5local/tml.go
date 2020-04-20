@@ -273,7 +273,7 @@ LOOP:
 				goto LOOP
 			}
 		case 0x68: // 合肥/电表/勃洛克/上海路灯
-			if len(d[k:]) < 12 {
+			if len(d[k:]) < 8 {
 				r.Ex = fmt.Sprintf("Insufficient data length. %s", gopsu.Bytes2String(d[k:], "-"))
 				r.Unfinish = d
 				d = []byte{}
@@ -287,19 +287,23 @@ LOOP:
 				goto LOOP
 			}
 			// 电表/udp单灯
-			lMru := int(d[k+9])
-			if d[k+7] == 0x68 && d[k+lMru+11] == 0x16 &&
-				bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81, 0x9c}, []byte{d[k+8]}) {
-				r.Do = append(r.Do, dataMru(d[k:k+lMru+12], ip, 1, 0, portlocal)...)
-				d = d[k+lMru+12:]
-				goto LOOP
+			if len(d) > k+9 {
+				lMru := int(d[k+9])
+				if d[k+7] == 0x68 && d[k+lMru+11] == 0x16 &&
+					bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81, 0x9c}, []byte{d[k+8]}) {
+					r.Do = append(r.Do, dataMru(d[k:k+lMru+12], ip, 1, 0, portlocal)...)
+					d = d[k+lMru+12:]
+					goto LOOP
+				}
 			}
 			// 恒杰门禁
-			lhj := int(d[k+3])
-			if d[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{d[k+2]}) {
-				r.Do = append(r.Do, dataHJLock(d[k:k+lhj+7], 1, 0, ip, portlocal)...)
-				d = d[k+lhj+7:]
-				goto LOOP
+			if len(d) > k+3 {
+				lhj := int(d[k+3])
+				if d[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{d[k+2]}) {
+					r.Do = append(r.Do, dataHJLock(d[k:k+lhj+7], 1, 0, ip, portlocal)...)
+					d = d[k+lhj+7:]
+					goto LOOP
+				}
 			}
 			// 安徽合肥
 			lAhhf := int(d[k+1]) + int(d[k+2])*256
@@ -314,7 +318,7 @@ LOOP:
 			lBlk := int(d[k+2])*256 + int(d[k+3])
 			if d[k+4] == 0x68 && d[k+lBlk+4] == 0x16 {
 				r.Do = append(r.Do, dataBlk(d[k:k+lBlk+12], ip, 1, 0, portlocal)...)
-				d = d[k+lMru+12:]
+				d = d[k+lBlk+12:]
 				goto LOOP
 			}
 			// 上海路灯心跳（无视）
@@ -1489,16 +1493,20 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 					return dataLdu(dd[k:], ip, 2, f.Addr, portlocal)
 				}
 			case 0x68:
-				lMru := int(dd[k+9])
-				if dd[k+7] == 0x68 && dd[k+lMru+11] == 0x16 && bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81}, []byte{dd[k+8]}) { // 电表
-					found = true
-					return dataMru(dd[k:], ip, 2, f.Addr, portlocal)
+				if len(dd) > k+9 {
+					lMru := int(dd[k+9])
+					if dd[k+7] == 0x68 && dd[k+lMru+11] == 0x16 && bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81}, []byte{dd[k+8]}) { // 电表
+						found = true
+						return dataMru(dd[k:], ip, 2, f.Addr, portlocal)
+					}
 				}
 				// 门禁
-				lhj := int(dd[k+3])
-				if dd[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{dd[k+2]}) {
-					found = true
-					return dataHJLock(dd[k:], 2, f.Addr, ip, portlocal)
+				if len(dd) > k+3 {
+					lhj := int(dd[k+3])
+					if dd[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{dd[k+2]}) {
+						found = true
+						return dataHJLock(dd[k:], 2, f.Addr, ip, portlocal)
+					}
 				}
 			}
 			// if v == 0x7e {

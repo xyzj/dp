@@ -1049,19 +1049,23 @@ LOOP:
 				goto LOOP
 			}
 			// 电表/udp单灯
-			lMru := int(d[k+9])
-			if d[k+7] == 0x68 && d[k+lMru+11] == 0x16 &&
-				bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81, 0x9c}, []byte{d[k+8]}) {
-				r.Do = append(r.Do, dp.dataMru(d[k:k+lMru+12], 1, 0)...)
-				d = d[k+lMru+12:]
-				goto LOOP
+			if len(d) > k+9 {
+				lMru := int(d[k+9])
+				if d[k+7] == 0x68 && d[k+lMru+11] == 0x16 &&
+					bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81, 0x9c}, []byte{d[k+8]}) {
+					r.Do = append(r.Do, dp.dataMru(d[k:k+lMru+12], 1, 0)...)
+					d = d[k+lMru+12:]
+					goto LOOP
+				}
 			}
 			// 恒杰门禁
-			lhj := int(d[k+3])
-			if d[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{d[k+2]}) {
-				r.Do = append(r.Do, dp.dataHJLock(d[k:k+lhj+7], 1, 0)...)
-				d = d[k+lhj+7:]
-				goto LOOP
+			if len(d) > k+3 {
+				lhj := int(d[k+3])
+				if d[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{d[k+2]}) {
+					r.Do = append(r.Do, dp.dataHJLock(d[k:k+lhj+7], 1, 0)...)
+					d = d[k+lhj+7:]
+					goto LOOP
+				}
 			}
 			// 安徽合肥
 			lAhhf := int(d[k+1]) + int(d[k+2])*256
@@ -1075,7 +1079,7 @@ LOOP:
 			// 勃洛克
 			lBlk := int(d[k+2])*256 + int(d[k+3])
 			if d[k+4] == 0x68 && d[k+lBlk+4] == 0x16 {
-				d = d[k+lMru+12:]
+				d = d[k+lBlk+12:]
 				goto LOOP
 			}
 			// 上海路灯心跳（无视）
@@ -2625,16 +2629,20 @@ func (dp *DataProcessor) dataRtu(d []byte, crc bool) (lstf []*Fwd) {
 				}
 			case 0x68:
 				// 电表
-				lMru := int(dd[k+9])
-				if dd[k+7] == 0x68 && dd[k+lMru+11] == 0x16 && bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81}, []byte{dd[k+8]}) { // 电表
-					found = true
-					return dp.dataMru(dd[k:], 2, f.Addr)
+				if len(dd) > k+9 {
+					lMru := int(dd[k+9])
+					if dd[k+7] == 0x68 && dd[k+lMru+11] == 0x16 && bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81}, []byte{dd[k+8]}) { // 电表
+						found = true
+						return dp.dataMru(dd[k:], 2, f.Addr)
+					}
 				}
 				// 门禁
-				lhj := int(dd[k+3])
-				if dd[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{dd[k+2]}) {
-					found = true
-					return dp.dataHJLock(dd[k:], 2, f.Addr)
+				if len(dd) > k+9 {
+					lhj := int(dd[k+3])
+					if dd[k+lhj+6] == 0x16 && bytes.Contains(hjlockreply, []byte{dd[k+2]}) {
+						found = true
+						return dp.dataHJLock(dd[k:], 2, f.Addr)
+					}
 				}
 			}
 		}
