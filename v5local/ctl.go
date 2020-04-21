@@ -3437,7 +3437,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 					case "0a00": // 恢复出厂
 					case "0b00": // 读取一个卡号(不做)
 					case "0c00": // 设置开锁时间
-						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0C00.Delay), true)[6:])
+						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0C00.Delay), false)[:2])
 					case "0d00": // 设置是否刷卡主报
 						d.WriteByte(byte(pb2data.WlstTml.HjLock_0D00.EnableAlarm))
 					default:
