@@ -2717,17 +2717,17 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 						d.WriteByte(byte(pb2data.WlstTml.HjLock_0500.FreqBeep))
 						d.WriteByte(byte(pb2data.WlstTml.HjLock_0500.TimeDelay))
 					case "0600": // 添加卡
-						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0600.Card, false))
+						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0600.Card, false)[:4])
 					case "0700": // 删除卡
-						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0700.Card, false))
+						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0700.Card, false)[:4])
 					case "0800": // 设置管理卡
-						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0800.MasterCard1, false))
-						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0800.MasterCard1, false))
+						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0800.MasterCard1, false)[:4])
+						d.Write(gopsu.Uint642Bytes(pb2data.WlstTml.HjLock_0800.MasterCard1, false)[:4])
 					case "0900": // 重启
 					case "0a00": // 恢复出厂
 					case "0b00": // 读取一个卡号(不做)
 					case "0c00": // 设置开锁时间
-						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0C00.Delay), false))
+						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0C00.Delay), false)[:2])
 					case "0d00": // 设置是否刷卡主报
 						d.WriteByte(byte(pb2data.WlstTml.HjLock_0D00.EnableAlarm))
 					default:

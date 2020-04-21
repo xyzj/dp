@@ -250,6 +250,7 @@ func main() {
 	// testCtldataPb2()
 	// testCtldatajson()
 	testTmldata()
+	println(fmt.Sprintf("%+v", gopsu.Uint642Bytes(uint64(12333), false)))
 	// aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
 	// countCRC()
 	// for {

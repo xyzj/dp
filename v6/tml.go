@@ -1137,7 +1137,7 @@ func (dp *DataProcessor) dataHJLock(d []byte, tra byte, parentID int64) (lstf []
 		svrmsg.WlstTml.HjLock_8200.LockoffDelay = int32(d[8])
 		svrmsg.WlstTml.HjLock_8200.MasterCard1 = gopsu.Bytes2Uint64(d[9:13], false)
 		svrmsg.WlstTml.HjLock_8200.MasterCard2 = gopsu.Bytes2Uint64(d[13:17], false)
-		svrmsg.WlstTml.HjLock_8200.Cards = int32(gopsu.Bytes2Int64(d[17:19], false))
+		svrmsg.WlstTml.HjLock_8200.Cards = int32(gopsu.Bytes2Int64(d[17:19], true))
 		svrmsg.WlstTml.HjLock_8200.HardwareVer = gopsu.Bytes2Uint64(d[19:23], false)
 		svrmsg.WlstTml.HjLock_8200.LastCard = gopsu.Bytes2Uint64(d[23:27], false)
 		svrmsg.WlstTml.HjLock_8200.LastCardLegal = int32(d[27])
