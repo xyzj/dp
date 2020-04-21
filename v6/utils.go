@@ -314,6 +314,8 @@ var hjlockreply = []byte{
 	0x8a, // 恢复出厂
 	0x8b, // 读取一个卡号
 	0x8c, // 设置开锁时间
+	0x8d, // 设置刷卡主报
+	0x8e, // 刷卡主报
 }
 
 const (
