@@ -335,6 +335,76 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 						svrmsg.SluitemConfig.SluitemRuntime = append(svrmsg.SluitemConfig.SluitemRuntime, cr)
 					}
 				}
+				if readMark[5:6] == "1" && readResult[5] == 49 { // 选测（新）
+					f.DataCmd = "wlst.vslu.b900"
+					svrmsg.DataType = 1
+					svrmsg.SluitemData = &msgnb.SluitemData{}
+					svrmsg.SluitemData.ModelInfo = &msgnb.SluitemData_ModelInfo{}
+					svrmsg.SluitemData.SluitemStatus = &msgnb.SluitemData_SluitemStatus{}
+					svrmsg.SluitemData.TimeFault = &msgnb.SluitemData_TimeFault{}
+					svrmsg.SluitemData.SluitemPara = &msgnb.SluitemData_SluitemPara{}
+
+					// 回路数据（电压、电流、有功、无功、视在、电量、运行时间、灯状态）
+					cbd := &msgnb.SluitemData{}
+					for k := 0; k < 4; k++ {
+						ld := &msgnb.SluitemData_LightData{}
+						ls := &msgnb.SluitemData_LightStatus{}
+						if k >= loopCount {
+							ld.Voltage = float64(0)
+							ld.Current = float64(0)
+							ld.ActivePower = float64(0)
+							ld.Electricity = float64(0)
+							ld.ActiveTime = float64(0)
+
+							ls.Leakage = 0
+							ls.Fault = 0
+							ls.WorkingOn = 0
+
+							ld.LightStatus = ls
+						} else {
+							ld.Voltage = (float64(dd[j+2*k]) + float64(dd[j+1+2*k])*256) / 100
+							ld.Current = (float64(dd[j+2*loopCount+2*k]) + float64(dd[j+1+2*loopCount+2*k])*256) / 100
+							ld.ActivePower = (float64(dd[j+4*loopCount+2*k]) + float64(dd[j+1+4*loopCount+2*k])*256) / 10
+							ld.Electricity = (float64(dd[j+6*loopCount+2*k]) + float64(dd[j+1+6*loopCount+2*k])*256) / 10
+							ld.ActiveTime = float64(dd[j+8*loopCount+3*k]) + float64(dd[j+1+8*loopCount+3*k])*256 + float64(dd[j+2+8*loopCount+3*k])*256*256
+
+							m := fmt.Sprintf("%08b", dd[j+11*loopCount+k])
+							ls.Leakage = gopsu.String2Int32(m[2:3], 2)
+							ls.Fault = gopsu.String2Int32(m[3:6], 2)
+							ls.WorkingOn = gopsu.String2Int32(m[6:8], 2)
+
+							ld.LightStatus = ls
+						}
+						cbd.LightData = append(cbd.LightData, ld)
+					}
+					j += 12 * loopCount
+
+					// 漏电流 控制器状态 时钟故障 自复位次数
+					svrmsg.SluitemData.LeakageCurrent = float64(dd[j]) / 100
+					j++
+					m := fmt.Sprintf("%08b", dd[j])
+					svrmsg.SluitemData.SluitemStatus.FlashFault = gopsu.String2Int32(m[6:7], 2)
+					svrmsg.SluitemData.SluitemStatus.EnableAlarm = gopsu.String2Int32(m[4:5], 2)
+					j++
+					m = fmt.Sprintf("%08b", dd[j])
+					svrmsg.SluitemData.TimeFault.ClockFault = gopsu.String2Int32(m[7:8], 2)
+					svrmsg.SluitemData.TimeFault.ClockOutFault = gopsu.String2Int32(m[6:7], 2)
+					svrmsg.SluitemData.TimeFault.ClockOutAlarm = gopsu.String2Int32(m[5:6], 2)
+					j++
+					svrmsg.SluitemData.ResetCount = int32(dd[j])
+					j++
+					j++
+					println(dd[j])
+					// 回路数据（节能档位）
+					x1 := fmt.Sprintf("%08b%08b", dd[j], dd[j+1])
+					println(x1)
+					x2 := fmt.Sprintf("%08b%08b", dd[j+2], dd[j+3])
+					for k := range cbd.LightData {
+						cbd.LightData[k].PowerLevel = gopsu.String2Int32(fmt.Sprintf("%d%d", gopsu.String2Int32(x1[4*k:4+4*k], 2), gopsu.String2Int32(x2[4*k:4+4*k], 2)), 10)
+					}
+					j += loopCount
+					svrmsg.SluitemData.LightData = cbd.LightData
+				}
 			}
 		case 0xb9: // 控制器主报（仅NB）
 			f.DataCmd = "wlst.vslu.b900"
@@ -400,6 +470,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 			svrmsg.SluitemData.SluitemStatus.FlashFault = gopsu.String2Int32(m[6:7], 2)
 			svrmsg.SluitemData.SluitemStatus.EnableAlarm = gopsu.String2Int32(m[4:5], 2)
 			j++
+			m = fmt.Sprintf("%08b", d[j])
 			svrmsg.SluitemData.TimeFault.ClockFault = gopsu.String2Int32(m[7:8], 2)
 			svrmsg.SluitemData.TimeFault.ClockOutFault = gopsu.String2Int32(m[6:7], 2)
 			svrmsg.SluitemData.TimeFault.ClockOutAlarm = gopsu.String2Int32(m[5:6], 2)
