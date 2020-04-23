@@ -344,6 +344,13 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 					svrmsg.SluitemData.TimeFault = &msgnb.SluitemData_TimeFault{}
 					svrmsg.SluitemData.SluitemPara = &msgnb.SluitemData_SluitemPara{}
 
+					svrmsg.SluitemData.DateTime = time.Now().Unix()
+					mi := &msgnb.SluitemData_ModelInfo{}
+					mi.Model = 9
+					mi.SluitemType = "NBV0.1Old"
+					mi.UseLoop = int32(loopCount)
+					svrmsg.SluitemData.ModelInfo = mi
+
 					// 回路数据（电压、电流、有功、无功、视在、电量、运行时间、灯状态）
 					cbd := &msgnb.SluitemData{}
 					for k := 0; k < 4; k++ {
