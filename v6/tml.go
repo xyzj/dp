@@ -1252,7 +1252,7 @@ func (dp *DataProcessor) dataHJLock(d []byte, tra byte, parentID int64) (lstf []
 		svrmsg.WlstTml.HjLock_8D00.Status = int32(d[4])
 	case 0x8e: // 刷卡上报
 		svrmsg.WlstTml.HjLock_8E00 = &msgctl.HjLock_0200{}
-		svrmsg.WlstTml.HjLock_8E00.LastCard = gopsu.Bytes2Uint64(d[4:8], false)
+		svrmsg.WlstTml.HjLock_8E00.LastCard = gopsu.Bytes2Uint64(d[4:8], true)
 		svrmsg.WlstTml.HjLock_8E00.LastCardLegal = int32(d[8])
 	}
 
