@@ -6404,8 +6404,9 @@ func dataD0(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf 
 	// }()
 
 	svrmsg := initMsgCtl("", tmladdr, *ip, 1, tra, 1, portlocal)
-	if d[2] == 0x68 && d[4] == 0x8e { // 恒杰门禁刷卡上报
-		return dataHJLock(d[2:], tra, tmladdr, ip, portlocal)
+	if d[3] == 0x68 && d[5] == 0x8e { // 恒杰门禁刷卡上报
+		l := d[6]
+		return dataHJLock(d[3:l+10], tra, tmladdr, ip, portlocal)
 	}
 	if d[3] == 0x62 { // 漏电保护
 		if tmladdr > 0 {

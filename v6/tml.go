@@ -6589,8 +6589,9 @@ func (dp *DataProcessor) dataD0(d []byte, tra byte, parentID int64) (lstf []*Fwd
 	// }()
 
 	svrmsg := initMsgCtl("", parentID, dp.RemoteIP, 1, tra, 1, &dp.LocalPort)
-	if d[2] == 0x68 && d[4] == 0x8e { // 恒杰门禁刷卡上报
-		return dp.dataHJLock(d[2:], tra, parentID)
+	if d[3] == 0x68 && d[5] == 0x8e { // 恒杰门禁刷卡上报
+		l := d[6]
+		return dp.dataHJLock(d[3:l+10], tra, parentID)
 	}
 	if d[3] == 0x62 { // 漏电保护
 		if parentID > 0 {
