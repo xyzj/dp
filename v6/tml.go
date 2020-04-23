@@ -394,10 +394,8 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 					svrmsg.SluitemData.ResetCount = int32(dd[j])
 					j++
 					j++
-					println(dd[j])
 					// 回路数据（节能档位）
 					x1 := fmt.Sprintf("%08b%08b", dd[j], dd[j+1])
-					println(x1)
 					x2 := fmt.Sprintf("%08b%08b", dd[j+2], dd[j+3])
 					for k := range cbd.LightData {
 						cbd.LightData[k].PowerLevel = gopsu.String2Int32(fmt.Sprintf("%d%d", gopsu.String2Int32(x1[4*k:4+4*k], 2), gopsu.String2Int32(x2[4*k:4+4*k], 2)), 10)
