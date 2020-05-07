@@ -2271,17 +2271,17 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 							}
 						case "4400", "4401": // 发送上下限参数
 							d.WriteByte(0x01)
-							d.WriteByte(byte(int(pb2data.WlstTml.WlstRtu_4401.LowerVoltageLimit*1.0/pb2data.WlstTml.WlstRtu_4401.VoltageRange*0x3ff0) & 0xff))
-							d.WriteByte(byte(int(pb2data.WlstTml.WlstRtu_4401.LowerVoltageLimit*1.0/pb2data.WlstTml.WlstRtu_4401.VoltageRange*0x3ff0/256) & 0xff))
-							d.WriteByte(byte(int(pb2data.WlstTml.WlstRtu_4401.UpperVoltageLimit*1.0/pb2data.WlstTml.WlstRtu_4401.VoltageRange*0x3ff0) & 0xff))
-							d.WriteByte(byte(int(pb2data.WlstTml.WlstRtu_4401.UpperVoltageLimit*1.0/pb2data.WlstTml.WlstRtu_4401.VoltageRange*0x3ff0/256) & 0xff))
+							d.WriteByte(byte(int(float32(pb2data.WlstTml.WlstRtu_4401.LowerVoltageLimit)/float32(pb2data.WlstTml.WlstRtu_4401.VoltageRange)*0x3ff0) & 0xff))
+							d.WriteByte(byte(int(float32(pb2data.WlstTml.WlstRtu_4401.LowerVoltageLimit)/float32(pb2data.WlstTml.WlstRtu_4401.VoltageRange)*0x3ff0/256) & 0xff))
+							d.WriteByte(byte(int(float32(pb2data.WlstTml.WlstRtu_4401.UpperVoltageLimit)/float32(pb2data.WlstTml.WlstRtu_4401.VoltageRange)*0x3ff0) & 0xff))
+							d.WriteByte(byte(int(float32(pb2data.WlstTml.WlstRtu_4401.UpperVoltageLimit)/float32(pb2data.WlstTml.WlstRtu_4401.VoltageRange)*0x3ff0/256) & 0xff))
 
 							for i := int32(0); i < pb2data.WlstTml.WlstRtu_4401.AnalogSum; i++ {
 								if pb2data.WlstTml.WlstRtu_4401.XCurrentRange[i] > 0 {
-									d.WriteByte(byte(int(pb2data.WlstTml.WlstRtu_4401.XLowerCurrentLimit[i]*1.0/pb2data.WlstTml.WlstRtu_4401.XCurrentRange[i]*0x3ff0) & 0xff))
-									d.WriteByte(byte(int(pb2data.WlstTml.WlstRtu_4401.XLowerCurrentLimit[i]*1.0/pb2data.WlstTml.WlstRtu_4401.XCurrentRange[i]*0x3ff0/256) & 0xff))
-									d.WriteByte(byte(int(pb2data.WlstTml.WlstRtu_4401.XUpperCurrentLimit[i]*1.0/pb2data.WlstTml.WlstRtu_4401.XCurrentRange[i]*0x3ff0) & 0xff))
-									d.WriteByte(byte(int(pb2data.WlstTml.WlstRtu_4401.XUpperCurrentLimit[i]*1.0/pb2data.WlstTml.WlstRtu_4401.XCurrentRange[i]*0x3ff0/256) & 0xff))
+									d.WriteByte(byte(int(float32(pb2data.WlstTml.WlstRtu_4401.XLowerCurrentLimit[i])/float32(pb2data.WlstTml.WlstRtu_4401.XCurrentRange[i])*0x3ff0) & 0xff))
+									d.WriteByte(byte(int(float32(pb2data.WlstTml.WlstRtu_4401.XLowerCurrentLimit[i])/float32(pb2data.WlstTml.WlstRtu_4401.XCurrentRange[i])*0x3ff0/256) & 0xff))
+									d.WriteByte(byte(int(float32(pb2data.WlstTml.WlstRtu_4401.XUpperCurrentLimit[i])/float32(pb2data.WlstTml.WlstRtu_4401.XCurrentRange[i])*0x3ff0) & 0xff))
+									d.WriteByte(byte(int(float32(pb2data.WlstTml.WlstRtu_4401.XUpperCurrentLimit[i])/float32(pb2data.WlstTml.WlstRtu_4401.XCurrentRange[i])*0x3ff0/256) & 0xff))
 								} else {
 									d.WriteByte(0)
 									d.WriteByte(0)
