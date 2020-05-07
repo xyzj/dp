@@ -1981,13 +1981,13 @@ func dataRtu70(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 				svrmsg.WlstTml.WlstRtu_70Da.XAnalogVector = append(svrmsg.WlstTml.WlstRtu_70Da.XAnalogVector, int32(d[j])+1)
 				j++
 			}
-			svrmsg.WlstTml.WlstRtu_70Da.LowerVoltageLimit = int32(float32(d[j])*1.0/0x3f) * svrmsg.WlstTml.WlstRtu_70Da.VoltageRange
+			svrmsg.WlstTml.WlstRtu_70Da.LowerVoltageLimit = int32(float32(d[j])/0x3f) * svrmsg.WlstTml.WlstRtu_70Da.VoltageRange
 			j++
-			svrmsg.WlstTml.WlstRtu_70Da.UpperVoltageLimit = int32(float32(d[j])*1.0/0x3f) * svrmsg.WlstTml.WlstRtu_70Da.VoltageRange
+			svrmsg.WlstTml.WlstRtu_70Da.UpperVoltageLimit = int32(float32(d[j])/0x3f) * svrmsg.WlstTml.WlstRtu_70Da.VoltageRange
 			j++
 			for i := 0; i < 48; i++ {
-				svrmsg.WlstTml.WlstRtu_70Da.XLowerCurrentLimit = append(svrmsg.WlstTml.WlstRtu_70Da.XLowerCurrentLimit, int32(float32(d[j])*1.0/0x3f)*svrmsg.WlstTml.WlstRtu_70Da.XCurrentRange[i])
-				svrmsg.WlstTml.WlstRtu_70Da.XUpperCurrentLimit = append(svrmsg.WlstTml.WlstRtu_70Da.XUpperCurrentLimit, int32(float32(d[j+1])*1.0/0x3f)*svrmsg.WlstTml.WlstRtu_70Da.XCurrentRange[i])
+				svrmsg.WlstTml.WlstRtu_70Da.XLowerCurrentLimit = append(svrmsg.WlstTml.WlstRtu_70Da.XLowerCurrentLimit, int32(float32(d[j])/0x3f)*svrmsg.WlstTml.WlstRtu_70Da.XCurrentRange[i])
+				svrmsg.WlstTml.WlstRtu_70Da.XUpperCurrentLimit = append(svrmsg.WlstTml.WlstRtu_70Da.XUpperCurrentLimit, int32(float32(d[j+1])/0x3f)*svrmsg.WlstTml.WlstRtu_70Da.XCurrentRange[i])
 				j += 2
 			}
 		} else if svrmsg.WlstTml.WlstRtu_70Da.CmdType == 2 || ll <= 6 { // 电能板互感比，上传时×5
