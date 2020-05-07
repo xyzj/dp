@@ -1525,7 +1525,7 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							for i := int32(0); i < l; i++ {
 								d.WriteByte(gopsu.String2Int8(
 									fmt.Sprintf("%04b%04b", pb2data.WlstTml.WlstRtu_4104.XSwitchVector[i]-1,
-										pb2data.WlstTml.WlstRtu_4104.XSwitchHopping[i]*4), 2))
+										pb2data.WlstTml.WlstRtu_4104.XSwitchHopping[i]*0xf), 2))
 							}
 						case "4108":
 							d.WriteByte(0x08)
