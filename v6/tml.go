@@ -419,9 +419,10 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 			svrmsg.SluitemData.SluitemStatus = &msgnb.SluitemData_SluitemStatus{}
 			svrmsg.SluitemData.TimeFault = &msgnb.SluitemData_TimeFault{}
 			svrmsg.SluitemData.SluitemPara = &msgnb.SluitemData_SluitemPara{}
+			// 2位地址
+			repaddr := int64(d[12]) + int64(d[13])*256
 			// 序号
 			svrmsg.SluitemData.CmdIdx = int32(d[15])
-
 			// 型号
 			mi := &msgnb.SluitemData_ModelInfo{}
 			j := 16
@@ -589,7 +590,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 			svrmsg.SluitemData.LightData = cbd.LightData
 
 			if repflg == 1 && svrmsg.SluitemData.Reson != 0 {
-				sendstr := DoCommand(1, 1, 1, f.Addr, 1, "wlst.vslu.3900", []byte{d[6]}, 1, 1)
+				sendstr := DoCommand(1, 1, 1, repaddr, 1, "wlst.vslu.3900", []byte{d[6]}, 1, 1)
 				ff := &Fwd{
 					Addr:     f.Addr,
 					DataCmd:  "wlst.vslu.3900",
@@ -607,8 +608,11 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 			svrmsg.DataType = 4
 			f.DataCmd = "wlst.vslu.b700"
 			svrmsg.NbSlu_3700 = &msgnb.NBSlu_3700{}
+			// 2位地址
+			j := 2
+			repaddr := int64(dd[j]) + int64(dd[j+1])*256
+			j += 3
 			// 序号
-			j := 5
 			svrmsg.NbSlu_3700.CmdIdx = int32(dd[j])
 			j++
 			svrmsg.NbSlu_3700.Imei = string(dd[6:21])
@@ -633,7 +637,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 				svrmsg.NbSlu_3700.Snr = 0 - gopsu.String2Int64(m[1:], 2)
 			}
 
-			sendstr := DoCommand(1, 1, 1, f.Addr, 1, "wlst.vslu.3700", []byte{d[6]}, 1, 1)
+			sendstr := DoCommand(1, 1, 1, repaddr, 1, "wlst.vslu.3700", []byte{d[6]}, 1, 1)
 			ff := &Fwd{
 				Addr:     f.Addr,
 				DataCmd:  "wlst.vslu.3700",
