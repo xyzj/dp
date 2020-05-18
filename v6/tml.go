@@ -632,6 +632,21 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 			} else {
 				svrmsg.NbSlu_3700.Snr = 0 - gopsu.String2Int64(m[1:], 2)
 			}
+
+			sendstr := DoCommand(1, 1, 1, f.Addr, 1, "wlst.vslu.3700", []byte{d[6]}, 1, 1)
+			ff := &Fwd{
+				Addr:     f.Addr,
+				DataCmd:  "wlst.vslu.3700",
+				DataType: DataTypeBytes,
+				DataPT:   1000,
+				DataDst:  fmt.Sprintf("wlst-nbslu-%d", f.Addr),
+				DstType:  SockTml,
+				Tra:      TraDirect,
+				Job:      JobSend,
+				DataMsg:  sendstr,
+			}
+			lstf = append(lstf, ff)
+
 		case 0x94: // 时间设置应答
 			svrmsg.DataType = 4
 			f.DataCmd = "wlst.vslu.1400"
