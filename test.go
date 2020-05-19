@@ -148,7 +148,7 @@ func testTmldataV6() {
 	s = strings.Split("68 0E 00 0E 00 68 0B 01 01 12 04 00 00 00 60 00 00 01 00 02 86 16", " ")
 	s = gopsu.SplitStringWithLen("68112233445566689C437D3F0100B700383635383233303430393734373833343630303437343938393032323433383938363034353431313139393134323232343308EB0300000C0000008E4FA816", 2)
 	//s = strings.Split("68-11-00-11-00-68-eb-01-01-12-01-00-00-0c-70-00-00-20-00-ff-ff-90-ff-29-16-68-17-00-17-00-68-eb-01-01-12-01-00-00-0c-70-00-00-01-01-00-00-00-00-00-00-00-00-90-ff-0d-16-68-19-00-19-00-68-eb-01-01-12-01-00-00-0c-70-00-00-02-02-ee-ee-00-00-00-00-00-00-00-00-90-ff-eb-16-68-c9-00-c9-00-68-eb-01-01-12-01-00-00-0c-70-ff-ff-01-00-27-11-06-09-13-0c-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-90-ff-c0-16-68-50-00-50-00-68-eb-01-01-12-01-00-00-0c-70-00-00-04-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-90-ff-0f-16", "-")
-	s = strings.Split("68-01-00-00-00-00-00-68-9c-43-7d-3f-01-00-b7-00-38-36-37-37-32-36-30-33-31-39-30-31-31-36-30-34-36-30-31-31-33-30-34-36-30-36-32-37-32-32-38-39-38-36-31-31-31-39-32-36-34-30-30-36-30-34-30-30-33-33-35-91-02-00-80-b5-00-00-00-3e-b9-24-16", "-")
+	s = strings.Split("7e-90-1f-00-03-00-fa-01-01-00-00-22-03-00-00-00-00-11-5d-09-1c-53-94-10-5d-11-23-33-00-10-5d-15-00-cc-00-c5-c6", "-")
 	// s = strings.Split("68 19 00 19 00 68 A8 01 01 42 16 00 00 0A 61 00 00 04 01 00 1D 3A D0 07 00 71 35 54 0B DC 0D 8E 16", " ")
 
 	ss := make([]byte, len(s))
@@ -168,9 +168,9 @@ func testTmldataV6() {
 	// c := 0
 	// t := false
 	//r := dpv5.ClassifyTmlData(ss, &a, &c, &c, &b, 193)
-	r := v6.ClassifyTmlData(ss, 0, 0)
+	// r := v6.ClassifyTmlData(ss, 0, 0)
 	// ss, _ = base64.StdEncoding.DecodeString("aAcglgAAAGickH2MAQC5AHGRTVtNWwAAAABZAOEAAAAAAFMHYBMAAAAAhAPTBgAAAAAgCIoUAAAAAMMA3AEAAAAAzhgAzhgAAAAAAAAAAAAAAAAAAABkZAAAEwsBAQMQbAAAACIAAABVA/oA+gD6APoABskCAICOAgCArgAAAOoAAABsAACA5gAAAMkJAAAAGAQLAAcHETbtksgW")
-	// r := dproce.ProcessTml(ss)
+	r := dproce.ProcessTml(ss)
 	// fmt.Printf("%+v\n\n", r)
 	// println(r.Ex)
 	if len(r.Ex) > 0 {
@@ -315,29 +315,7 @@ func aaa(a ...interface{}) {
 	println(r.Replace((fmt.Sprintf("%+v", a))))
 }
 func main() {
-	// s := `{"opt":1,"loop":[1,3],"id":[1,2,3,4,5]}`
-	// b := gjson.Parse(s)
-	// b.Get("loop").ForEach(func(_, value gjson.Result) bool {
-	// 	println(value.Int())
-	// 	return true
-	// })
-	// a:=gjson.Get(js, "agee")
-	// println(a.Int())
-	// os.Exit(0)
-	// testCtldata()
-	// testCtldataPb2()
-	// testCtldatajson()
-	// testTmldata()
-	// println(fmt.Sprintf("%+v", gopsu.Uint642Bytes(uint64(12333), false)))
-	// aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
-	a := 220
-	b := 300
-	c := int(float32(a)/float32(b)*0x3ff0) & 0xff
-	println(c)
-	// countCRC()
-	// for {
-	// 	time.Sleep(time.Second)
-	// }
+	testTmldataV6()
 	os.Exit(0)
 
 }
