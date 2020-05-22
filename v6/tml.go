@@ -167,7 +167,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 				}
 				if setMark[6:7] == "1" { // 时间设置
 					svrmsg.DataCmd = "wlst.vslu.fc00"
-					svrmsg.DataType = 3
+					svrmsg.DataType = 2
 					svrmsg.SluitemConfig.SetMark = &msgnb.SluitemConfig_SetMark{
 						SetTimetable: 1,
 					}
@@ -3941,14 +3941,14 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 					m = fmt.Sprintf("%08b", d[j+4])
 					n := fmt.Sprintf("%08b", d[j+5])
 					switch cr.OutputType {
-					case 1:
+					case 0:
 						y, _ := strconv.ParseInt(m[4:], 2, 0)
 						x, _ := strconv.ParseInt(m[:4], 2, 0)
 						cr.RelayOperate = append(cr.RelayOperate, int32(y), int32(x))
 						y, _ = strconv.ParseInt(n[4:], 2, 0)
 						x, _ = strconv.ParseInt(n[:4], 2, 0)
 						cr.RelayOperate = append(cr.RelayOperate, int32(y), int32(x))
-					case 2:
+					case 1:
 						cr.PwmLoop = append(cr.PwmLoop, int32(m[7]), int32(m[6]), int32(m[5]), int32(m[4]))
 						x, _ := strconv.ParseInt(m[:4], 2, 0)
 						y, _ := strconv.ParseInt(n[:4], 2, 0)
