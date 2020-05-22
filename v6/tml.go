@@ -167,7 +167,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 				}
 				if setMark[6:7] == "1" { // 时间设置
 					svrmsg.DataCmd = "wlst.vslu.fc00"
-					svrmsg.DataType = 3
+					svrmsg.DataType = 2
 					svrmsg.SluitemConfig.SetMark = &msgnb.SluitemConfig_SetMark{
 						SetTimetable: 1,
 					}
