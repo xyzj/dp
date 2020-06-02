@@ -23,13 +23,13 @@ import (
 // 	rawdata: base64原始数据
 // Return:
 // 	r: 处理反馈结果
-func ClassifyTmlDataNB(rawdata string, imei, at int64) (r *Rtb) {
+func ClassifyTmlDataNB(rawdata, deviceID string, imei, at int64) (r *Rtb) {
 	r = &Rtb{}
 	d, err := base64.StdEncoding.DecodeString(rawdata)
 	if err != nil {
 		return r
 	}
-	return ClassifyTmlData(d, imei, at)
+	return ClassifyTmlData(d, imei, at, deviceID)
 }
 
 // ClassifyTmlData 分类数据解析
@@ -40,7 +40,7 @@ func ClassifyTmlDataNB(rawdata string, imei, at int64) (r *Rtb) {
 //  checkrc：是否进行数据校验
 // Return:
 // 	r: 处理反馈结果
-func ClassifyTmlData(d []byte, imei, at int64) (r *Rtb) {
+func ClassifyTmlData(d []byte, imei, at int64, deviceID string) (r *Rtb) {
 	r = &Rtb{}
 	defer func() {
 		if ex := recover(); ex != nil {
@@ -69,7 +69,7 @@ LOOP:
 			lMru := int(d[k+9])
 			if d[k+7] == 0x68 && d[k+lMru+11] == 0x16 &&
 				bytes.Contains([]byte{0x91, 0xd3, 0x93, 0x81, 0x9c}, []byte{d[k+8]}) {
-				r.Do = append(r.Do, dataNB(d[k:k+lMru+12], imei, at)...)
+				r.Do = append(r.Do, dataNB(d[k:k+lMru+12], imei, at, deviceID)...)
 				d = d[k+lMru+12:]
 				goto LOOP
 			}
@@ -86,7 +86,7 @@ LOOP:
 //  tmladdr: 为485数据时，父设备物理地址
 // Return:
 // 	lstf: 处理反馈结果
-func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
+func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 	var f = &Fwd{
 		DataType: DataTypeBase64,
 		DataDst:  "2",
@@ -102,7 +102,7 @@ func dataNB(d []byte, imei, at int64) (lstf []*Fwd) {
 	}
 	f.Addr = int64(gopsu.String2Int64(xaddr, 10))
 
-	svrmsg := initMsgNB("", int64(f.Addr), imei, at)
+	svrmsg := initMsgNB("", deviceID, int64(f.Addr), imei, at)
 	switch d[8] {
 	case 0x9c:
 		l := d[9]

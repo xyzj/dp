@@ -480,7 +480,7 @@ func initMsgCtl(cmd string, addr, ip int64, tver int32, tra byte, cid int32, por
 // 	tver：协议版本，默认1
 // 	tra：传输方式，1-socket，2-485
 // 	cid: 子设备物理地址
-func initMsgNB(cmd string, addr, imei, at int64) *msgnb.MsgNBOpen {
+func initMsgNB(cmd, deviceID string, addr, imei, at int64) *msgnb.MsgNBOpen {
 	msg := &msgnb.MsgNBOpen{
 		Imei:          imei,
 		DtReceive:     at,
@@ -496,6 +496,7 @@ func initMsgNB(cmd string, addr, imei, at int64) *msgnb.MsgNBOpen {
 		NbSlu_5400:    &msgnb.NBSlu_5400{},
 		NbSlu_5500:    &msgnb.NBSlu_5500{},
 		NbSlu_5600:    &msgnb.NBSlu_5600{},
+		DeviceId:      deviceID,
 	}
 
 	return msg
