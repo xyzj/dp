@@ -3443,6 +3443,8 @@ func (dp *DataProcessor) dataLdu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		}
 		dp.Verbose.Store("rtu", s)
 	case 0xa6: // 选测
+		svrmsg.Args.Addr = []int64{1}
+		f.Addr = 1
 		svrmsg.WlstTml.WlstLduA600 = &msgctl.WlstLduA600{}
 		svrmsg.WlstTml.WlstLduA600.LoopMark = int32(d[5])
 		m := fmt.Sprintf("%08b", d[5])
