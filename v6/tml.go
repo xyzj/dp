@@ -3443,8 +3443,6 @@ func (dp *DataProcessor) dataLdu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		}
 		dp.Verbose.Store("rtu", s)
 	case 0xa6: // 选测
-		svrmsg.Args.Addr = []int64{1}
-		f.Addr = 1
 		svrmsg.WlstTml.WlstLduA600 = &msgctl.WlstLduA600{}
 		svrmsg.WlstTml.WlstLduA600.LoopMark = int32(d[5])
 		m := fmt.Sprintf("%08b", d[5])
@@ -5069,6 +5067,8 @@ func (dp *DataProcessor) dataAls(d []byte, tra byte, parentID int64) (lstf []*Fw
 			svrmsg.WlstTml.WlstAlsA500.Status = 0
 		}
 	case 0xa6: // 旧版选测
+		svrmsg.Args.Addr = []int64{1}
+		f.Addr = 1
 		svrmsg.Head.Cmd = "wlst.als.a700"
 		svrmsg.WlstTml.WlstAlsA700 = &msgctl.WlstAlsA700{}
 		svrmsg.WlstTml.WlstAlsA700.Addr = 1
@@ -5162,6 +5162,8 @@ func (dp *DataProcessor) dataAls(d []byte, tra byte, parentID int64) (lstf []*Fw
 		// 	svrmsg.WlstTml.WlstAlsA700.Error = 1
 		// }
 	case 0xb6: // 旧版模式设置
+		svrmsg.Args.Addr = []int64{1}
+		f.Addr = 1
 		svrmsg.WlstTml.WlstAlsB600 = &msgctl.WlstAlsA700{}
 		svrmsg.WlstTml.WlstAlsB600.Addr = 1
 		svrmsg.WlstTml.WlstAlsB600.Mode = int32(d[4])
@@ -5183,6 +5185,8 @@ func (dp *DataProcessor) dataAls(d []byte, tra byte, parentID int64) (lstf []*Fw
 			svrmsg.WlstTml.WlstAlsB800.Status = 0
 		}
 	case 0xc6: // 旧版招测工作模式
+		svrmsg.Args.Addr = []int64{1}
+		f.Addr = 1
 		svrmsg.WlstTml.WlstAlsC600 = &msgctl.WlstAlsA700{}
 		svrmsg.WlstTml.WlstAlsC600.Addr = 1
 		svrmsg.WlstTml.WlstAlsC600.Mode = int32(d[4])
