@@ -1043,13 +1043,27 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 		fr := 1
 		for i := 0; i < loop; i++ {
 			sv := &msgctl.WlstRtu_70D0_AnalogData{}
-			sv.Voltage = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
-			sv.VoltageStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			if d[j+1] > 0x3f && gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2) != 3 { // 3006+设备
+				sv.Voltage = (float64(d[j]) + float64(int32(d[j+1])*256)) / 0x3ff0
+				sv.VoltageStatus = 3
+			} else {
+				sv.Voltage = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+				sv.VoltageStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			}
 			j += 2
-			sv.Current = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
-			sv.CurrentStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			if d[j+1] > 0x3f && gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2) != 3 { // 3006+设备
+				sv.Current = (float64(d[j]) + float64(int32(d[j+1])*256)) / 0x3ff0
+				sv.CurrentStatus = 3
+			} else {
+				sv.Current = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+				sv.CurrentStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			}
 			j += 2
-			sv.Power = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+			if d[j+1] > 0x3f && gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2) != 3 { // 3006+设备
+				sv.Power = (float64(d[j]) + float64(int32(d[j+1])*256)) / 0x3ff0
+			} else {
+				sv.Power = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+			}
 			j += 2
 			svrmsg.WlstTml.WlstRtu_70D0.AnalogData = append(svrmsg.WlstTml.WlstRtu_70D0.AnalogData, sv)
 			if sv.Voltage < 1 || sv.Current < 1 || sv.Power < 1 {
