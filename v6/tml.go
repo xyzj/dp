@@ -2486,13 +2486,27 @@ func (dp *DataProcessor) dataRtu(d []byte, crc bool) (lstf []*Fwd) {
 		fr := 1
 		for i := 0; i < loop; i++ {
 			sv := &msgctl.WlstRtu_70D0_AnalogData{}
-			sv.Voltage = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
-			sv.VoltageStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			if d[j+1] > 0x3f && gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2) != 3 { // 3006+设备
+				sv.Voltage = (float64(d[j]) + float64(int32(d[j+1])*256)) / 0x3ff0
+				sv.VoltageStatus = 3
+			} else {
+				sv.Voltage = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+				sv.VoltageStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			}
 			j += 2
-			sv.Current = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
-			sv.CurrentStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			if d[j+1] > 0x3f && gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2) != 3 { // 3006+设备
+				sv.Current = (float64(d[j]) + float64(int32(d[j+1])*256)) / 0x3ff0
+				sv.CurrentStatus = 3
+			} else {
+				sv.Current = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+				sv.CurrentStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			}
 			j += 2
-			sv.Power = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+			if d[j+1] > 0x3f && gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2) != 3 { // 3006+设备
+				sv.Power = (float64(d[j]) + float64(int32(d[j+1])*256)) / 0x3ff0
+			} else {
+				sv.Power = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+			}
 			j += 2
 			svrmsg.WlstTml.WlstRtu_70D0.AnalogData = append(svrmsg.WlstTml.WlstRtu_70D0.AnalogData, sv)
 			if sv.Voltage < 1 || sv.Current < 1 || sv.Power < 1 {
@@ -3443,8 +3457,6 @@ func (dp *DataProcessor) dataLdu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		}
 		dp.Verbose.Store("rtu", s)
 	case 0xa6: // 选测
-		svrmsg.Args.Addr = []int64{1}
-		f.Addr = 1
 		svrmsg.WlstTml.WlstLduA600 = &msgctl.WlstLduA600{}
 		svrmsg.WlstTml.WlstLduA600.LoopMark = int32(d[5])
 		m := fmt.Sprintf("%08b", d[5])
@@ -5069,6 +5081,8 @@ func (dp *DataProcessor) dataAls(d []byte, tra byte, parentID int64) (lstf []*Fw
 			svrmsg.WlstTml.WlstAlsA500.Status = 0
 		}
 	case 0xa6: // 旧版选测
+		svrmsg.Args.Addr = []int64{1}
+		f.Addr = 1
 		svrmsg.Head.Cmd = "wlst.als.a700"
 		svrmsg.WlstTml.WlstAlsA700 = &msgctl.WlstAlsA700{}
 		svrmsg.WlstTml.WlstAlsA700.Addr = 1
@@ -5162,6 +5176,8 @@ func (dp *DataProcessor) dataAls(d []byte, tra byte, parentID int64) (lstf []*Fw
 		// 	svrmsg.WlstTml.WlstAlsA700.Error = 1
 		// }
 	case 0xb6: // 旧版模式设置
+		svrmsg.Args.Addr = []int64{1}
+		f.Addr = 1
 		svrmsg.WlstTml.WlstAlsB600 = &msgctl.WlstAlsA700{}
 		svrmsg.WlstTml.WlstAlsB600.Addr = 1
 		svrmsg.WlstTml.WlstAlsB600.Mode = int32(d[4])
@@ -5183,6 +5199,8 @@ func (dp *DataProcessor) dataAls(d []byte, tra byte, parentID int64) (lstf []*Fw
 			svrmsg.WlstTml.WlstAlsB800.Status = 0
 		}
 	case 0xc6: // 旧版招测工作模式
+		svrmsg.Args.Addr = []int64{1}
+		f.Addr = 1
 		svrmsg.WlstTml.WlstAlsC600 = &msgctl.WlstAlsA700{}
 		svrmsg.WlstTml.WlstAlsC600.Addr = 1
 		svrmsg.WlstTml.WlstAlsC600.Mode = int32(d[4])
