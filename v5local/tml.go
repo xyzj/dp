@@ -454,7 +454,7 @@ func dataXHLock(d []byte, ip *int64, tra byte, parentID int64, portlocal *int) (
 		Src:      gopsu.Bytes2String(d, "-"),
 	}
 
-	if !gopsu.CheckCrc16VBBigOrder(d[:len(d)]) {
+	if !gopsu.CheckCrc16VB(d[:len(d)]) {
 		f.Ex = fmt.Sprintf("locker data validation fails")
 		lstf = append(lstf, f)
 		return lstf
@@ -479,14 +479,14 @@ func dataXHLock(d []byte, ip *int64, tra byte, parentID int64, portlocal *int) (
 	case 0x82: // 读取状态
 		svrmsg.WlstTml.HjLock_8200 = &msgctl.HjLock_0200{}
 		svrmsg.WlstTml.HjLock_8200.LockStatus = int32(d[8])
-		svrmsg.WlstTml.HjLock_8200.FreqLights = int32(d[9])
-		svrmsg.WlstTml.HjLock_8200.FreqBeep = int32(d[10])
-		svrmsg.WlstTml.HjLock_8200.TimeDelay = int32(d[11])
+		// svrmsg.WlstTml.HjLock_8200.FreqLights = int32(d[9])
+		// svrmsg.WlstTml.HjLock_8200.FreqBeep = int32(d[10])
+		// svrmsg.WlstTml.HjLock_8200.TimeDelay = int32(d[11])
 		svrmsg.WlstTml.HjLock_8200.LockoffDelay = int32(gopsu.Bytes2Uint64(d[12:14], false))
-		svrmsg.WlstTml.HjLock_8200.MasterCard1 = gopsu.Bytes2Uint64(d[14:18], true)
-		svrmsg.WlstTml.HjLock_8200.MasterCard2 = gopsu.Bytes2Uint64(d[18:22], true)
-		svrmsg.WlstTml.HjLock_8200.Cards = int32(gopsu.Bytes2Int64(d[22:25], false))
-		svrmsg.WlstTml.HjLock_8200.HardwareVer = gopsu.Bytes2Uint64(d[25:28], true)
+		// svrmsg.WlstTml.HjLock_8200.MasterCard1 = gopsu.Bytes2Uint64(d[14:18], true)
+		// svrmsg.WlstTml.HjLock_8200.MasterCard2 = gopsu.Bytes2Uint64(d[18:22], true)
+		svrmsg.WlstTml.HjLock_8200.Cards = int32(gopsu.Bytes2Int64(d[22:24], false))
+		svrmsg.WlstTml.HjLock_8200.HardwareVer = gopsu.Bytes2Uint64(d[24:28], true)
 		svrmsg.WlstTml.HjLock_8200.LastCard = gopsu.Bytes2Uint64(d[28:32], true)
 		svrmsg.WlstTml.HjLock_8200.LastCardLegal = int32(d[32])
 		svrmsg.WlstTml.HjLock_8200.CardType = int32(d[33])

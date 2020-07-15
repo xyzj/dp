@@ -932,9 +932,9 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int64, cmd string, data []by
 				if len(data) > 0 {
 					b.Write(data)
 				}
-				a := b.Bytes()[1:]
+				a := b.Bytes()[:]
 				crc := gopsu.CountCrc16VB(&a)
-				b.Write([]byte{crc[1], crc[0]})
+				b.Write([]byte{crc[0], crc[1]})
 				switch tra {
 				case 1:
 					return b.Bytes()
