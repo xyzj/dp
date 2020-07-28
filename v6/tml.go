@@ -142,31 +142,31 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 			}
 			if gopsu.String2Int64(readMark[3:], 2) == 0 {
 				if setMark[14:15] == "1" { // 设置时钟
-					svrmsg.DataCmd = "wlst.vslu.f100"
+					f.DataCmd = "wlst.vslu.f100"
 					svrmsg.SluitemConfig.SetMark = &msgnb.SluitemConfig_SetMark{
 						SetTimer: 1,
 					}
 				}
 				if setMark[13:14] == "1" { // 设置参数
-					svrmsg.DataCmd = "wlst.vslu.f200"
+					f.DataCmd = "wlst.vslu.f200"
 					svrmsg.SluitemConfig.SetMark = &msgnb.SluitemConfig_SetMark{
 						SetArgs: 1,
 					}
 				}
 				if setMark[11:12] == "1" { // 设置分组
-					svrmsg.DataCmd = "wlst.vslu.f200"
+					f.DataCmd = "wlst.vslu.f200"
 					svrmsg.SluitemConfig.SetMark = &msgnb.SluitemConfig_SetMark{
 						SetArgs: 1,
 					}
 				}
 				if setMark[9:10] == "1" { // 复位
-					svrmsg.DataCmd = "wlst.vslu.ef00"
+					f.DataCmd = "wlst.vslu.ef00"
 					svrmsg.SluitemConfig.SetMark = &msgnb.SluitemConfig_SetMark{
 						SetReset: 1,
 					}
 				}
 				if setMark[6:7] == "1" { // 时间设置
-					svrmsg.DataCmd = "wlst.vslu.fc00"
+					f.DataCmd = "wlst.vslu.fc00"
 					svrmsg.DataType = 2
 					svrmsg.SluitemConfig.SetMark = &msgnb.SluitemConfig_SetMark{
 						SetTimetable: 1,

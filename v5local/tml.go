@@ -462,13 +462,13 @@ func dataXHLock(d []byte, ip *int64, tra byte, parentID int64, portlocal *int) (
 	var cid64 int64
 	cid64 = int64(d[2]) + int64(d[3])*256 + int64(d[4])*256*256 + int64(d[5])*256*256
 	cmd := d[6]
-	// if parentID == 0 {
-	// 	f.Addr = int64(d[1])
-	// 	cid = 1
-	// } else {
-	// 	f.Addr = parentID
-	// 	cid = int32(d[1])
-	// }
+	if parentID == 0 {
+		f.Addr = int64(d[1])
+		//cid = 1
+	} else {
+		f.Addr = parentID
+		//cid = int32(d[1])
+	}
 	svrmsg := initMsgCtl(fmt.Sprintf("xh.lock.%02x00", cmd), f.Addr, *ip, 1, tra, 0, portlocal)
 	svrmsg.Args.Cid64 = cid64
 	f.DataCmd = svrmsg.Head.Cmd
