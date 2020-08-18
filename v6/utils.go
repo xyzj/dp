@@ -482,21 +482,24 @@ func initMsgCtl(cmd string, addr, ip int64, tver int32, tra byte, cid int32, por
 // 	cid: 子设备物理地址
 func initMsgNB(cmd, deviceID string, addr, imei, at int64) *msgnb.MsgNBOpen {
 	msg := &msgnb.MsgNBOpen{
-		Imei:          imei,
-		DtReceive:     at,
-		DataCmd:       cmd,
-		SluitemData:   &msgnb.SluitemData{},
-		SluitemConfig: &msgnb.SluitemConfig{},
-		SluitemReply:  &msgnb.SluitemReply{},
-		NbSlu_3100:    &msgnb.NBSlu_3100{},
-		NbSlu_3700:    &msgnb.NBSlu_3700{},
-		NbSlu_1400:    &msgnb.NBSlu_1400{},
-		NbSlu_5100:    &msgnb.NBSlu_5100{},
-		NbSlu_5200:    &msgnb.NBSlu_5200{},
-		NbSlu_5400:    &msgnb.NBSlu_5400{},
-		NbSlu_5500:    &msgnb.NBSlu_5500{},
-		NbSlu_5600:    &msgnb.NBSlu_5600{},
-		DeviceId:      deviceID,
+		Imei:      imei,
+		DtReceive: at,
+		DataCmd:   cmd,
+		DeviceId:  deviceID,
+		// SluitemData:   &msgnb.SluitemData{},
+		// SluitemConfig: &msgnb.SluitemConfig{},
+		// SluitemReply:  &msgnb.SluitemReply{},
+		// NbSlu_3100:    &msgnb.NBSlu_3100{},
+		// NbSlu_3700:    &msgnb.NBSlu_3700{},
+		// NbSlu_1400:    &msgnb.NBSlu_1400{},
+		// NbSlu_5100:    &msgnb.NBSlu_5100{},
+		// NbSlu_5200:    &msgnb.NBSlu_5200{},
+		// NbSlu_5400:    &msgnb.NBSlu_5400{},
+		// NbSlu_5500:    &msgnb.NBSlu_5500{},
+		// NbSlu_5600:    &msgnb.NBSlu_5600{},
+		// NbSluFf01:     &msgnb.NBSlu_FF01{},
+		// NbSluFf05:     &msgnb.NBSlu_FF05{},
+		// NbSluFf07:     &msgnb.NBSlu_FF07{},
 	}
 
 	return msg
@@ -964,6 +967,16 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 				b.WriteByte(byte(l / 256))
 				b.WriteByte(byte(addr % 256))
 				b.WriteByte(byte(addr / 256))
+				b.WriteByte(cmd2)
+				b.Write(data)
+				a := b.Bytes()
+				b.Write(gopsu.CountCrc16VB(&a))
+				return b.Bytes()
+			case "nbupg": // nb升级
+				l := len(data) + 1
+				b.Write([]byte{0xff, 0xfe})
+				b.WriteByte(byte(l % 256))
+				b.WriteByte(byte(l / 256))
 				b.WriteByte(cmd2)
 				b.Write(data)
 				a := b.Bytes()

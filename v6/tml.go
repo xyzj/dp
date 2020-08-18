@@ -49,7 +49,7 @@ func ClassifyTmlData(d []byte, imei, at int64, deviceID string) (r *Rtb) {
 		}
 	}()
 LOOP:
-	if !bytes.ContainsAny(d, "~{>h^") ||
+	if !bytes.ContainsAny(d, "~{>h^"+string([]byte{0xff})) ||
 		(len(d) < 3 && bytes.ContainsAny(d, "<")) || len(d) < 3 {
 		return r
 	}
@@ -58,7 +58,20 @@ LOOP:
 			return r
 		}
 		switch v {
-		case 0x68:
+		case 0xff: // 升级指令
+			if len(d[k:]) < 9 {
+				r.Ex = fmt.Sprintf("Insufficient data length. %s", gopsu.Bytes2String(d[k:], "-"))
+				r.Unfinish = d
+				d = []byte{}
+				goto LOOP
+			}
+			if d[k+1] == 0xfe && bytes.Contains([]byte{0x81, 0x85, 0x86, 0x87, 0x88}, []byte{d[k+4]}) {
+				l := int(d[k+2]) + int(d[k+3])*256
+				r.Do = append(r.Do, dataNBUp(d[k:k+l+6], imei, at, deviceID)...)
+				d = d[k+l+6:]
+				goto LOOP
+			}
+		case 0x68: // 常规指令
 			if len(d[k:]) < 12 {
 				r.Ex = fmt.Sprintf("Insufficient data length. %s", gopsu.Bytes2String(d[k:], "-"))
 				r.Unfinish = d
@@ -78,12 +91,102 @@ LOOP:
 	return r
 }
 
+// dataNBUp nb升级协议处理
+// Args:
+// 	d: 原始数据
+// 	imei：设备imei
+//  at:数据时间
+//  deviceID: 设备注册后的平台id
+// Return:
+// 	lstf: 处理反馈结果
+func dataNBUp(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
+	var f = &Fwd{
+		DataType: DataTypeBase64,
+		DataDst:  "2",
+		DstType:  SockData,
+		Tra:      1,
+		Job:      JobSend,
+		Src:      gopsu.Bytes2String(d, "-"),
+	}
+	f.Addr = imei
+	if !gopsu.CheckCrc16VB(d) {
+		f.Ex = "nbslu upgrade data validation fails"
+		lstf = append(lstf, f)
+		return lstf
+	}
+	f.DataDst = fmt.Sprintf("wlst-nbupg-%d", f.Addr)
+	svrmsg := initMsgNB("", deviceID, int64(f.Addr), imei, at)
+	svrmsg.Seq = int32(d[5])
+	svrmsg.Status = int32(d[6])
+	l := int(d[2]) + int(d[3])*256
+	switch d[4] {
+	case 0x81: // 升级成功上报
+		svrmsg.NbSluFf01 = &msgnb.NBSlu_FF01{}
+		f.DataCmd = "wlst.nbupg.fe01"
+		if svrmsg.Status > 0 {
+			break
+		}
+		var s string
+		for _, v := range d[7 : l+4-1] {
+			if v == 0 && svrmsg.NbSluFf01.OldVer == "" {
+				svrmsg.NbSluFf01.OldVer = s
+				s = ""
+			}
+			if v == 0 {
+				continue
+			}
+			s += string(v)
+		}
+		svrmsg.NbSluFf01.NewVer = s
+	case 0x85: // 读取版本
+		svrmsg.NbSluFf05 = &msgnb.NBSlu_FF05{}
+		f.DataCmd = "wlst.nbupg.fe05"
+		if svrmsg.Status > 0 {
+			break
+		}
+		svrmsg.NbSluFf05.Ver = string(d[7 : l+4-1])
+	case 0x86: // 升级准备
+		f.DataCmd = "wlst.nbupg.fe06"
+	case 0x87: // 查询包状态
+		svrmsg.NbSluFf07 = &msgnb.NBSlu_FF07{}
+		f.DataCmd = "wlst.nbupg.fe07"
+		if svrmsg.Status > 0 {
+			break
+		}
+		svrmsg.NbSluFf07.DatapackTotal = int32(d[7]) + int32(d[8])*256
+		var s string
+		for _, v := range d[9 : l+4] {
+			s = fmt.Sprintf("%08b", v) + s
+		}
+		s = gopsu.ReverseString(s)
+		for k, v := range s {
+			if int32(k) >= svrmsg.NbSluFf07.DatapackTotal {
+				break
+			}
+			svrmsg.NbSluFf07.DatapackStatus = append(svrmsg.NbSluFf07.DatapackStatus, v-48)
+		}
+	case 0x88: // 数据包应答
+		f.DataCmd = "wlst.nbupg.fe08"
+	default:
+		f.Ex = "Unhandled nbslu upgrade data"
+		lstf = append(lstf, f)
+		return lstf
+	}
+	if len(f.DataCmd) > 0 {
+		svrmsg.DataCmd = f.DataCmd
+		f.DataMsg = CodePb2NB(svrmsg)
+		lstf = append(lstf, f)
+	}
+
+	return lstf
+}
+
 // 处理NB数据
 // Args:
 // 	d: 原始数据
-// 	ip：数据来源ip
-//  tra：是否485数据1-非485,2-485
-//  tmladdr: 为485数据时，父设备物理地址
+// 	imei：设备imei
+//  at:数据时间
+//  deviceID: 设备注册后的平台id
 // Return:
 // 	lstf: 处理反馈结果
 func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
@@ -108,13 +211,13 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 		l := d[9]
 		dd := d[10 : 10+l]
 		if !gopsu.CheckCrc16VB(dd) {
-			f.Ex = "vslu data validation fails"
+			f.Ex = "nbslu data validation fails"
 			lstf = append(lstf, f)
 			return lstf
 		}
 		cmd := dd[4]
 		if dd[1] <= 4 {
-			f.Ex = fmt.Sprintf("nb data length error ")
+			f.Ex = fmt.Sprintf("nbslu data length error ")
 			lstf = append(lstf, f)
 			return lstf
 		}
@@ -892,7 +995,7 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 			svrmsg.NbSlu_3100.MaxDeviceCount = int32(dd[j]) + int32(dd[j+1])*256
 			j += 2
 		default:
-			f.Ex = "Unhandled vslu data"
+			f.Ex = "Unhandled nbslu data"
 			lstf = append(lstf, f)
 			return lstf
 		}
