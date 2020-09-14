@@ -794,7 +794,7 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 			svrmsg.NbSlu_5200.Status = int32(dd[j])
 		case 0xd3: // 读取运行参数
 			svrmsg.DataType = 10
-			f.DataCmd = "wlst.vslu.5200"
+			f.DataCmd = "wlst.vslu.5300"
 			svrmsg.NbSlu_5200 = &msgnb.NBSlu_5200{}
 			// 序号dfloat
 			j := 5
