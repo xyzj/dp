@@ -443,6 +443,93 @@ func dataHJLock(d []byte, tra byte, parentID int64, ip *int64, portlocal *int) (
 	return lstf
 }
 
+// 咸亨门禁
+func dataXHLock(d []byte, ip *int64, tra byte, parentID int64, portlocal *int) (lstf []*Fwd) {
+	var f = &Fwd{
+		DataType: DataTypeBase64,
+		DataDst:  "2",
+		DstType:  SockData,
+		Tra:      TraDirect,
+		Job:      JobSend,
+		Src:      gopsu.Bytes2String(d, "-"),
+	}
+
+	if !gopsu.CheckCrc16VB(d[:len(d)]) {
+		f.Ex = fmt.Sprintf("locker data validation fails")
+		lstf = append(lstf, f)
+		return lstf
+	}
+	var cid64 int64
+	cid64 = int64(d[2]) + int64(d[3])*256 + int64(d[4])*256*256 + int64(d[5])*256*256
+	cmd := d[6]
+	if parentID == 0 {
+		f.Addr = int64(d[1])
+		//cid = 1
+	} else {
+		f.Addr = parentID
+		//cid = int32(d[1])
+	}
+	svrmsg := initMsgCtl(fmt.Sprintf("xh.lock.%02x00", cmd), f.Addr, *ip, 1, tra, 0, portlocal)
+	svrmsg.Args.Cid64 = cid64
+	f.DataCmd = svrmsg.Head.Cmd
+	switch cmd {
+	case 0x81: // 设置地址
+		svrmsg.WlstTml.HjLock_8100 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8100.Status = int32(d[8])
+	case 0x82: // 读取状态
+		svrmsg.WlstTml.HjLock_8200 = &msgctl.HjLock_0200{}
+		svrmsg.WlstTml.HjLock_8200.LockStatus = int32(d[8])
+		// svrmsg.WlstTml.HjLock_8200.FreqLights = int32(d[9])
+		// svrmsg.WlstTml.HjLock_8200.FreqBeep = int32(d[10])
+		// svrmsg.WlstTml.HjLock_8200.TimeDelay = int32(d[11])
+		svrmsg.WlstTml.HjLock_8200.LockoffDelay = int32(gopsu.Bytes2Uint64(d[12:14], false))
+		// svrmsg.WlstTml.HjLock_8200.MasterCard1 = gopsu.Bytes2Uint64(d[14:18], true)
+		// svrmsg.WlstTml.HjLock_8200.MasterCard2 = gopsu.Bytes2Uint64(d[18:22], true)
+		svrmsg.WlstTml.HjLock_8200.Cards = int32(gopsu.Bytes2Int64(d[22:24], false))
+		svrmsg.WlstTml.HjLock_8200.HardwareVer = gopsu.Bytes2Uint64(d[24:28], true)
+		svrmsg.WlstTml.HjLock_8200.LastCard = gopsu.Bytes2Uint64(d[28:32], true)
+		svrmsg.WlstTml.HjLock_8200.LastCardLegal = int32(d[32])
+		svrmsg.WlstTml.HjLock_8200.CardType = int32(d[33])
+		svrmsg.WlstTml.HjLock_8200.Status = int32(d[34])
+	case 0x83: // 开锁
+		svrmsg.WlstTml.HjLock_8300 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8300.Status = int32(d[8])
+	case 0x88: // 设置管理卡
+		svrmsg.WlstTml.HjLock_8800 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8800.Status = int32(d[8])
+	case 0x89: // 重启
+		svrmsg.WlstTml.HjLock_8900 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8900.Status = int32(d[8])
+	case 0x8a: // 恢复出厂
+		svrmsg.WlstTml.HjLock_8A00 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8A00.Status = int32(d[8])
+	case 0x8c: // 设置开锁时间
+		svrmsg.WlstTml.HjLock_8C00 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8C00.Status = int32(d[8])
+	case 0x8e: // 设置报警参数
+		svrmsg.Head.Cmd = "xh.lock.8e01"
+		svrmsg.WlstTml.HjLock_8E01 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8E01.Status = int32(d[8])
+	case 0x8f: // 设置门磁报警
+		svrmsg.WlstTml.HjLock_8F00 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8F00.Status = int32(d[8])
+	case 0x90: // 查询锁号（地址码)
+		svrmsg.WlstTml.HjLock_9000 = &msgctl.HjLock_1000{}
+		svrmsg.WlstTml.HjLock_9000.LockId = int64(d[8]) + int64(d[9])*256 + int64(d[10])*256*256 + int64(d[11])*256*256*256
+	case 0x91: // 查询门锁状态
+		svrmsg.WlstTml.HjLock_9100 = &msgctl.HjLock_1100{}
+		svrmsg.WlstTml.HjLock_9100.LockStatus = int32(d[8])
+		svrmsg.WlstTml.HjLock_9100.DoorStatus = int32(d[9])
+	}
+
+	if len(f.DataCmd) > 0 {
+		b, _ := svrmsg.Marshal()
+		f.DataMsg = b
+		lstf = append(lstf, f)
+	}
+	return lstf
+}
+
 // 处理终端数据
 // Args:
 // 	d: 原始数据
@@ -1043,13 +1130,27 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 		fr := 1
 		for i := 0; i < loop; i++ {
 			sv := &msgctl.WlstRtu_70D0_AnalogData{}
-			sv.Voltage = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
-			sv.VoltageStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			if d[j+1] > 0x3f && gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2) != 3 { // 3006+设备
+				sv.Voltage = (float64(d[j]) + float64(int32(d[j+1])*256)) / 0x3ff0
+				sv.VoltageStatus = 3
+			} else {
+				sv.Voltage = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+				sv.VoltageStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			}
 			j += 2
-			sv.Current = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
-			sv.CurrentStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			if d[j+1] > 0x3f && gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2) != 3 { // 3006+设备
+				sv.Current = (float64(d[j]) + float64(int32(d[j+1])*256)) / 0x3ff0
+				sv.CurrentStatus = 3
+			} else {
+				sv.Current = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+				sv.CurrentStatus = gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2)
+			}
 			j += 2
-			sv.Power = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+			if d[j+1] > 0x3f && gopsu.String2Int32(fmt.Sprintf("%08b", d[j+1])[:2], 2) != 3 { // 3006+设备
+				sv.Power = (float64(d[j]) + float64(int32(d[j+1])*256)) / 0x3ff0
+			} else {
+				sv.Power = (float64(d[j]) + float64(int32(d[j+1])&0x3f*256)) / 0x3ff0
+			}
 			j += 2
 			svrmsg.WlstTml.WlstRtu_70D0.AnalogData = append(svrmsg.WlstTml.WlstRtu_70D0.AnalogData, sv)
 			if sv.Voltage < 1 || sv.Current < 1 || sv.Power < 1 {
@@ -1488,6 +1589,9 @@ func dataRtu(d []byte, ip *int64, checkrc *bool, crc bool, portlocal *int) (lstf
 				} else if dd[k+1] == 0x80 { // 节能
 					found = true
 					return dataEsu(dd[k:], ip, 2, f.Addr, portlocal)
+				} else if dd[k+1] == 0xe0 && bytes.Contains(xhlockreply, []byte{dd[k+6]}) { // 咸亨门禁
+					found = true
+					return dataXHLock(dd[k:], ip, 2, f.Addr, portlocal)
 				} else if bytes.Contains(ldureply, []byte{dd[k+4]}) {
 					found = true
 					return dataLdu(dd[k:], ip, 2, f.Addr, portlocal)
@@ -2235,7 +2339,7 @@ func dataRtu70(d []byte, ip *int64, portlocal *int) (lstf []*Fwd) {
 					DstType:  1,
 					Tra:      TraDirect,
 					Job:      JobSend,
-					DataMsg:  DoCommand(1, 1, TraDirect, f.Addr, svrmsg.Args.Cid, "wlst.rtu.7022", []byte{byte(cmdidx), 0x02, byte(svrmsg.WlstTml.WlstRtu_70A2.LoopType + 1)}, 5, 0),
+					DataMsg:  DoCommand(1, 1, TraDirect, f.Addr, int64(svrmsg.Args.Cid), "wlst.rtu.7022", []byte{byte(cmdidx), 0x02, byte(svrmsg.WlstTml.WlstRtu_70A2.LoopType + 1)}, 5, 0),
 				}
 				lstf = append(lstf, ff)
 			}
@@ -3942,7 +4046,7 @@ func dataSlu(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf
 			DstType:  1,
 			Tra:      tra,
 			Job:      JobSend,
-			DataMsg:  DoCommand(1, 1, tra, f.Addr, cid, "wlst.slu.7900", []byte{}, 5, 0),
+			DataMsg:  DoCommand(1, 1, tra, f.Addr, int64(cid), "wlst.slu.7900", []byte{}, 5, 0),
 			// DataMsg:  gopsu.Bytes2String(DoCommand(1, 1, tra, f.Addr, cid, "wlst.slu.7900", []byte{}, 5, 0), "-"),
 			DataCmd: svrmsg.Head.Cmd,
 		}
@@ -6476,7 +6580,7 @@ func dataD0(d []byte, ip *int64, tra byte, tmladdr int64, portlocal *int) (lstf 
 				Tra:      tra,
 				Job:      JobSend,
 				Src:      gopsu.Bytes2String(d, "-"),
-				DataMsg:  DoCommand(1, 1, byte(tra), tmladdr, svrmsg.Args.Cid, "wlst.elu.6258", []byte{0xaa}, br, rc),
+				DataMsg:  DoCommand(1, 1, byte(tra), tmladdr, int64(svrmsg.Args.Cid), "wlst.elu.6258", []byte{0xaa}, br, rc),
 				// DataMsg:  gopsu.Bytes2String(DoCommand(1, 1, byte(tra), tmladdr, svrmsg.Args.Cid, "wlst.elu.6258", []byte{0xaa}, br, rc), "-"),
 				DataCmd: svrmsg.Head.Cmd,
 			}

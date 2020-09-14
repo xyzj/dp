@@ -245,7 +245,7 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 							if len(d22) > 0 {
 								for _, v := range xaddrs {
 									f := &Fwd{
-										DataMsg: DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int32(cid), "wlst.rtu.2200", d22, br, rc),
+										DataMsg: DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int64(cid), "wlst.rtu.2200", d22, br, rc),
 										// DataMsg:  gopsu.Bytes2String(DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int32(cid), "wlst.rtu.2200", d22, br, rc), "-"),
 										DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
 										DataCmd:  "wlst.rtu.2200",
@@ -700,7 +700,7 @@ func dataCtlJSON(data []byte) (lstf []*Fwd) {
 							ddst = fmt.Sprintf("%s-rtu-%d", scmd[0], v)
 						}
 						f := &Fwd{
-							DataMsg: DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int32(cid), cmd, d.Bytes(), br, rc),
+							DataMsg: DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int64(cid), cmd, d.Bytes(), br, rc),
 							// DataMsg:  gopsu.Bytes2String(DoCommand(byte(gjson.GetBytes(data, "head.ver").Int()), byte(gjson.GetBytes(data, "head.tver").Int()), tra, v, int32(cid), cmd, d.Bytes(), br, rc), "-"),
 							DataDst:  ddst, // fmt.Sprintf("%s.%d", strings.Join(scmd[:2], "."), v),
 							DataCmd:  cmd,
@@ -2324,7 +2324,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 								if len(xaddrs) > 0 && len(d22) == 3 {
 									for k, v := range xaddrs {
 										f := &Fwd{
-											DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "wlst.rtu.2200", d22, 0, 0),
+											DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, int64(pb2data.Args.Cid), "wlst.rtu.2200", d22, 0, 0),
 											// DataMsg:  gopsu.Bytes2String(DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "wlst.rtu.2200", d22, 0, 0), "-"),
 											DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
 											DataCmd:  "wlst.rtu.2200",
@@ -3443,6 +3443,27 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 					default:
 						getprotocol = false
 					}
+				case "xh":
+					br = 5
+					rc = 0
+					switch scmd[2] {
+					case "0100": // 设置地址
+						d.Write(gopsu.Int642Bytes(pb2data.WlstTml.HjLock_0100.NewAddr, false)[:4])
+					case "0200": // 读取状态
+					case "0300": // 开锁
+					case "0a00": // 恢复出厂
+					case "0c00": // 设置开锁时间
+						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0C00.Delay), false)[:2])
+					case "0e01": // 设置报警参数
+						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0E00.FreqLights), false)[:2])
+						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0E00.FreqBeep), false)[:2])
+					case "0f00": // 设置门磁报警
+						d.WriteByte(byte(pb2data.WlstTml.HjLock_0F00.AlarmMagnetic))
+					case "1000": // 查询锁号（地址码）
+					case "1100": // 查询门锁状态
+					default:
+						getprotocol = false
+					}
 				default:
 					getprotocol = false
 				}
@@ -3455,7 +3476,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 						msgnb := &msgnb.MsgNBiot{
 							CmdFlag: cmdFlag,
 							CmdName: "GoWorkTask"}
-						bb := DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, 0, pb2data.Args.Cid, cmd, d.Bytes(), br, rc)
+						bb := DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, 0, int64(pb2data.Args.Cid), cmd, d.Bytes(), br, rc)
 						for _, v := range bb {
 							msgnb.RawData = append(msgnb.RawData, int32(v))
 						}
@@ -3487,7 +3508,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 						if len(xaddrs) > 0 {
 							for k, v := range xaddrs {
 								f := &Fwd{
-									DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, d.Bytes(), br, rc),
+									DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, int64(pb2data.Args.Cid), cmd, d.Bytes(), br, rc),
 									// DataMsg:  gopsu.Bytes2String(DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, d.Bytes(), br, rc), "-"),
 									DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
 									DataCmd:  cmd,
@@ -3513,6 +3534,11 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 									f.DataDst = fmt.Sprintf("wlst-rtu-%d", v)
 									f.DataPT = 7000
 								}
+								if scmd[0] == "xh" && scmd[1] == "lock" {
+									if pb2data.Args.Cid64 > 0 {
+										f.DataMsg = DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid64, cmd, d.Bytes(), br, rc)
+									}
+								}
 								// 采用imei寻址
 								if len(pb2data.Args.Sims) > k {
 									f.DstIMEI = pb2data.Args.Sims[k]
@@ -3534,7 +3560,7 @@ func dataWlst(pb2data *msgctl.MsgWithCtrl, port *int) (lstf []*Fwd) {
 								if len(ndata) > 0 {
 									ff := &Fwd{
 										DataCmd: ndatacmd,
-										DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, ndatacmd, ndata, br, rc),
+										DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, int64(pb2data.Args.Cid), ndatacmd, ndata, br, rc),
 										// DataMsg:  gopsu.Bytes2String(DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, ndata, br, rc), "-"),
 										DataSP:   SendLevelHigh,
 										DataDst:  fmt.Sprintf("wlst-rtu-%d", v),

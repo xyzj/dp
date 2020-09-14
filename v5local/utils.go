@@ -145,6 +145,27 @@ var hjlockreply = []byte{
 	0x8e, // 刷卡主报
 }
 
+// 咸亨门禁应答指令
+var xhlockreply = []byte{
+	0x81, // 设置地址
+	0x82, // 读取状态
+	0x83, // 开锁
+	// 0x84, // 关锁
+	// 0x85, // 设置启动提醒参数
+	// 0x86, // 添加卡
+	// 0x87, // 删除卡
+	// 0x88, // 设置管理卡
+	// 0x89, // 重启
+	0x8a, // 恢复出厂
+	// 0x8b, // 读取一个卡号
+	0x8c, // 设置开锁时间
+	// 0x8d, // 设置刷卡主报
+	0x8e, // 设置报警参数
+	0x8f, // 设置门磁报警
+	0x90, // 查询锁号
+	0x91, // 查询门锁状态
+}
+
 const (
 	ctlHead = "`"
 	tmlHead = "~"
@@ -390,7 +411,7 @@ func MsgCtlFromB64Str(s string) *msgctl.MsgWithCtrl {
 // 	data：数据
 // 	br：波特率
 // 	rc：校验位
-func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []byte, br, rc byte) []byte {
+func DoCommand(ver, tver, tra byte, addr int64, cid int64, cmd string, data []byte, br, rc byte) []byte {
 	lstcmd := strings.Split(cmd, ".")
 	cmd1 := gopsu.String2Int8(lstcmd[2][:2], 16)
 	cmd2 := gopsu.String2Int8(lstcmd[2][2:], 16)
@@ -875,6 +896,45 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 				crc := gopsu.CountCrc16VB(&a)
 				b.Write([]byte{crc[1], crc[0]})
 				b.WriteByte(0x16)
+				switch tra {
+				case 1:
+					return b.Bytes()
+				case 2:
+					var b485 bytes.Buffer
+					b485.WriteByte(0x7e)
+					b485.WriteByte(byte(b.Len() + 7))
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
+					b485.WriteByte(0)
+					a = b485.Bytes()
+					b485.WriteByte(gopsu.CountLrc(&a))
+					a = b485.Bytes()
+					b485.Write(gopsu.CountCrc16VB(&a))
+					return b485.Bytes()
+				}
+			}
+		case "xh": // 咸亨门禁
+			switch lstcmd[1] {
+			case "lock": // 门禁
+				devaddr := addr
+				if tra == 2 {
+					devaddr = cid
+				}
+				b.WriteByte(0x7e)
+				b.WriteByte(0xe0)
+				b.Write(gopsu.Int642Bytes(devaddr, false)[:4])
+				b.WriteByte(cmd1)
+				b.WriteByte(byte(len(data)))
+				if len(data) > 0 {
+					b.Write(data)
+				}
+				a := b.Bytes()[:]
+				crc := gopsu.CountCrc16VB(&a)
+				b.Write([]byte{crc[0], crc[1]})
 				switch tra {
 				case 1:
 					return b.Bytes()
