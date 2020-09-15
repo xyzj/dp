@@ -72,6 +72,7 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 			DataType: DataTypeBytes,
 			DataDst:  fmt.Sprintf("shv1-rtu-%d", f.Addr),
 			DstType:  SockTml,
+			DataSP:   SendLevelHigh,
 			DataMsg:  dp.BuildCommand([]byte{0, 0, 1, 0}, f.Addr, 0, 0, 0, msg.DataID.Seq),
 			Tra:      TraDirect,
 			Job:      JobSend,

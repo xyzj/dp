@@ -7,6 +7,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/xyzj/gopsu"
 )
 
@@ -199,4 +200,16 @@ func decodeBCDA2(b []byte) float64 {
 
 func decodeBCDA5(b []byte) float64 {
 	return gopsu.BcdBytes2Float64(b, 1, false)
+}
+
+// MsgFromBytes decode protomsg
+// Args:
+// 	b：pb2序列化数据
+//	pb: proto结构体
+func MsgFromBytes(b []byte, pb proto.Message) proto.Message {
+	err := proto.Unmarshal(b, pb)
+	if err != nil {
+		return nil
+	}
+	return pb
 }
