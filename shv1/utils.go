@@ -163,7 +163,7 @@ func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, afn, con, se
 	ll := len(dd)
 	d.Write(gopsu.CountCrc16VB(&dd))
 	// 整体指令
-	b.Write([]byte{0x68, byte(ll % 256), byte(ll / 256), byte(ll % 256), byte(ll / 256), 0x68})
+	b.Write([]byte{0x68, byte(ll % 256), byte(ll / 256),  0x68})
 	b.Write(d.Bytes())
 	b.WriteByte(0x16)
 	return b.Bytes()
@@ -200,3 +200,4 @@ func decodeBCDA2(b []byte) float64 {
 func decodeBCDA5(b []byte) float64 {
 	return gopsu.BcdBytes2Float64(b, 1, false)
 }
+
