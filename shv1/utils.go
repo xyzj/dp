@@ -141,6 +141,17 @@ type DataProcessor struct {
 	Logger gopsu.Logger
 }
 
+// Reset 复位
+func (dp *DataProcessor) Reset() {
+	dp.RemoteIP = 0
+	dp.Imei = 0
+	dp.AreaCode = ""
+	dp.Verbose.Range(func(k, v interface{}) bool {
+		dp.Verbose.Delete(k)
+		return true
+	})
+}
+
 // BuildCommand 创建命令
 // 	addr: 地址
 // 	prm: 启动标志位0-应答，1-主动下行
@@ -150,6 +161,9 @@ type DataProcessor struct {
 //	con: 是否需要设备应答0-不需要，1-需要
 // 	seq: 序号，中间层提供
 func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, afn, con, seq int32) []byte {
+	if seq > 15 || seq < 0 {
+		seq = 0
+	}
 	var b, d bytes.Buffer
 	// 地址
 	d.Write(gopsu.Float642BcdBytes(float64(addr), "%016.0f"))
