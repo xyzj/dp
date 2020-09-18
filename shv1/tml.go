@@ -10,6 +10,7 @@ import (
 
 // ParseTml 解析上海路灯协议
 func (dp *DataProcessor) ParseTml(d []byte) (r *Rtb) {
+	r = &Rtb{}
 	defer func() {
 		if ex := recover(); ex != nil {
 			r.Src = gopsu.Bytes2String(d, "-")
@@ -68,6 +69,7 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 	// 处理con
 	if d[9]<<3>>7 == 1 {
 		ff := &Fwd{
+			Addr:     f.Addr,
 			DataCmd:  fmt.Sprintf("shv1.rtu.%02x", msg.DataID.Afn),
 			DataType: DataTypeBytes,
 			DataDst:  fmt.Sprintf("shv1-rtu-%d", f.Addr),
@@ -116,10 +118,9 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 			case 0:
 				switch uid.Fn {
 				case 1: // 登录
-					f.DataCmd = ""
 				case 3: // 心跳
 					f.DataCmd = ""
-					dp.Verbose.Store("signal", d[j])
+					dp.Verbose.Store("signal", int32(d[j]))
 					j++
 				}
 			}
@@ -372,7 +373,6 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 			}
 		}
 	}
-	println(msg.String())
 	if len(f.DataCmd) > 0 {
 		f.DataMsg, _ = msg.Marshal()
 		lstf = append(lstf, f)

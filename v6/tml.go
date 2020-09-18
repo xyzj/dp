@@ -150,7 +150,7 @@ func dataNBUp(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 	case 0x87: // 查询包状态
 		svrmsg.NbSluFf07 = &msgnb.NBSlu_FF07{}
 		f.DataCmd = "wlst.nbupg.fe07"
-		if svrmsg.Status > 0 {
+		if svrmsg.Status != 0 && svrmsg.Status != 8 {
 			break
 		}
 		svrmsg.NbSluFf07.DatapackTotal = int32(d[7]) + int32(d[8])*256

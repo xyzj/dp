@@ -124,17 +124,21 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 					s2 := gopsu.ReverseString(strings.Join(re, ""))
 					d.WriteByte(byte(gopsu.String2Int8(s2, 2)))
 					d.WriteByte(byte(pb2data.Afn04P0F12.EngLevel))
-
 				case 25: // 遥信量分类参数
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
-					d.WriteByte(byte(len(pb2data.Afn04P0F25.LoopInfo)))
+					d.WriteByte(byte(pb2data.Afn04P0F25.LoopNum))
 					d.WriteByte(byte(pb2data.Afn04P0F25.LoopStart))
 					for _, v := range pb2data.Afn04P0F25.LoopInfo {
 						d.WriteByte(byte(v.Type))
 						d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%d%07d", v.InOut, v.Index), 2))
 						d.WriteByte(byte(v.Phase))
 					}
+				case 26: // 模拟量参数
+					// d.Write(setPnFn(v.Pn))
+					// d.Write(setPnFn(v.Fn))
+					// d.WriteByte(byte(pb2data.Afn04P0F25.LoopNum))
+					// d.WriteByte(byte(pb2data.Afn04P0F25.LoopStart))
 				}
 			}
 		}
@@ -177,22 +181,46 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 				}
 			}
 		}
+	case 0x0a: // 查询参数
+		for _, v := range pb2data.DataID.UintID {
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 1: // 终端信息
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				}
+			}
+		}
 	case 0x0c: // 请求实时数据
 		for _, v := range pb2data.DataID.UintID {
 			switch v.Pn {
 			case 0:
 				switch v.Fn {
-				case 11: // 模拟量批量查询
+				case 3: // 读取事件记录设置
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
-					d.WriteByte(byte(pb2data.Afn0CP0F11.LoopNum))
-					d.WriteByte(byte(pb2data.Afn0CP0F11.LoopStart))
-
-				case 12: // 状态量批量查询
+				case 4: // 读取基本信息
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
-					d.WriteByte(byte(pb2data.Afn0CP0F12.LoopNum))
-					d.WriteByte(byte(pb2data.Afn0CP0F12.LoopStart))
+				case 9: // 读取开关灯时间
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.Write([]byte{gopsu.String2Int8(pb2data.Afn04P0F9.DtStart[0:2], 10), gopsu.String2Int8(pb2data.Afn04P0F9.DtStart[2:4], 10)})
+					d.Write([]byte{byte(pb2data.Afn04P0F9.Days % 256), byte(pb2data.Afn04P0F9.Days / 256)})
+				case 12: // 读取控制回路参数
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				case 25: // 读取状态量设置
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(pb2data.Afn04P0F25.LoopNum))
+					d.WriteByte(byte(pb2data.Afn04P0F25.LoopStart))
+				case 26: // 读取模拟量参数
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(pb2data.Afn04P0F26.LoopNum))
+					d.WriteByte(byte(pb2data.Afn04P0F26.LoopStart))
 				}
 			}
 		}
@@ -219,7 +247,7 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 			DataType: DataTypeBytes,
 			DataDst:  fmt.Sprintf("shv1-rtu-%016d", pb2data.DataID.Addr),
 			DstType:  SockTml,
-			DataMsg:  dp.BuildCommand(d.Bytes(), pb2data.DataID.Addr, 0, 1, 1, pb2data.DataID.Seq),
+			DataMsg:  dp.BuildCommand(d.Bytes(), pb2data.DataID.Addr, 1, pb2data.DataID.Afn, 1, pb2data.DataID.Seq),
 			Tra:      TraDirect,
 			Job:      JobSend,
 		}
