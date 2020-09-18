@@ -155,7 +155,6 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 							d.Write(incodeBCDA2(v.UplimitOff))
 							d.Write(incodeBCDA2(v.LowlimitOff))		
 						}
-
 					}
 				}
 			}
