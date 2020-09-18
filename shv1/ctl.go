@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/xyzj/gopsu"
@@ -70,29 +71,29 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 						rs[v-1] = "1"
 					}
 					s1 := gopsu.ReverseString(strings.Join(rs, ""))
-					d.Write([]byte{gopsu.String2Int8(s1[56:64], 2), gopsu.String2Int8(s1[48:56], 2), gopsu.String2Int8(s1[40:48], 2), gopsu.String2Int8(s1[32:40], 2), gopsu.String2Int8(s1[16:32], 2), gopsu.String2Int8(s1[8:16], 2), gopsu.String2Int8(s1[0:8], 2)})
+					d.Write([]byte{gopsu.String2Int8(s1[56:64], 2), gopsu.String2Int8(s1[48:56], 2), gopsu.String2Int8(s1[40:48], 2), gopsu.String2Int8(s1[32:40], 2), gopsu.String2Int8(s1[24:32], 2), gopsu.String2Int8(s1[16:24], 2), gopsu.String2Int8(s1[8:16], 2), gopsu.String2Int8(s1[0:8], 2)})
 
 					rs = []string{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"}
 					for _, v := range pb2data.Afn04P0F3.Import {
 						rs[v-1] = "1"
 					}
 					s1 = gopsu.ReverseString(strings.Join(rs, ""))
-					d.Write([]byte{gopsu.String2Int8(s1[56:64], 2), gopsu.String2Int8(s1[48:56], 2), gopsu.String2Int8(s1[40:48], 2), gopsu.String2Int8(s1[32:40], 2), gopsu.String2Int8(s1[16:32], 2), gopsu.String2Int8(s1[8:16], 2), gopsu.String2Int8(s1[0:8], 2)})
+					d.Write([]byte{gopsu.String2Int8(s1[56:64], 2), gopsu.String2Int8(s1[48:56], 2), gopsu.String2Int8(s1[40:48], 2), gopsu.String2Int8(s1[32:40], 2), gopsu.String2Int8(s1[24:32], 2), gopsu.String2Int8(s1[16:24], 2), gopsu.String2Int8(s1[8:16], 2), gopsu.String2Int8(s1[0:8], 2)})
 
 					rs = []string{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"}
 					for _, v := range pb2data.Afn04P0F3.Normal {
 						rs[v-1] = "1"
 					}
 					s1 = gopsu.ReverseString(strings.Join(rs, ""))
-					d.Write([]byte{gopsu.String2Int8(s1[56:64], 2), gopsu.String2Int8(s1[48:56], 2), gopsu.String2Int8(s1[40:48], 2), gopsu.String2Int8(s1[32:40], 2), gopsu.String2Int8(s1[16:32], 2), gopsu.String2Int8(s1[8:16], 2), gopsu.String2Int8(s1[0:8], 2)})
+					d.Write([]byte{gopsu.String2Int8(s1[56:64], 2), gopsu.String2Int8(s1[48:56], 2), gopsu.String2Int8(s1[40:48], 2), gopsu.String2Int8(s1[32:40], 2), gopsu.String2Int8(s1[24:32], 2), gopsu.String2Int8(s1[16:24], 2), gopsu.String2Int8(s1[8:16], 2), gopsu.String2Int8(s1[0:8], 2)})
 
 				case 4: // 设备基本信息
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
 					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.CboxNumber), "%012.0f"))
 					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.TmlPhyid), "%016.0f"))
-					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.Longitude*100000), "%010.2f"))
-					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.Latitude*100000), "%010.2f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.Longitude*100000), "%010.3f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.Latitude*100000), "%010.3f"))
 					d.WriteByte(byte(pb2data.Afn04P0F4.UseSlu))
 					d.Write([]byte{byte(pb2data.Afn04P0F4.SluFreq % 256), byte(pb2data.Afn04P0F4.SluFreq / 256)})
 
@@ -107,7 +108,6 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 						d.Write(gopsu.Float642BcdBytes(float64(v.TimeOff%60), "%02.0f"))
 						d.Write(gopsu.Float642BcdBytes(float64(v.TimeOff/60), "%02.0f"))
 					}
-
 				case 12: // 控制回路参数
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
@@ -156,17 +156,20 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 				case 31: // 对时命令
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
+					if pb2data.Afn05P0F31.Time == 0 {
+						pb2data.Afn05P0F31.Time = time.Now().Unix()
+					}
 					y, M, D, h, m, s, w := gopsu.SplitDateTime(pb2data.Afn05P0F31.Time)
 					if w == 0 {
 						w = 7
 					}
-					d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", s/10, s%10), 2))
-					d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", m/10, m%10), 2))
-					d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", h/10, h%10), 2))
-					d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", D/10, D%10), 2))
-					d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%03d%d%04d", w, M/10, M%10), 2))
-					d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", y/10, y%10), 2))
-
+					d.WriteByte(gopsu.Int82Bcd(s))
+					d.WriteByte(gopsu.Int82Bcd(m))
+					d.WriteByte(gopsu.Int82Bcd(h))
+					d.WriteByte(gopsu.Int82Bcd(D))
+					d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%03b%b%04b", w, M/10, M%10), 2))
+					d.WriteByte(gopsu.Int82Bcd(y))
+					println(w, M, gopsu.String2Int8(fmt.Sprintf("%03b%b%04b", w, M/10, M%10), 2), gopsu.Int82Bcd(gopsu.String2Int8(fmt.Sprintf("%03b%b%04b", w, M/10, M%10), 2)))
 				}
 			}
 		}
@@ -182,17 +185,6 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 			}
 		}
 	case 0x0a: // 查询参数
-		for _, v := range pb2data.DataID.UintID {
-			switch v.Pn {
-			case 0:
-				switch v.Fn {
-				case 1: // 终端信息
-					d.Write(setPnFn(v.Pn))
-					d.Write(setPnFn(v.Fn))
-				}
-			}
-		}
-	case 0x0c: // 请求实时数据
 		for _, v := range pb2data.DataID.UintID {
 			switch v.Pn {
 			case 0:
@@ -214,13 +206,34 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 				case 25: // 读取状态量设置
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
-					d.WriteByte(byte(pb2data.Afn04P0F25.LoopNum))
-					d.WriteByte(byte(pb2data.Afn04P0F25.LoopStart))
+					d.WriteByte(byte(pb2data.Afn0AP0F25.LoopNum))
+					d.WriteByte(byte(pb2data.Afn0AP0F25.LoopStart))
 				case 26: // 读取模拟量参数
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
-					d.WriteByte(byte(pb2data.Afn04P0F26.LoopNum))
-					d.WriteByte(byte(pb2data.Afn04P0F26.LoopStart))
+					d.WriteByte(byte(pb2data.Afn0AP0F26.LoopNum))
+					d.WriteByte(byte(pb2data.Afn0AP0F26.LoopStart))
+				}
+			}
+		}
+	case 0x0c: // 请求实时数据
+		for _, v := range pb2data.DataID.UintID {
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 2: // 读取事件记录设置
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				case 11: // 读取状态量设置
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(pb2data.Afn0CP0F11.LoopNum))
+					d.WriteByte(byte(pb2data.Afn0CP0F11.LoopStart))
+				case 12: // 读取模拟量参数
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(pb2data.Afn0CP0F12.LoopNum))
+					d.WriteByte(byte(pb2data.Afn0CP0F12.LoopStart))
 				}
 			}
 		}

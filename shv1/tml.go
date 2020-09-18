@@ -198,25 +198,25 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 					j += 6
 					msg.Afn0AP0F4.TmlPhyid = int64(gopsu.BcdBytes2Float64(d[j:j+8], 0, true))
 					j += 8
-					msg.Afn0AP0F4.Longitude = gopsu.BcdBytes2Float64(d[j:j+5], 0, true) / 100000.0
+					msg.Afn0AP0F4.Longitude = gopsu.BcdBytes2Float64(d[j:j+5], 2, true) / 100000.0
 					j += 5
-					msg.Afn0AP0F4.Latitude = gopsu.BcdBytes2Float64(d[j:j+5], 0, true) / 100000.0
+					msg.Afn0AP0F4.Latitude = gopsu.BcdBytes2Float64(d[j:j+5], 2, true) / 100000.0
 					j += 5
 					msg.Afn0AP0F4.UseSlu = int32(d[j])
 					j++
-					msg.Afn0AP0F4.SluFreq = int32(d[j])
-					j++
+					msg.Afn0AP0F4.SluFreq = int32(d[j]) + int32(d[j+1])*256
+					j += 2
 				case 9: // 开关灯时间
 					msg.Afn0AP0F9 = &wlstsh.Afn04_P0_F9{}
 					msg.Afn0AP0F9.DtStart = fmt.Sprintf("%02d%02d", d[j], d[j+1])
 					j += 2
-					msg.Afn0AP0F9.Days = int32(d[j])
-					j++
+					msg.Afn0AP0F9.Days = int32(d[j]) + int32(d[j+1])*256
+					j += 2
 					for i := int32(0); i < msg.Afn0AP0F9.Days; i++ {
 						ts := &wlstsh.Afn04_P0_F9_Time_Slot{}
-						ts.TimeOn = gopsu.Bcd2STime(d[j : j+2])
+						ts.TimeOn = gopsu.Bcd2STime([]byte{d[j+1], d[j]})
 						j += 2
-						ts.TimeOff = gopsu.Bcd2STime(d[j : j+2])
+						ts.TimeOff = gopsu.Bcd2STime([]byte{d[j+1], d[j]})
 						j += 2
 						msg.Afn0AP0F9.TimeSlot = append(msg.Afn0AP0F9.TimeSlot, ts)
 					}
@@ -282,6 +282,9 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 				switch uid.Fn {
 				case 2: // 时钟
 					msg.Afn0CP0F2 = &wlstsh.Afn05_P0_F31{}
+					msg.Afn0CP0F2.Time = gopsu.Time2Stamp(fmt.Sprintf("20%02x-%02x-%02x %02x:%02x:%02x", d[j+5], d[j+4]<<3>>3, d[j+3], d[j+2], d[j+1], d[j]))
+					println(fmt.Sprintf("20%02x-%02x-%02x %02x:%02x:%02x", d[j+5], d[j+4]<<3>>3, d[j+3], d[j+2], d[j+1], d[j]))
+					j += 6
 				case 11: // 批量查询模拟量
 					msg.Afn0CP0F11 = &wlstsh.Afn0C_P0_F11{}
 					n := int(d[j])
@@ -312,7 +315,7 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 					j++
 					for i := 0; i < n; i++ {
 						li := &wlstsh.Afn0C_P0_F12_Loop_Status{}
-						li.LoopNo = int32(d[j]) + msg.Afn0CP0F11.LoopStart
+						li.LoopNo = int32(d[j]) + msg.Afn0CP0F12.LoopStart
 						j++
 						// 数据解析
 						li.Status = int32(d[j])
