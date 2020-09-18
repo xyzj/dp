@@ -216,6 +216,37 @@ func decodeBCDA5(b []byte) float64 {
 	return gopsu.BcdBytes2Float64(b, 1, false)
 }
 
+func incodeBCDA5(data float64) []byte {
+	var d bytes.Buffer
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", int(data*10)/10%10, int(data*10)/1%10), 2))
+	if data<0{
+		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("1%03d%04d", int(data*10)/1000%10, int(data*10)/100%10), 2))
+	}else{
+		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0%03d%04d", int(data*10)/1000%10, int(data*10)/100%10), 2))
+	}
+	return d.Bytes()
+}
+
+func incodeBCDA2(data float64) []byte {
+	var d bytes.Buffer
+	t := 0
+	for i:= 0;i<8;i++{
+		if data / float64(10^i) < 0{
+			break
+		}else{
+			t=i
+		}
+	}
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", int(data *1000) / (10^t) / 10%10, int(data *1000) / (10^t) / 1%10), 2))
+	if data<0{
+		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%03d1%04d",7-t, int(data *1000) / (10^t) / 100%10) , 2))
+	}else{
+		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%03d0%04d", 7-t, int(data *1000) / (10^t) / 100%10)  , 2))
+	}
+
+	return d.Bytes()
+}
+
 // MsgFromBytes decode protomsg
 // Args:
 // 	b：pb2序列化数据
