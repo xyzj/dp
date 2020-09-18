@@ -2905,8 +2905,8 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 	case "0a04": // 设置参数,可多数据单元下发
 		d.Reset()
 		for _, v := range pb2data.DataID.UintID {
-			d.Write(setPnFn(v.Pn))
-			d.Write(setPnFn(v.Fn))
+			// d.Write(setPnFn(v.Pn))
+			// d.Write(setPnFn(v.Fn))
 			switch v.Pn {
 			case 0:
 				switch v.Fn {

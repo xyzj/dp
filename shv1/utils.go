@@ -7,6 +7,7 @@ import (
 	"net"
 	"sync"
 
+	"github.com/gogo/protobuf/proto"
 	"github.com/xyzj/gopsu"
 )
 
@@ -140,6 +141,17 @@ type DataProcessor struct {
 	Logger gopsu.Logger
 }
 
+// Reset 复位
+func (dp *DataProcessor) Reset() {
+	dp.RemoteIP = 0
+	dp.Imei = 0
+	dp.AreaCode = ""
+	dp.Verbose.Range(func(k, v interface{}) bool {
+		dp.Verbose.Delete(k)
+		return true
+	})
+}
+
 // BuildCommand 创建命令
 // 	addr: 地址
 // 	prm: 启动标志位0-应答，1-主动下行
@@ -149,6 +161,9 @@ type DataProcessor struct {
 //	con: 是否需要设备应答0-不需要，1-需要
 // 	seq: 序号，中间层提供
 func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, afn, con, seq int32) []byte {
+	if seq > 15 || seq < 0 {
+		seq = 0
+	}
 	var b, d bytes.Buffer
 	// 地址
 	d.Write(gopsu.Float642BcdBytes(float64(addr), "%016.0f"))
@@ -163,7 +178,7 @@ func (dp *DataProcessor) BuildCommand(data []byte, addr int64, prm, afn, con, se
 	ll := len(dd)
 	d.Write(gopsu.CountCrc16VB(&dd))
 	// 整体指令
-	b.Write([]byte{0x68, byte(ll % 256), byte(ll / 256), byte(ll % 256), byte(ll / 256),   0x68})
+	b.Write([]byte{0x68, byte(ll % 256), byte(ll / 256), byte(ll % 256), byte(ll / 256), 0x68})
 	b.Write(d.Bytes())
 	b.WriteByte(0x16)
 	return b.Bytes()
@@ -201,3 +216,14 @@ func decodeBCDA5(b []byte) float64 {
 	return gopsu.BcdBytes2Float64(b, 1, false)
 }
 
+// MsgFromBytes decode protomsg
+// Args:
+// 	b：pb2序列化数据
+//	pb: proto结构体
+func MsgFromBytes(b []byte, pb proto.Message) proto.Message {
+	err := proto.Unmarshal(b, pb)
+	if err != nil {
+		return nil
+	}
+	return pb
+}
