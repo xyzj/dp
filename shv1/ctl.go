@@ -148,12 +148,12 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 							d.Write(incodeBCDA5(v.UplimitOn))
 							d.Write(incodeBCDA5(v.LowlimitOn))
 							d.Write(incodeBCDA5(v.UplimitOff))
-							d.Write(incodeBCDA5(v.LowlimitOff))							
+							d.Write(incodeBCDA5(v.LowlimitOff))
 						}else {
 							d.Write(incodeBCDA2(v.UplimitOn))
 							d.Write(incodeBCDA2(v.LowlimitOn))
 							d.Write(incodeBCDA2(v.UplimitOff))
-							d.Write(incodeBCDA2(v.LowlimitOff))		
+							d.Write(incodeBCDA2(v.LowlimitOff))
 						}
 					}
 				}
@@ -186,7 +186,6 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 					d.WriteByte(gopsu.Int82Bcd(D))
 					d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%03b%b%04b", w, M/10, M%10), 2))
 					d.WriteByte(gopsu.Int82Bcd(y))
-					println(w, M, gopsu.String2Int8(fmt.Sprintf("%03b%b%04b", w, M/10, M%10), 2), gopsu.Int82Bcd(gopsu.String2Int8(fmt.Sprintf("%03b%b%04b", w, M/10, M%10), 2)))
 				}
 			}
 		}
