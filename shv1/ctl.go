@@ -135,10 +135,27 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 						d.WriteByte(byte(v.Phase))
 					}
 				case 26: // 模拟量参数
-					// d.Write(setPnFn(v.Pn))
-					// d.Write(setPnFn(v.Fn))
-					// d.WriteByte(byte(pb2data.Afn04P0F25.LoopNum))
-					// d.WriteByte(byte(pb2data.Afn04P0F25.LoopStart))
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(pb2data.Afn04P0F26.LoopNum))
+					d.WriteByte(byte(pb2data.Afn04P0F26.LoopStart))
+					for _, v := range pb2data.Afn04P0F26.LoopData {
+						d.WriteByte(byte(v.Using))
+						d.WriteByte(byte(v.Type))
+						d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%d%07d", v.InOut, v.LoopNo), 2))
+						d.WriteByte(byte(v.Phase))
+						if v.Type == 0x05 || v.Type == 0x07{
+							d.Write(incodeBCDA5(v.UplimitOn))
+							d.Write(incodeBCDA5(v.LowlimitOn))
+							d.Write(incodeBCDA5(v.UplimitOff))
+							d.Write(incodeBCDA5(v.LowlimitOff))							
+						}else {
+							d.Write(incodeBCDA2(v.UplimitOn))
+							d.Write(incodeBCDA2(v.LowlimitOn))
+							d.Write(incodeBCDA2(v.UplimitOff))
+							d.Write(incodeBCDA2(v.LowlimitOff))		
+						}
+					}
 				}
 			}
 		}

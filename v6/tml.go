@@ -619,7 +619,11 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 			// 回路数据（控制器上电开灯 额定功率）
 			m = fmt.Sprintf("%08b", d[j])
 			for k := range m[4:8] {
-				cbd.LightData[k].SluitemPowerTurnon = gopsu.String2Int32(m[7-k:8-k], 2)
+				if gopsu.String2Int32(m[7-k:8-k], 2) == 0 {
+					cbd.LightData[k].SluitemPowerTurnon = 1	
+				} else {
+					cbd.LightData[k].SluitemPowerTurnon = 0
+				}				
 			}
 			j++
 			for k := range cbd.LightData {
@@ -822,8 +826,12 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 			j++
 			// 默认上电开关灯
 			m = fmt.Sprintf("%08b", dd[j])
-			for k := range m[4:8] {
-				svrmsg.NbSlu_5200.SluitemPowerTurnon = append(svrmsg.NbSlu_5200.SluitemPowerTurnon, gopsu.String2Int32(m[7-k:8-k], 2))
+			for k := range m[4:8] {				
+				if gopsu.String2Int32(m[7-k:8-k], 2) == 0 {
+					svrmsg.NbSlu_5200.SluitemPowerTurnon = append(svrmsg.NbSlu_5200.SluitemPowerTurnon, 1)	
+				} else {
+					svrmsg.NbSlu_5200.SluitemPowerTurnon = append(svrmsg.NbSlu_5200.SluitemPowerTurnon, 0)
+				}	
 			}
 			j++
 			// 额定功率
