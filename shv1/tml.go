@@ -283,7 +283,6 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 				case 2: // 时钟
 					msg.Afn0CP0F2 = &wlstsh.Afn05_P0_F31{}
 					msg.Afn0CP0F2.Time = gopsu.Time2Stamp(fmt.Sprintf("20%02x-%02x-%02x %02x:%02x:%02x", d[j+5], d[j+4]<<3>>3, d[j+3], d[j+2], d[j+1], d[j]))
-					println(fmt.Sprintf("20%02x-%02x-%02x %02x:%02x:%02x", d[j+5], d[j+4]<<3>>3, d[j+3], d[j+2], d[j+1], d[j]))
 					j += 6
 				case 11: // 批量查询模拟量
 					msg.Afn0CP0F11 = &wlstsh.Afn0C_P0_F11{}
