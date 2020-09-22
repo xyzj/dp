@@ -620,10 +620,10 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 			m = fmt.Sprintf("%08b", d[j])
 			for k := range m[4:8] {
 				if gopsu.String2Int32(m[7-k:8-k], 2) == 0 {
-					cbd.LightData[k].SluitemPowerTurnon = 1	
+					cbd.LightData[k].SluitemPowerTurnon = 1
 				} else {
 					cbd.LightData[k].SluitemPowerTurnon = 0
-				}				
+				}
 			}
 			j++
 			for k := range cbd.LightData {
@@ -826,12 +826,12 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 			j++
 			// 默认上电开关灯
 			m = fmt.Sprintf("%08b", dd[j])
-			for k := range m[4:8] {				
+			for k := range m[4:8] {
 				if gopsu.String2Int32(m[7-k:8-k], 2) == 0 {
-					svrmsg.NbSlu_5200.SluitemPowerTurnon = append(svrmsg.NbSlu_5200.SluitemPowerTurnon, 1)	
+					svrmsg.NbSlu_5200.SluitemPowerTurnon = append(svrmsg.NbSlu_5200.SluitemPowerTurnon, 1)
 				} else {
 					svrmsg.NbSlu_5200.SluitemPowerTurnon = append(svrmsg.NbSlu_5200.SluitemPowerTurnon, 0)
-				}	
+				}
 			}
 			j++
 			// 额定功率
@@ -6337,7 +6337,8 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 			j++
 		}
 		dp.Verbose.Store("net_type", svrmsg.WlstCom_3E84.NetType)
-		dp.Verbose.Store("signal", svrmsg.WlstCom_3E84.Signal)
+		dp.Verbose.Store("signal", int32(float32(svrmsg.WlstCom_3E84.Signal)/31.0*100))
+		// dp.Verbose.Store("signal", svrmsg.WlstCom_3E84.Signal)
 
 		f.DataCmd = "wlst.com.3e04"
 		f.Tra = TraDirect

@@ -120,7 +120,7 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 				case 1: // 登录
 				case 3: // 心跳
 					f.DataCmd = ""
-					dp.Verbose.Store("signal", int32(d[j]))
+					dp.Verbose.Store("signal", int32(float32(d[j])/31.0*100))
 					j++
 				}
 			}
