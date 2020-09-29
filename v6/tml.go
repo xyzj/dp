@@ -6338,7 +6338,7 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 		}
 		dp.Verbose.Store("net_type", svrmsg.WlstCom_3E84.NetType)
 		dp.Verbose.Store("signal", int32(float32(svrmsg.WlstCom_3E84.Signal)/31.0*100))
-		// dp.Verbose.Store("signal", svrmsg.WlstCom_3E84.Signal)
+		dp.Verbose.Store("number", svrmsg.WlstCom_3E84.Addr)
 
 		f.DataCmd = "wlst.com.3e04"
 		f.Tra = TraDirect
