@@ -6369,7 +6369,9 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 		svrmsg.WlstCom_3E81.Channel = &msgctl.WlstCom_3E02_Group02{}
 		svrmsg.WlstCom_3E81.Interface = &msgctl.WlstCom_3E02_Group03{}
 		svrmsg.WlstCom_3E81.Sms = &msgctl.WlstCom_3E02_Group04{}
-		svrmsg.WlstCom_3E81.Address = &msgctl.WlstCom_3E02_Group05{}
+		svrmsg.WlstCom_3E81.Address = &msgctl.WlstCom_3E02_Group05{
+			Addr: string(d[4:15]),
+		}
 		svrmsg.WlstCom_3E81.Status = &msgctl.WlstCom_3E02_Group06{}
 		switch d[16] {
 		case 0x55:
@@ -6513,6 +6515,7 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 				x += 2
 				if m[7] == 49 { // 模块地址
 					svrmsg.WlstCom_3E81.Address.Addr = string(d[j : j+11])
+					dp.Verbose.Store("number", svrmsg.WlstCom_3E81.Addr)
 					j += 11
 				}
 				if m[6] == 49 { // 线路地址

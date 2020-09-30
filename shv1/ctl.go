@@ -90,13 +90,12 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 				case 4: // 设备基本信息
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
-					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.CboxNumber), "%012.0f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.CboxNumber), "%012.0f")[:6])
 					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.TmlPhyid), "%016.0f"))
-					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.Longitude*100000), "%010.3f"))
-					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.Latitude*100000), "%010.3f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.Longitude*100000), "%010.2f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F4.Latitude*100000), "%010.2f"))
 					d.WriteByte(byte(pb2data.Afn04P0F4.UseSlu))
 					d.Write([]byte{byte(pb2data.Afn04P0F4.SluFreq % 256), byte(pb2data.Afn04P0F4.SluFreq / 256)})
-
 				case 9: // 控制器开关灯时间参数
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
@@ -144,12 +143,12 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 						d.WriteByte(byte(v.Type))
 						d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%d%07d", v.InOut, v.LoopNo), 2))
 						d.WriteByte(byte(v.Phase))
-						if v.Type == 0x05 || v.Type == 0x07{
+						if v.Type == 0x05 || v.Type == 0x07 {
 							d.Write(incodeBCDA5(v.UplimitOn))
 							d.Write(incodeBCDA5(v.LowlimitOn))
 							d.Write(incodeBCDA5(v.UplimitOff))
 							d.Write(incodeBCDA5(v.LowlimitOff))
-						}else {
+						} else {
 							d.Write(incodeBCDA2(v.UplimitOn))
 							d.Write(incodeBCDA2(v.LowlimitOn))
 							d.Write(incodeBCDA2(v.UplimitOff))

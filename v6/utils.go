@@ -340,6 +340,8 @@ var (
 	Send7010 = gopsu.String2Bytes("7e-70-05-00-00-00-10-00-03-30-b2", "-")
 	// Send3e3c09 复位模块
 	Send3e3c09 = gopsu.String2Bytes("3e-3c-0c-0-30-30-30-30-30-30-30-30-30-30-30-09-58-c9", "-")
+	// Send3e3c01 读取模块地址
+	Send3e3c01 = gopsu.String2Bytes("3e-3c-0f-0-30-30-30-30-30-30-30-30-30-30-30-01-10-01-00-25-46", "-")
 	// Send6813 电表读地址
 	Send6813 = gopsu.String2Bytes("fe-fe-fe-fe-68-aa-aa-aa-aa-aa-aa-68-13-0-df-16", "-")
 	// Send9050 单灯读版本
