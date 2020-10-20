@@ -320,6 +320,10 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 						}
 					}
 					j++
+					s = fmt.Sprintf("%08b", dd[j])
+					for i := 7; i >= 4; i-- {
+						svrmsg.SluitemConfig.SluitemPara.SluitemReverseDimming = append(svrmsg.SluitemConfig.SluitemPara.SluitemReverseDimming, int32(s[i]-48))
+					}
 					j++
 					s = fmt.Sprintf("%08b%08b", dd[j+1], dd[j])
 					for i := 0; i < loopCount; i++ {
@@ -851,6 +855,13 @@ func dataNB(d []byte, imei, at int64, deviceID string) (lstf []*Fwd) {
 			// 实际使用回路数
 			svrmsg.NbSlu_5200.UseLoop = int32(dd[j]) + 1
 			j++
+			// 反向调光
+			m = fmt.Sprintf("%08b", dd[j])
+			for i := 7; i >= 4; i-- {
+				svrmsg.SluitemConfig.SluitemPara.SluitemReverseDimming = append(svrmsg.SluitemConfig.SluitemPara.SluitemReverseDimming, int32(m[i]-48))
+			}
+			j++
+			j += 3
 		case 0xd4: // 即时控制应答
 			svrmsg.DataType = 6
 			f.DataCmd = "wlst.vslu.5400"
@@ -6315,7 +6326,7 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 	f.Addr = gopsu.String2Int64(string(d[4:15]), 10)
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.com.3e%02x", d[15]), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
 	f.DataCmd = svrmsg.Head.Cmd
-
+	dp.SIM = f.Addr
 	switch d[15] {
 	case 0x84: // 心跳应答
 		svrmsg.WlstCom_3E84 = &msgctl.WlstCom_3E84{}
