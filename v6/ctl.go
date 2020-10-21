@@ -2479,7 +2479,24 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							d.WriteByte(dd)
 							d.WriteByte(h)
 							d.WriteByte(mm)
-						case "6259", "6260", "625d", "625e", "625f": // 选测漏电/温度/招测参数/时钟/复位
+						case "6266": // 8路2级设置参数
+							loopmark := make([]string, 8)
+							xdata := make([]byte, 0)
+							for k, v := range pb2data.WlstTml.WlstElu_6266.WorkArgv {
+								loopmark[7-k] = fmt.Sprintf("%d", v.LoopMark)
+								xdata = append(xdata, byte(v.AlarmValueSet%256))
+								xdata = append(xdata, byte(v.AlarmValueSet/256))
+								xdata = append(xdata, byte(v.OptValueSet%256))
+								xdata = append(xdata, byte(v.OptValueSet/256))
+								xdata = append(xdata, byte((v.OptDelay/10)%256))
+								xdata = append(xdata, byte((v.OptDelay/10)/256))
+								xdata = append(xdata, byte(v.OptRecover))
+								xdata = append(xdata, byte(v.OptRecoverCount))
+								xdata = append(xdata, byte(v.OptRecoverTime))
+							}
+							d.WriteByte(gopsu.String2Int8(strings.Join(loopmark, ""), 2))
+							d.Write(xdata)
+						case "6259", "6260", "625d", "625e", "625f", "6269", "626d": // 选测漏电/温度/招测参数/时钟/复位/8路2级选测/8路2级招测参数
 						default:
 							getprotocol = false
 						}

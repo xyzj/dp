@@ -6791,6 +6791,41 @@ func (dp *DataProcessor) dataElu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		} else {
 			svrmsg.WlstTml.WlstElu_62Df.Status = 0
 		}
+	case 0xe6: // 8路2级设置应答
+		svrmsg.WlstTml.WlstElu_62E6 = &msgctl.WlstElu_6266{}
+		if d[5] == 0xaa {
+			svrmsg.WlstTml.WlstElu_62E6.Status = 1
+		} else {
+			svrmsg.WlstTml.WlstElu_62E6.Status = 0
+		}
+	case 0xe9: // 8路2级选测
+		svrmsg.WlstTml.WlstElu_62E9 = &msgctl.WlstElu_62E8{}
+		for i := 0; i < 8; i++ {
+			ad := &msgctl.WlstElu_62E8_AlarmData{}
+			a := fmt.Sprintf("%08b", d[i*5+5+1])
+			ad.LoopStatus = gopsu.String2Int32(a[6:], 2)
+			ad.AlarmStatus = int32(a[5] - 48)
+			ad.OptStatus = int32(a[4] - 48)
+			ad.OptNow = int32(a[3] - 48)
+			ad.AlarmValue = int32(d[i*5+7+1])*256 + int32(d[i*5+6+1])
+			ad.NowValue = int32(d[i*5+9+1])*256 + int32(d[i*5+8+1])
+			svrmsg.WlstTml.WlstElu_62E9.AlarmData = append(svrmsg.WlstTml.WlstElu_62E9.AlarmData, ad)
+		}
+	case 0xed: // 8路2级招测运行参数
+		svrmsg.WlstTml.WlstElu_62Ed = &msgctl.WlstElu_6266{}
+		s := fmt.Sprintf("%08b", d[5])
+		for i := 0; i < 8; i++ {
+			wa := &msgctl.WlstElu_6266_WorkArgv{}
+			wa.LoopMark = int32(s[7-i] - 48)
+			wa.AlarmValueSet = int32(d[i*9+6]) + int32(d[i*9+7])*256
+			wa.OptValueSet = int32(d[i*9+8]) + int32(d[i*9+9])*256
+			wa.OptDelay = (int32(d[i*9+10]) + int32(d[i*9+11])*256) * 10
+			wa.OptRecover = int32(d[i*9+12])
+			wa.OptRecoverCount = int32(d[i*9+13])
+			wa.OptRecoverTime = int32(d[i*9+14])
+			svrmsg.WlstTml.WlstElu_62Ed.WorkArgv = append(svrmsg.WlstTml.WlstElu_62Ed.WorkArgv, wa)
+		}
+		svrmsg.WlstTml.WlstElu_62Ed.Status = 1
 	default:
 		f.Ex = "Unhandled elu data"
 		lstf = append(lstf, f)
@@ -6852,7 +6887,8 @@ func (dp *DataProcessor) dataD0(d []byte, tra byte, parentID int64) (lstf []*Fwd
 			lstf = append(lstf, f)
 			return lstf
 		}
-		if d[5] == 0xd8 || d[5] == 0xe1 {
+		switch d[5] {
+		case 0xd8, 0xe1: // 旧版主报
 			svrmsg.WlstTml.WlstElu_62D8 = &msgctl.WlstElu_62D8{}
 			for i := 0; i < 4; i++ {
 				ad := &msgctl.WlstElu_62D8_AlarmData{}
@@ -6866,41 +6902,54 @@ func (dp *DataProcessor) dataD0(d []byte, tra byte, parentID int64) (lstf []*Fwd
 				ad.NowValue = int32(d[i*9+13+1])*256 + int32(d[i*9+12+1])
 				svrmsg.WlstTml.WlstElu_62D8.AlarmData = append(svrmsg.WlstTml.WlstElu_62D8.AlarmData, ad)
 			}
-			ff := &Fwd{
-				DataType: DataTypeBase64,
-				DataDst:  "2",
-				DstType:  SockData,
-				Tra:      tra,
-				Job:      JobSend,
-				Src:      gopsu.Bytes2String(d, "-"),
-				DataMsg:  CodePb2(svrmsg),
-				DataCmd:  svrmsg.Head.Cmd,
+		case 0xe8: // 8路2级主报
+			svrmsg.WlstTml.WlstElu_62E8 = &msgctl.WlstElu_62E8{}
+			for i := 0; i < 8; i++ {
+				ad := &msgctl.WlstElu_62E8_AlarmData{}
+				a := fmt.Sprintf("%08b", d[i*5+5+1])
+				ad.LoopStatus = gopsu.String2Int32(a[6:], 2)
+				ad.AlarmStatus = int32(a[5] - 48)
+				ad.OptStatus = int32(a[4] - 48)
+				ad.OptNow = int32(a[3] - 48)
+				ad.AlarmValue = int32(d[i*5+7+1])*256 + int32(d[i*5+6+1])
+				ad.NowValue = int32(d[i*5+9+1])*256 + int32(d[i*5+8+1])
+				svrmsg.WlstTml.WlstElu_62E8.AlarmData = append(svrmsg.WlstTml.WlstElu_62E8.AlarmData, ad)
 			}
-			lstf = append(lstf, ff)
-			var br, rc byte
-			if tra == 2 {
-				br = 5
-				rc = 0
-			}
-			ff2 := &Fwd{
-				Addr:     f.Addr,
-				DataType: DataTypeBytes,
-				DataPT:   3000,
-				DataDst:  fmt.Sprintf("wlst-elu-%d", f.Addr),
-				DstType:  1,
-				Tra:      tra,
-				Job:      JobSend,
-				Src:      gopsu.Bytes2String(d, "-"),
-				DataMsg:  DoCommand(1, 1, byte(tra), parentID, svrmsg.Args.Cid, "wlst.elu.6258", []byte{0xaa}, br, rc),
-				// DataMsg:  gopsu.Bytes2String(DoCommand(1, 1, byte(tra), parentID, svrmsg.Args.Cid, "wlst.elu.6258", []byte{0xaa}, br, rc), "-"),
-				DataCmd: svrmsg.Head.Cmd,
-			}
-			if tra == 2 {
-				ff2.DataDst = fmt.Sprintf("wlst-rtu-%d", f.Addr)
-			}
-			lstf = append(lstf, ff2)
-			return lstf
 		}
+		ff := &Fwd{
+			DataType: DataTypeBase64,
+			DataDst:  "2",
+			DstType:  SockData,
+			Tra:      tra,
+			Job:      JobSend,
+			Src:      gopsu.Bytes2String(d, "-"),
+			DataMsg:  CodePb2(svrmsg),
+			DataCmd:  svrmsg.Head.Cmd,
+		}
+		lstf = append(lstf, ff)
+		var br, rc byte
+		if tra == 2 {
+			br = 5
+			rc = 0
+		}
+		ff2 := &Fwd{
+			Addr:     f.Addr,
+			DataType: DataTypeBytes,
+			DataPT:   3000,
+			DataDst:  fmt.Sprintf("wlst-elu-%d", f.Addr),
+			DstType:  1,
+			Tra:      tra,
+			Job:      JobSend,
+			Src:      gopsu.Bytes2String(d, "-"),
+			DataMsg:  DoCommand(1, 1, byte(tra), parentID, svrmsg.Args.Cid, "wlst.elu.6258", []byte{0xaa}, br, rc),
+			// DataMsg:  gopsu.Bytes2String(DoCommand(1, 1, byte(tra), parentID, svrmsg.Args.Cid, "wlst.elu.6258", []byte{0xaa}, br, rc), "-"),
+			DataCmd: svrmsg.Head.Cmd,
+		}
+		if tra == 2 {
+			ff2.DataDst = fmt.Sprintf("wlst-rtu-%d", f.Addr)
+		}
+		lstf = append(lstf, ff2)
+		return lstf
 	}
 	if bytes.Contains(jyesureply, []byte{d[3]}) && len(d) == 17 { // 江阴节能
 		svrmsg.WxjyEsuD500 = &msgctl.WxjyEsu_5500{}
