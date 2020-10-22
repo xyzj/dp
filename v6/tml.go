@@ -6326,7 +6326,7 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 	f.Addr = gopsu.String2Int64(string(d[4:15]), 10)
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.com.3e%02x", d[15]), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
 	f.DataCmd = svrmsg.Head.Cmd
-	dp.SIM = f.Addr
+	dp.SIM = string(d[4:15])
 	switch d[15] {
 	case 0x84: // 心跳应答
 		svrmsg.WlstCom_3E84 = &msgctl.WlstCom_3E84{}

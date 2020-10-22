@@ -13,92 +13,6 @@ import (
 	msgopen "gitlab.local/proto/msgwlst"
 )
 
-// PrepareCtl 自有协议数据预处理
-func (dp *DataProcessor) PrepareCtl(b *[]byte) (lstf []*Fwd) {
-	defer func() {
-		if ex := recover(); ex != nil {
-			f := &Fwd{
-				Ex: fmt.Sprintf("%+v", errors.WithStack(ex.(error))),
-			}
-			lstf = append(lstf, f)
-		}
-	}()
-	var pb2data = &msgctl.MsgWithCtrl{}
-	err := pb2data.Unmarshal(*b)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	scmd := strings.Split(pb2data.Head.Cmd, ".")
-	var xaddrs []int64
-	if pb2data.Args != nil {
-		if len(pb2data.Args.Addr) > 0 {
-			xaddrs = make([]int64, 0, len(pb2data.Args.Addr))
-			xaddrs = append(xaddrs, pb2data.Args.Addr...)
-		} else {
-			xaddrs = make([]int64, 0, len(pb2data.Args.Saddr))
-			for _, v := range pb2data.Args.Saddr {
-				if len(v) > 0 {
-					if strings.Contains(v, "-") {
-						s := strings.Split(v, "-")
-						for i := gopsu.String2Int64(s[0], 10); i <= gopsu.String2Int64(s[1], 10); i++ {
-							xaddrs = append(xaddrs, i)
-						}
-					} else {
-						xaddrs = append(xaddrs, gopsu.String2Int64(v, 10))
-					}
-				}
-			}
-		}
-	}
-	if len(xaddrs) == 0 {
-		f := &Fwd{
-			Ex: "no tml addr set",
-		}
-		lstf = append(lstf, f)
-		return lstf
-	}
-	if pb2data.Head.Tra == 2 {
-		scmd[1] = "rtu"
-	}
-	for _, v := range xaddrs {
-		f := &Fwd{
-			DataSrc: b,
-			Job:     1,
-			DataDst: fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
-		}
-		lstf = append(lstf, f)
-	}
-	return lstf
-}
-
-// PrepareOpen 自有协议数据预处理
-func (dp *DataProcessor) PrepareOpen(b *[]byte) (lstf []*Fwd) {
-	defer func() {
-		if ex := recover(); ex != nil {
-			f := &Fwd{
-				Ex: fmt.Sprintf("%+v", errors.WithStack(ex.(error))),
-			}
-			lstf = append(lstf, f)
-		}
-	}()
-	var pb2data = &msgopen.MsgGBOpen{}
-	err := pb2data.Unmarshal(*b)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	f := &Fwd{
-		DataCmd: fmt.Sprintf("wlst-open-%02x%02x", pb2data.DataID.Fun, pb2data.DataID.Afn),
-		DataSrc: b,
-		Job:     1,
-		DataSP:  byte(pb2data.DataID.Sp),
-		DataDst: fmt.Sprintf("wlst-open-%d-%s", pb2data.DataID.Addr, pb2data.DataID.Area),
-	}
-	lstf = append(lstf, f)
-	return lstf
-}
-
 // ProcessCtl 处理五零盛同 msgwithctrl数据
 func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 	defer func() {
@@ -142,25 +56,10 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 			}
 		case 2:
 			scmd := strings.Split(pb2data.Head.Cmd, ".")
-			var xaddrs []int64
+			var xaddrs = make([]int64, 0)
 			if pb2data.Args != nil {
 				if len(pb2data.Args.Addr) > 0 {
-					xaddrs = make([]int64, 0, len(pb2data.Args.Addr))
 					xaddrs = append(xaddrs, pb2data.Args.Addr...)
-				} else {
-					xaddrs = make([]int64, 0, len(pb2data.Args.Saddr))
-					for _, v := range pb2data.Args.Saddr {
-						if len(v) > 0 {
-							if strings.Contains(v, "-") {
-								s := strings.Split(v, "-")
-								for i := gopsu.String2Int64(s[0], 10); i <= gopsu.String2Int64(s[1], 10); i++ {
-									xaddrs = append(xaddrs, i)
-								}
-							} else {
-								xaddrs = append(xaddrs, gopsu.String2Int64(v, 10))
-							}
-						}
-					}
 				}
 			}
 			if len(xaddrs) == 0 {
@@ -1608,10 +1507,9 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 									d.WriteByte(2)
 								}
 								if len(xaddrs) > 0 && len(d22) == 3 {
-									for k, v := range xaddrs {
+									for _, v := range xaddrs {
 										f := &Fwd{
-											DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "wlst.rtu.2200", d22, 0, 0),
-											// DataMsg:  gopsu.Bytes2String(DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "wlst.rtu.2200", d22, 0, 0), "-"),
+											DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "wlst.rtu.2200", d22, 0, 0),
 											DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
 											DataCmd:  "wlst.rtu.2200",
 											DataSP:   byte(pb2data.Head.Ret),
@@ -1621,9 +1519,6 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 											Tra:      tra,
 											Addr:     v,
 											DstType:  1,
-										}
-										if len(pb2data.Args.Sims) > k {
-											f.DstIMEI = pb2data.Args.Sims[k]
 										}
 										lstf = append(lstf, f)
 									}
@@ -2763,10 +2658,9 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 					getprotocol = false
 				}
 				if getprotocol {
-					for k, v := range xaddrs {
+					for _, v := range xaddrs {
 						f := &Fwd{
-							DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, d.Bytes(), br, rc),
-							// DataMsg:  gopsu.Bytes2String(DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, d.Bytes(), br, rc), "-"),
+							DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, d.Bytes(), br, rc),
 							DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
 							DataCmd:  cmd,
 							DataSP:   byte(pb2data.Head.Ret),
@@ -2791,10 +2685,6 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							f.DataDst = fmt.Sprintf("wlst-rtu-%d", v)
 							f.DataPT = 7000
 						}
-						// 采用imei寻址
-						if len(pb2data.Args.Sims) > k {
-							f.DstIMEI = pb2data.Args.Sims[k]
-						}
 						if scmd[2] == "3100" ||
 							scmd[2] == "5800" ||
 							scmd[2] == "6800" ||
@@ -2804,9 +2694,8 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 						// 发送主板通讯参数修改
 						if len(ndata) > 0 {
 							ff := &Fwd{
-								DataCmd: ndatacmd,
-								DataMsg: DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, ndatacmd, ndata, br, rc),
-								// DataMsg:  gopsu.Bytes2String(DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, ndata, br, rc), "-"),
+								DataCmd:  ndatacmd,
+								DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, ndatacmd, ndata, br, rc),
 								DataSP:   SendLevelHigh,
 								DataDst:  fmt.Sprintf("wlst-rtu-%d", v),
 								DataPT:   3000,

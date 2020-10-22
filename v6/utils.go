@@ -77,7 +77,7 @@ type DataProcessor struct {
 	// imei
 	Imei int64
 	// sim no
-	SIM int64
+	SIM string
 	// VerInfo
 	Verbose sync.Map
 	// AreaCode 区域码
@@ -396,8 +396,8 @@ var (
 	SendGps = gopsu.String2Bytes("7e-59-4-0-0-0-4-1-cd-22", "-")
 	// SendElu5d00 漏电直连读取参数
 	SendElu5d00 = gopsu.String2Bytes("7e-62-02-00-5d-73-8b", "-")
-	// SendElu5900 漏电直连读1-4路数据
-	SendElu5900 = gopsu.String2Bytes("7e-62-02-00-59-72-48", "-")
+	// SendERtu6900 漏电直连8路2级数据
+	SendERtu6900 = gopsu.String2Bytes("7e-62-02-00-69-72-5c", "-")
 	// SendIMEI 读取模块imei
 	SendIMEI = gopsu.String2Bytes("3e-3c-0f-00-30-30-30-30-30-30-30-30-30-30-30-01-20-04-02-a7-d8", "-")
 
@@ -405,7 +405,34 @@ var (
 
 	// Resp0902 登录/心跳应答
 	Resp0902 = gopsu.String2Bytes("68 0E 00 0E 00 68 0B 01 01 12 04 00 00 00 60 00 00 01 00 02 86 16", " ")
+	// DevMap 设备字典
+	DevMap = &devMap{devList: make(map[string]*Fwd)}
 )
+
+type devMap struct {
+	devList map[string]*Fwd
+}
+
+// Get 获取识别指令
+func (dm *devMap) Get(name string) (*Fwd, bool) {
+	fwd, ok := dm.devList[name]
+	return fwd, ok
+}
+
+func init() {
+	DevMap.devList["ldu"] = &Fwd{DataType: DataTypeBytes, DataMsg: Send5c00, DataPT: 2000}
+	DevMap.devList["slu"] = &Fwd{DataType: DataTypeBytes, DataMsg: Send9050, DataPT: 2000}
+	DevMap.devList["als"] = &Fwd{DataType: DataTypeBytes, DataMsg: Send5a4a, DataPT: 2000}
+	DevMap.devList["rtu"] = &Fwd{DataType: DataTypeBytes, DataMsg: Send2000, DataPT: 2000}
+	DevMap.devList["mru"] = &Fwd{DataType: DataTypeBytes, DataMsg: Send6813, DataPT: 2000}
+	DevMap.devList["elu"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendElu5d00, DataPT: 3000}
+	DevMap.devList["ertu"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendERtu6900, DataPT: 3000}
+	DevMap.devList["ahhf"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendAhhf6810, DataPT: 2000}
+	DevMap.devList["shup"] = &Fwd{DataType: DataTypeBytes, DataMsg: Send7004, DataPT: 2000}
+	DevMap.devList["upg"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendUpg0500, DataPT: 2000}
+	DevMap.devList["imei"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendIMEI, DataPT: 2000}
+	DevMap.devList["sim"] = &Fwd{DataType: DataTypeBytes, DataMsg: Send3e3c01, DataPT: 2000}
+}
 
 // Fwd 数据解析结果需发送内容结构体
 type Fwd struct {
