@@ -5,7 +5,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/xyzj/gopsu"
-	wlstsh "gitlab.local/proto/msgshv1"
+	wlstsh "github.com/xyzj/proto/msgshv1"
 )
 
 // ParseTml 解析上海路灯协议

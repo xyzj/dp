@@ -13,9 +13,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/xyzj/gopsu"
-	msgctl "gitlab.local/proto/msgjk"
-	msgnb "gitlab.local/proto/msgnb"
-	msgopen "gitlab.local/proto/msgwlst"
+	msgctl "github.com/xyzj/proto/msgjk"
+	msgnb "github.com/xyzj/proto/msgnb"
+	msgopen "github.com/xyzj/proto/msgwlst"
 )
 
 // ClassifyTmlDataNB NB数据解析

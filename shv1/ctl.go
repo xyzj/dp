@@ -8,7 +8,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/xyzj/gopsu"
-	wlstsh "gitlab.local/proto/msgshv1"
+	wlstsh "github.com/xyzj/proto/msgshv1"
 )
 
 // ParseCtl 解析下行

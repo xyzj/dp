@@ -17,8 +17,8 @@ import (
 	"github.com/xyzj/gopsu"
 
 	pb2 "github.com/golang/protobuf/proto"
-	msgctl "gitlab.local/proto/msgjk"
-	msgopen "gitlab.local/proto/msgwlst"
+	msgctl "github.com/xyzj/proto/msgjk"
+	msgopen "github.com/xyzj/proto/msgwlst"
 )
 
 // ClassifyTmlDataNB NB数据解析

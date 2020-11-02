@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	msgctl "gitlab.local/proto/msgjk"
+	msgctl "github.com/xyzj/proto/msgjk"
 
 	"github.com/xyzj/gopsu"
 )

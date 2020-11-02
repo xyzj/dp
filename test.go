@@ -15,13 +15,13 @@ import (
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/xyzj/gopsu"
-	shv1 "gitlab.local/dp/shv1"
-	dpv5 "gitlab.local/dp/v5local"
-	v6 "gitlab.local/dp/v6"
-	msgctl "gitlab.local/proto/msgjk"
-	msgnb "gitlab.local/proto/msgnb"
-	msgshv1 "gitlab.local/proto/msgshv1"
-	msgopen "gitlab.local/proto/msgwlst"
+	shv1 "github.com/xyzj/dp/shv1"
+	dpv5 "github.com/xyzj/dp/v5local"
+	v6 "github.com/xyzj/dp/v6"
+	msgctl "github.com/xyzj/proto/msgjk"
+	msgnb "github.com/xyzj/proto/msgnb"
+	msgshv1 "github.com/xyzj/proto/msgshv1"
+	msgopen "github.com/xyzj/proto/msgwlst"
 	// "github.com/pkg/errors"
 )
 

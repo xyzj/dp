@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/xyzj/gopsu"
-	msgctl "gitlab.local/proto/msgjk"
-	msgopen "gitlab.local/proto/msgwlst"
+	msgctl "github.com/xyzj/proto/msgjk"
+	msgopen "github.com/xyzj/proto/msgwlst"
 )
 
 // ProcessCtl 处理五零盛同 msgwithctrl数据

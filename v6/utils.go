@@ -15,8 +15,8 @@ import (
 	"github.com/gogo/protobuf/proto"
 
 	"github.com/xyzj/gopsu"
-	msgctl "gitlab.local/proto/msgjk"
-	msgnb "gitlab.local/proto/msgnb"
+	msgctl "github.com/xyzj/proto/msgjk"
+	msgnb "github.com/xyzj/proto/msgnb"
 )
 
 // 组装端口属性字节
