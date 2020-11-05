@@ -12,7 +12,7 @@ import (
 )
 
 // ParseCtl 解析下行
-func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
+func (dp *DataProcessor) ParseCtl(b *[]byte) (lstf []*Fwd) {
 	defer func() {
 		if ex := recover(); ex != nil {
 			f := &Fwd{
@@ -22,7 +22,7 @@ func (dp *DataProcessor) ParseCtl(b []byte) (lstf []*Fwd) {
 		}
 	}()
 	var pb2data = &wlstsh.MsgSHv1{}
-	err := pb2data.Unmarshal(b)
+	err := pb2data.Unmarshal(*b)
 	if err != nil {
 		panic(err.Error())
 	}
