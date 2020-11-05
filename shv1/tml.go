@@ -116,10 +116,10 @@ func (dp *DataProcessor) dataV1(d []byte) []*Fwd {
 		case 0x02:
 			switch uid.Pn {
 			case 0:
+				f.DataCmd = ""
 				switch uid.Fn {
 				case 1: // 登录
 				case 3: // 心跳
-					f.DataCmd = ""
 					dp.Verbose.Store("signal", int32(float32(d[j])/31.0*100))
 					j++
 				}
