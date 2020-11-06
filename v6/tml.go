@@ -1340,6 +1340,7 @@ func (dp *DataProcessor) dataHJLock(d []byte, tra byte, parentID int64) (lstf []
 		cid = int32(d[1])
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("hj.lock.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0x81: // 设置地址
@@ -2395,6 +2396,7 @@ func (dp *DataProcessor) dataRtu(d []byte, crc bool) (lstf []*Fwd) {
 		}
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.rtu.%02x00", cmd), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xc0, 0xc1, 0xc2, 0xc4: // 参数设置应答
@@ -2931,6 +2933,7 @@ func (dp *DataProcessor) dataRtu70(d []byte) (lstf []*Fwd) {
 	ll = int32(d[3])*256 + int32(d[2])
 	f.Addr = int64(d[5])*256 + int64(d[4])
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.rtu.70%02x", cmd), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xdb: // 招测硬件相关参数
@@ -3563,6 +3566,7 @@ func (dp *DataProcessor) dataLdu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		cid = int32(d[3])*256 + int32(d[2])
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.ldu.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xdc: // 招测版本
@@ -3731,6 +3735,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 	}
 	ll := int32(d[3])*256 + int32(d[2])
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.slu.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xeb:
@@ -5192,6 +5197,7 @@ func (dp *DataProcessor) dataAls(d []byte, tra byte, parentID int64) (lstf []*Fw
 		cid = int32(d[5])
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.als.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xa5: // 多光控设置地址
@@ -5389,6 +5395,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 		f.Addr = int64(gopsu.String2Int64(xaddr, 10))
 	}
 	svrmsg := initMsgCtl("", int64(f.Addr), dp.RemoteIP, 1, tra, 1, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	switch d[8] {
 	case 0x93, 0xd3: // 2007读地址
 		if !gopsu.CheckRCMru(d) {
@@ -6325,6 +6332,7 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 	}
 	f.Addr = gopsu.String2Int64(string(d[4:15]), 10)
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.com.3e%02x", d[15]), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	dp.SIM = string(d[4:15])
 	switch d[15] {
@@ -6706,6 +6714,7 @@ func (dp *DataProcessor) dataElu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		f.Addr = int64(d[3])
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.elu.62%02x", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xd5: // 设置地址应答
@@ -6865,6 +6874,7 @@ func (dp *DataProcessor) dataD0(d []byte, tra byte, parentID int64) (lstf []*Fwd
 	// }()
 
 	svrmsg := initMsgCtl("", parentID, dp.RemoteIP, 1, tra, 1, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	if d[3] == 0x68 && d[5] == 0x8e { // 恒杰门禁刷卡上报
 		l := d[6]
 		return dp.dataHJLock(d[3:l+10], tra, parentID)
@@ -7234,6 +7244,7 @@ func (dp *DataProcessor) dataAhhf(d []byte) (lstf []*Fwd) {
 		return lstf
 	}
 	svrmsg := initMsgCtl("", f.Addr, dp.RemoteIP, 2, 1, 1, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	switch cmd {
 	case 0x04: // 设置参数应答
 		nomore := false
@@ -7572,6 +7583,7 @@ func (dp *DataProcessor) dataEsu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		cid = 1
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.esu.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0x92: // 招测节能工作参数
@@ -7940,6 +7952,7 @@ func (dp *DataProcessor) dataUpgrade(d []byte) (lstf []*Fwd) {
 	ll = int32(d[3])*256 + int32(d[2])
 	f.Addr = int64(d[5])*256 + int64(d[4])
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.rtu.fe%02x", cmd), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
+	svrmsg.Args.Sim=dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0x81: // 升级完成主动上报
