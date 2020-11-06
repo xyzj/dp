@@ -77,7 +77,7 @@ type Fwd struct {
 	DataSP      byte         // data send level 0-normal, 1-high
 	DataType    byte         // 1-hex,2-string
 	DstType     byte         // 0-unknow,1-tml,2-data,3-client,4-sdcmp,5-fwdcs,6-upgrade,7-iisi,8-vb,9-udp
-	DstIP       int64        // 目标ip
+	DstIP       string       // 目标ip
 	DstIMEI     int64        // 目标imei
 	DataUDPAddr *net.UDPAddr // for udp only
 	Tra         byte         // 1-socket, 2-485
@@ -124,7 +124,7 @@ type DataProcessor struct {
 	// LocalPort 本地监听端口
 	LocalPort int
 	// RemoteIP 远端ip
-	RemoteIP int64
+	RemoteIP string
 	// imei
 	Imei int64
 	// Verbose 其他信息
@@ -143,7 +143,7 @@ type DataProcessor struct {
 
 // Reset 复位
 func (dp *DataProcessor) Reset() {
-	dp.RemoteIP = 0
+	dp.RemoteIP = ""
 	dp.Imei = 0
 	dp.AreaCode = ""
 	dp.Verbose.Range(func(k, v interface{}) bool {
@@ -219,9 +219,9 @@ func decodeBCDA5(b []byte) float64 {
 func incodeBCDA5(data float64) []byte {
 	var d bytes.Buffer
 	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", int(data*10)/10%10, int(data*10)/1%10), 2))
-	if data<0{
+	if data < 0 {
 		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("1%03d%04d", int(data*10)/1000%10, int(data*10)/100%10), 2))
-	}else{
+	} else {
 		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("0%03d%04d", int(data*10)/1000%10, int(data*10)/100%10), 2))
 	}
 	return d.Bytes()
@@ -230,18 +230,18 @@ func incodeBCDA5(data float64) []byte {
 func incodeBCDA2(data float64) []byte {
 	var d bytes.Buffer
 	t := 0
-	for i:= 0;i<8;i++{
-		if data / float64(10^i) < 0{
+	for i := 0; i < 8; i++ {
+		if data/float64(10^i) < 0 {
 			break
-		}else{
-			t=i
+		} else {
+			t = i
 		}
 	}
-	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", int(data *1000) / (10^t) / 10%10, int(data *1000) / (10^t) / 1%10), 2))
-	if data<0{
-		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%03d1%04d",7-t, int(data *1000) / (10^t) / 100%10) , 2))
-	}else{
-		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%03d0%04d", 7-t, int(data *1000) / (10^t) / 100%10)  , 2))
+	d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%04d%04d", int(data*1000)/(10^t)/10%10, int(data*1000)/(10^t)/1%10), 2))
+	if data < 0 {
+		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%03d1%04d", 7-t, int(data*1000)/(10^t)/100%10), 2))
+	} else {
+		d.WriteByte(gopsu.String2Int8(fmt.Sprintf("%03d0%04d", 7-t, int(data*1000)/(10^t)/100%10), 2))
 	}
 
 	return d.Bytes()

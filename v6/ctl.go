@@ -2673,7 +2673,11 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							// Src:      fmt.Sprintf("%v", pb2data),
 						}
 						if cmd == "wlst.rtu.1900" {
-							f.DstIP = pb2data.WlstTml.WlstRtu_1900.TmlIp
+							if pb2data.WlstTml.WlstRtu_1900.TmlIp > 0 {
+								f.DstIP = gopsu.IPInt642String(pb2data.WlstTml.WlstRtu_1900.TmlIp)
+							} else {
+								f.DstIP = pb2data.WlstTml.WlstRtu_1900.TmlIpStr
+							}
 						}
 						if scmd[2][:2] == "fe" {
 							f.DataPT = 2000
