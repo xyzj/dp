@@ -2336,6 +2336,8 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 						br = 5
 						rc = 0
 						switch scmd[2] {
+						case "62df": // 复位
+							d.WriteByte(0xaa)
 						case "6255": // 设置地址
 							d.WriteByte(byte(pb2data.WlstTml.WlstElu_6255.NewAddr))
 						case "6256": // 设置运行参数
