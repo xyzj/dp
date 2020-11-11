@@ -1340,7 +1340,7 @@ func (dp *DataProcessor) dataHJLock(d []byte, tra byte, parentID int64) (lstf []
 		cid = int32(d[1])
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("hj.lock.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0x81: // 设置地址
@@ -2396,7 +2396,7 @@ func (dp *DataProcessor) dataRtu(d []byte, crc bool) (lstf []*Fwd) {
 		}
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.rtu.%02x00", cmd), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xc0, 0xc1, 0xc2, 0xc4: // 参数设置应答
@@ -2933,7 +2933,7 @@ func (dp *DataProcessor) dataRtu70(d []byte) (lstf []*Fwd) {
 	ll = int32(d[3])*256 + int32(d[2])
 	f.Addr = int64(d[5])*256 + int64(d[4])
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.rtu.70%02x", cmd), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xdb: // 招测硬件相关参数
@@ -3566,7 +3566,7 @@ func (dp *DataProcessor) dataLdu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		cid = int32(d[3])*256 + int32(d[2])
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.ldu.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xdc: // 招测版本
@@ -3735,7 +3735,7 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 	}
 	ll := int32(d[3])*256 + int32(d[2])
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.slu.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xeb:
@@ -5197,7 +5197,7 @@ func (dp *DataProcessor) dataAls(d []byte, tra byte, parentID int64) (lstf []*Fw
 		cid = int32(d[5])
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.als.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xa5: // 多光控设置地址
@@ -5395,7 +5395,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 		f.Addr = int64(gopsu.String2Int64(xaddr, 10))
 	}
 	svrmsg := initMsgCtl("", int64(f.Addr), dp.RemoteIP, 1, tra, 1, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	switch d[8] {
 	case 0x93, 0xd3: // 2007读地址
 		if !gopsu.CheckRCMru(d) {
@@ -6332,7 +6332,7 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 	}
 	f.Addr = gopsu.String2Int64(string(d[4:15]), 10)
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.com.3e%02x", d[15]), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	dp.SIM = string(d[4:15])
 	switch d[15] {
@@ -6714,7 +6714,7 @@ func (dp *DataProcessor) dataElu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		f.Addr = int64(d[3])
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.elu.62%02x", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0xd5: // 设置地址应答
@@ -6811,27 +6811,35 @@ func (dp *DataProcessor) dataElu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		svrmsg.WlstTml.WlstElu_62E9 = &msgctl.WlstElu_62E8{}
 		for i := 0; i < 8; i++ {
 			ad := &msgctl.WlstElu_62E8_AlarmData{}
-			a := fmt.Sprintf("%08b", d[i*5+5+1])
+			a := fmt.Sprintf("%08b", d[i*5+5])
 			ad.LoopStatus = gopsu.String2Int32(a[6:], 2)
 			ad.AlarmStatus = int32(a[5] - 48)
 			ad.OptStatus = int32(a[4] - 48)
 			ad.OptNow = int32(a[3] - 48)
-			ad.AlarmValue = int32(d[i*5+7+1])*256 + int32(d[i*5+6+1])
-			ad.NowValue = int32(d[i*5+9+1])*256 + int32(d[i*5+8+1])
+			ad.AlarmValue = int32(d[i*5+7])*256 + int32(d[i*5+6])
+			ad.NowValue = int32(d[i*5+9])*256 + int32(d[i*5+8])
 			svrmsg.WlstTml.WlstElu_62E9.AlarmData = append(svrmsg.WlstTml.WlstElu_62E9.AlarmData, ad)
 		}
 	case 0xed: // 8路2级招测运行参数
 		svrmsg.WlstTml.WlstElu_62Ed = &msgctl.WlstElu_6266{}
 		s := fmt.Sprintf("%08b", d[5])
+		j := 6
 		for i := 0; i < 8; i++ {
+			j++
 			wa := &msgctl.WlstElu_6266_WorkArgv{}
 			wa.LoopMark = int32(s[7-i] - 48)
-			wa.AlarmValueSet = int32(d[i*9+6]) + int32(d[i*9+7])*256
-			wa.OptValueSet = int32(d[i*9+8]) + int32(d[i*9+9])*256
-			wa.OptDelay = (int32(d[i*9+10]) + int32(d[i*9+11])*256) * 10
-			wa.OptRecover = int32(d[i*9+12])
-			wa.OptRecoverCount = int32(d[i*9+13])
-			wa.OptRecoverTime = int32(d[i*9+14])
+			wa.AlarmValueSet = int32(d[j]) + int32(d[j+1])*256
+			j += 2
+			wa.OptValueSet = int32(d[j]) + int32(d[j+1])*256
+			j += 2
+			wa.OptDelay = (int32(d[j]) + int32(d[j+1])*256) * 10
+			j += 2
+			wa.OptRecover = int32(d[j])
+			j++
+			wa.OptRecoverCount = int32(d[j])
+			j++
+			wa.OptRecoverTime = int32(d[j])
+			j++
 			svrmsg.WlstTml.WlstElu_62Ed.WorkArgv = append(svrmsg.WlstTml.WlstElu_62Ed.WorkArgv, wa)
 		}
 		svrmsg.WlstTml.WlstElu_62Ed.Status = 1
@@ -6874,7 +6882,7 @@ func (dp *DataProcessor) dataD0(d []byte, tra byte, parentID int64) (lstf []*Fwd
 	// }()
 
 	svrmsg := initMsgCtl("", parentID, dp.RemoteIP, 1, tra, 1, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	if d[3] == 0x68 && d[5] == 0x8e { // 恒杰门禁刷卡上报
 		l := d[6]
 		return dp.dataHJLock(d[3:l+10], tra, parentID)
@@ -6914,15 +6922,19 @@ func (dp *DataProcessor) dataD0(d []byte, tra byte, parentID int64) (lstf []*Fwd
 			}
 		case 0xe8: // 8路2级主报
 			svrmsg.WlstTml.WlstElu_62E8 = &msgctl.WlstElu_62E8{}
+			j := 6
 			for i := 0; i < 8; i++ {
 				ad := &msgctl.WlstElu_62E8_AlarmData{}
-				a := fmt.Sprintf("%08b", d[i*5+5+1])
+				a := fmt.Sprintf("%08b", d[j])
+				j++
 				ad.LoopStatus = gopsu.String2Int32(a[6:], 2)
 				ad.AlarmStatus = int32(a[5] - 48)
 				ad.OptStatus = int32(a[4] - 48)
 				ad.OptNow = int32(a[3] - 48)
-				ad.AlarmValue = int32(d[i*5+7+1])*256 + int32(d[i*5+6+1])
-				ad.NowValue = int32(d[i*5+9+1])*256 + int32(d[i*5+8+1])
+				ad.AlarmValue = int32(d[j+1])*256 + int32(d[j])
+				j += 2
+				ad.NowValue = int32(d[j+1])*256 + int32(d[j])
+				j += 2
 				svrmsg.WlstTml.WlstElu_62E8.AlarmData = append(svrmsg.WlstTml.WlstElu_62E8.AlarmData, ad)
 			}
 		}
@@ -7244,7 +7256,7 @@ func (dp *DataProcessor) dataAhhf(d []byte) (lstf []*Fwd) {
 		return lstf
 	}
 	svrmsg := initMsgCtl("", f.Addr, dp.RemoteIP, 2, 1, 1, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	switch cmd {
 	case 0x04: // 设置参数应答
 		nomore := false
@@ -7583,7 +7595,7 @@ func (dp *DataProcessor) dataEsu(d []byte, tra byte, parentID int64) (lstf []*Fw
 		cid = 1
 	}
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.esu.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, cid, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0x92: // 招测节能工作参数
@@ -7952,7 +7964,7 @@ func (dp *DataProcessor) dataUpgrade(d []byte) (lstf []*Fwd) {
 	ll = int32(d[3])*256 + int32(d[2])
 	f.Addr = int64(d[5])*256 + int64(d[4])
 	svrmsg := initMsgCtl(fmt.Sprintf("wlst.rtu.fe%02x", cmd), f.Addr, dp.RemoteIP, 1, 1, 1, &dp.LocalPort)
-	svrmsg.Args.Sim=dp.SIM
+	svrmsg.Args.Sim = dp.SIM
 	f.DataCmd = svrmsg.Head.Cmd
 	switch cmd {
 	case 0x81: // 升级完成主动上报

@@ -2336,8 +2336,6 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 						br = 5
 						rc = 0
 						switch scmd[2] {
-						case "62df": // 复位
-							d.WriteByte(0xaa)
 						case "6255": // 设置地址
 							d.WriteByte(byte(pb2data.WlstTml.WlstElu_6255.NewAddr))
 						case "6256": // 设置运行参数
@@ -2381,6 +2379,15 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							xdata := make([]byte, 0)
 							for k, v := range pb2data.WlstTml.WlstElu_6266.WorkArgv {
 								loopmark[7-k] = fmt.Sprintf("%d", v.LoopMark)
+								if v.AlarmValueSet > 0 && v.OptValueSet > 0 {
+									xdata = append(xdata, 3)
+								} else if v.AlarmValueSet > 0 {
+									xdata = append(xdata, 1)
+								} else if v.OptValueSet > 0 {
+									xdata = append(xdata, 2)
+								} else {
+									xdata = append(xdata, 0)
+								}
 								xdata = append(xdata, byte(v.AlarmValueSet%256))
 								xdata = append(xdata, byte(v.AlarmValueSet/256))
 								xdata = append(xdata, byte(v.OptValueSet%256))
