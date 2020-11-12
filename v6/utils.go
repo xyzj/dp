@@ -71,7 +71,7 @@ type DataProcessor struct {
 	// LocalPort 本地监听端口
 	LocalPort int
 	// RemoteIP 远端ip
-	RemoteIP string
+	RemoteIP int64
 	// TimerNoSec 对时无秒字节
 	TimerNoSec bool
 	// imei
@@ -179,7 +179,7 @@ func (dp *DataProcessor) MakeAddr(addr int64, area string) []byte {
 // Reset 复位
 func (dp *DataProcessor) Reset() {
 	dp.CheckRC = false
-	dp.RemoteIP = ""
+	dp.RemoteIP = 0
 	dp.TimerNoSec = false
 	dp.Imei = 0
 	dp.AreaCode = ""
@@ -443,7 +443,7 @@ type Fwd struct {
 	DataSP      byte         // data send level 0-normal, 1-high
 	DataType    byte         // 1-hex,2-string
 	DstType     byte         // 0-unknow,1-tml,2-data,3-client,4-sdcmp,5-fwdcs,6-upgrade,7-iisi,8-vb,9-udp
-	DstIP       string       // 目标ip
+	DstIP       int64        // 目标ip
 	DstIMEI     int64        // 目标imei
 	DataUDPAddr *net.UDPAddr // for udp only
 	Tra         byte         // 1-socket, 2-485
@@ -474,7 +474,7 @@ type Rtb struct {
 // 	tver：协议版本，默认1
 // 	tra：传输方式，1-socket，2-485
 // 	cid: 子设备物理地址
-func initMsgCtl(cmd string, addr int64, ip string, tver int32, tra byte, cid int32, port *int) *msgctl.MsgWithCtrl {
+func initMsgCtl(cmd string, addr, ip int64, tver int32, tra byte, cid int32, port *int) *msgctl.MsgWithCtrl {
 	msg := &msgctl.MsgWithCtrl{
 		Head: &msgctl.Head{
 			Mod:  2,
@@ -497,8 +497,7 @@ func initMsgCtl(cmd string, addr int64, ip string, tver int32, tra byte, cid int
 	}
 	if addr > -1 {
 		msg.Args.Addr = append(msg.Args.Addr, addr)
-		// msg.Args.Ip = append(msg.Args.Ip, ip)
-		msg.Args.Ipstr = ip
+		msg.Args.Ip = append(msg.Args.Ip, ip)
 		msg.Args.Cid = cid
 	}
 	return msg
@@ -512,12 +511,13 @@ func initMsgCtl(cmd string, addr int64, ip string, tver int32, tra byte, cid int
 // 	tver：协议版本，默认1
 // 	tra：传输方式，1-socket，2-485
 // 	cid: 子设备物理地址
-func initMsgNB(cmd, deviceID string, addr, imei, at int64) *msgnb.MsgNBOpen {
+func initMsgNB(cmd, deviceID string, addr, imei, at int64,dataflag int32) *msgnb.MsgNBOpen {
 	msg := &msgnb.MsgNBOpen{
 		Imei:      imei,
 		DtReceive: at,
 		DataCmd:   cmd,
 		DeviceId:  deviceID,
+		DataFlag:  dataflag,
 		// SluitemData:   &msgnb.SluitemData{},
 		// SluitemConfig: &msgnb.SluitemConfig{},
 		// SluitemReply:  &msgnb.SluitemReply{},
@@ -540,7 +540,7 @@ func initMsgNB(cmd, deviceID string, addr, imei, at int64) *msgnb.MsgNBOpen {
 // GetHelloMsg send who is
 func GetHelloMsg() *msgctl.MsgWithCtrl {
 	a := int(0)
-	return initMsgCtl("wlst.sys.whois", 0, "", 1, 1, 0, &a)
+	return initMsgCtl("wlst.sys.whois", 0, 0, 1, 1, 0, &a)
 }
 
 // GetServerTimeMsg 按服务器时间组装对时命令
