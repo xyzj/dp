@@ -297,8 +297,8 @@ func testCtldataPb2() {
 		GroupMark: 63,
 	}
 	var js string
-	js = base64.StdEncoding.EncodeToString(dpv5.CodePb2(msg))
-	// js = "ChsIAhACGAEgASgBMAE6DXdsc3QucnR1LjEyMDASBhCACBoBAqIGGsIBFwoVMjAxOS0wMS0zMCAxNToyNDo0NyAz"
+	//js = base64.StdEncoding.EncodeToString(dpv5.CodePb2(msg))
+	 js = "ChsIAhACGAEgASgBMAE6DXdsc3QucnR1LjEyMDASBhCACBoBAqIGGsIBFwoVMjAxOS0wMS0zMCAxNToyNDo0NyAz"
 	// js = "CiAIAhAGGAEwAToNd2xzdC5jb20uM2UwMkEAAAB0Z2rkQRIDGgEE0j55EBsaCQEAhwEBAwgBACIiCiBjbW5ldAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACoUEgi0AacB9QHpARiFnQEoAUgFUHg6IQgBEgsxODkwMDAwMDAwMBoQQ1hMTAAAAAAAAAAAAAAAAEINCgsxODkwMDAwMDAwMA=="
 
 	r := dpv5.ClassifyCtlData([]byte(fmt.Sprintf("`%s`", js)), &a)

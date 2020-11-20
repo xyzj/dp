@@ -2379,6 +2379,15 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							xdata := make([]byte, 0)
 							for k, v := range pb2data.WlstTml.WlstElu_6266.WorkArgv {
 								loopmark[7-k] = fmt.Sprintf("%d", v.LoopMark)
+								if v.AlarmValueSet > 0 && v.OptValueSet > 0 {
+									xdata = append(xdata, 3)
+								} else if v.AlarmValueSet > 0 {
+									xdata = append(xdata, 1)
+								} else if v.OptValueSet > 0 {
+									xdata = append(xdata, 2)
+								} else {
+									xdata = append(xdata, 0)
+								}
 								xdata = append(xdata, byte(v.AlarmValueSet%256))
 								xdata = append(xdata, byte(v.AlarmValueSet/256))
 								xdata = append(xdata, byte(v.OptValueSet%256))
@@ -2673,7 +2682,11 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							// Src:      fmt.Sprintf("%v", pb2data),
 						}
 						if cmd == "wlst.rtu.1900" {
-							f.DstIP = pb2data.WlstTml.WlstRtu_1900.TmlIp
+							if pb2data.WlstTml.WlstRtu_1900.TmlIp > 0 {
+								f.DstIP = gopsu.IPInt642String(pb2data.WlstTml.WlstRtu_1900.TmlIp)
+							} else {
+								f.DstIP = pb2data.WlstTml.WlstRtu_1900.TmlIpStr
+							}
 						}
 						if scmd[2][:2] == "fe" {
 							f.DataPT = 2000
