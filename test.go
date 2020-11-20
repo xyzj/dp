@@ -14,14 +14,14 @@ import (
 	// "time"
 
 	jsoniter "github.com/json-iterator/go"
-	shv1 "github.com/xyzj/dp/shv1"
-	dpv5 "github.com/xyzj/dp/v5local"
-	v6 "github.com/xyzj/dp/v6"
 	"github.com/xyzj/gopsu"
-	msgctl "github.com/xyzj/proto/msgjk"
-	msgnb "github.com/xyzj/proto/msgnb"
-	msgshv1 "github.com/xyzj/proto/msgshv1"
-	msgopen "github.com/xyzj/proto/msgwlst"
+	shv1 "gitlab.local/dp/shv1"
+	dpv5 "gitlab.local/dp/v5local"
+	v6 "gitlab.local/dp/v6"
+	msgctl "gitlab.local/proto/msgjk"
+	msgnb "gitlab.local/proto/msgnb"
+	msgshv1 "gitlab.local/proto/msgshv1"
+	msgopen "gitlab.local/proto/msgwlst"
 	// "github.com/pkg/errors"
 )
 
@@ -33,34 +33,6 @@ var dproce = &v6.DataProcessor{
 	AreaCode: "1201",
 }
 
-// func callrecover() {
-//     if ex:=recover();ex!=nil {
-//         // e:=errors.Wrap(ex.(error), "aaa")
-//         e:=errors.WithStack(ex.(error))
-//         e=errors.WithStack(ex.(error))
-//         println(fmt.Sprintf("%+v",errors.Wrap(ex.(error), "aaa")))
-//         println("-------------")
-//         println(fmt.Sprintf("%+v", e))
-//     }
-// }
-// func callrecover2() {
-//     if ex:=recover();ex!=nil {
-//         println(fmt.Sprintf("%v", ex))
-//     }
-// }
-// func catch(nums ...int) int {
-//  defer callrecover2()
-// println(fmt.Sprintf("%v", []string{"aaa","bbb"}))
-//  println(fmt.Sprintf("%d", nums[1] * nums[2] * nums[3])) //index out of range
-//  println("===")
-// return 1
-// }
-//
-// func catch2(nums ...int) int {
-//  defer callrecover()
-//
-//  return nums[1] * nums[2] * nums[3] //index out of range
-// }
 func testTmldata() {
 	// defer func() {
 	// 	if ex := recover(); ex != nil {
@@ -158,10 +130,10 @@ func testTmldataNB() {
 	s = strings.Split("68 01 00 00 00 00 00 68 9C 0B 7D 07 00 00 A3 00 02 00 20 12 45 18 16", " ")
 	s = strings.Split("7e-f3-03-00-da-01-3c-0f-03-00-06-06-03-19-14-05-32-19-14-05-32-19-14-05-32-25-00-25-00-01-01-01-00-00-aa-3c-14-14-14-1e-14-14-14-14-14-14-14-14-14-14-14-14-14-14-14-14-14-14-14-14-01-01-01-01-01-01-01-01-01-01-01-01-ff-00-01-02-03-04-05-00-00-00-00-01-02-0e-0f-0d-00-00-30-0a-db-0a-0a-0a-92-02-02-02-03-03-03-03-03-03-02-02-02-02-02-02-02-02-02-02-02-02-03-03-03-03-25-00-25-00-25-00-25-00-25-00-25-00-aa-00-01-02-00-cb-dd-06-07-08-09-0a-0b-0c-0d-0e-87-20-46-61-69-6c-0d-0a-00-25-00-25-00-25-00-00-00-00-00-25-00-24-37-00-00-00-00-00-00-00-15-00-1f-00-1f-0f-3f-0e-3f-00-3f-00-3f-00-3f-00-3f-01-02-00-3f-02-04-25-00-25-00-25-00-25-00-25-00-25-00-25-00-00-00-00-00-00-00-00-00-25-00-25-00-00-00-00-7e-05-01-00-c1-81-3a-03-01-0a-01-00-69", "-")
 	s = strings.Split("68 0E 00 0E 00 68 0B 01 01 12 04 00 00 00 60 00 00 01 00 02 86 16", " ")
-	s = gopsu.SplitStringWithLen("68112233445566689C377D330100210000660014051C0B2C050B16212C0000550000121106000076657220302E3100000000000000000000000000090C111A430A2616", 2)
+	s = gopsu.SplitStringWithLen("DAD9009C68060504030201689C907D8C0100B9000000085B0605040302011000907D8C0100B93C0100295B0605044047011000907D8C8701B93C0100285B22000444470110002007008701B93B0100225B2200047D470000000064008701140B0C0F05062200043C470000000064008601140B0C0E230622000422470000000064008601140B0C0E1A312200042E470000000064008601140B0C0E05DF2D7316", 2)
 	//s = strings.Split("68-11-00-11-00-68-eb-01-01-12-01-00-00-0c-70-00-00-20-00-ff-ff-90-ff-29-16-68-17-00-17-00-68-eb-01-01-12-01-00-00-0c-70-00-00-01-01-00-00-00-00-00-00-00-00-90-ff-0d-16-68-19-00-19-00-68-eb-01-01-12-01-00-00-0c-70-00-00-02-02-ee-ee-00-00-00-00-00-00-00-00-90-ff-eb-16-68-c9-00-c9-00-68-eb-01-01-12-01-00-00-0c-70-ff-ff-01-00-27-11-06-09-13-0c-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-ee-90-ff-c0-16-68-50-00-50-00-68-eb-01-01-12-01-00-00-0c-70-00-00-04-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-90-ff-0f-16", "-")
-	s = strings.Split("FF-FE-12-00-87-00-00-64-00-FF-FF-FF-FF-FF-FF-FF-FF-FF-FF-FF-FF-0F-56-2D", "-")
-	s = strings.Split("68-01-00-00-00-00-00-68-9c-1c-7d-18-01-00-d3-02-78-00-21-00-55-0c-c8-00-c8-00-00-00-00-00-06-02-00-00-00-00-20-d5-7b-16", "-")
+	// s = strings.Split("FF-FE-12-00-87-00-00-64-00-FF-FF-FF-FF-FF-FF-FF-FF-FF-FF-FF-FF-0F-56-2D", "-")
+	// s = strings.Split("68-01-00-00-00-00-00-68-9c-1c-7d-18-01-00-d3-02-78-00-21-00-55-0c-c8-00-c8-00-00-00-00-00-06-02-00-00-00-00-20-d5-7b-16", "-")
 	// s = strings.Split("68 19 00 19 00 68 A8 01 01 42 16 00 00 0A 61 00 00 04 01 00 1D 3A D0 07 00 71 35 54 0B DC 0D 8E 16", " ")
 
 	ss := make([]byte, len(s))
@@ -184,7 +156,7 @@ func testTmldataNB() {
 	//r := dpv5.ClassifyTmlData(ss, &a, &c, &c, &b, 193)
 	// r := v6.ClassifyTmlData(ss, 0, 0)
 	// ss, _ = base64.StdEncoding.DecodeString("aAcglgAAAGickH2MAQC5AHGRTVtNWwAAAABZAOEAAAAAAFMHYBMAAAAAhAPTBgAAAAAgCIoUAAAAAMMA3AEAAAAAzhgAzhgAAAAAAAAAAAAAAAAAAABkZAAAEwsBAQMQbAAAACIAAABVA/oA+gD6APoABskCAICOAgCArgAAAOoAAABsAACA5gAAAMkJAAAAGAQLAAcHETbtksgW")
-	r := v6.ClassifyTmlDataNB(rawdata, "0", 12345678912345, time.Now().Unix())
+	r := v6.ClassifyTmlDataNB(rawdata, "0", 12345678912345, time.Now().Unix(),217)
 	// fmt.Printf("%+v\n\n", r)
 	// println(r.Ex)
 	if len(r.Ex) > 0 {
@@ -213,12 +185,11 @@ func testTmldataNB() {
 					println(fmt.Sprintf("=== %d, %s", k, msg.String()))
 				}
 			} else {
-				z := dpv5.MsgCtlFromBytes(v.DataMsg)
-				if z == nil {
-					println(fmt.Sprintf("--- %d, %+v", k, v.DataMsg))
-				} else {
-					// println(fmt.Sprintf("--- %d, %+v", k, string(pb2json(z))))
-					println(fmt.Sprintf("=== %d, %s", k, gopsu.PB2Json(z)))
+				msg := &msgnb.MsgNBOpen{}
+				if ex := msg.Unmarshal(v.DataMsg); ex == nil {
+					println(fmt.Sprintf("=== %d, %s", k, gopsu.PB2Json(msg)))
+				}else{					
+					println("Unmarshal ERROR!")
 				}
 			}
 		}
@@ -227,7 +198,7 @@ func testTmldataNB() {
 
 func testTmldataV6() {
 	msg := &v6.DataProcessor{}
-	s := strings.Split("7e-d0-2d-62-01-e8-17-84-00-82-00-13-00-00-00-00-13-00-00-00-00-13-00-00-00-00-13-00-00-71-01-13-00-00-00-00-13-00-00-00-00-13-00-00-00-00-58-00-22", "-")
+	s := strings.Split("7e-3a-d3-06-a0-44-32-00-00-00-00-41-31-00-00-00-00-44-32-00-00-00-00-44-32-61-13-70-0e-41-31-31-46-26-34-44-32-9e-0d-4c-0a-07-00-00-00-00-03-68-26-13-1e-00-00-00-00-00-50-44-80-00-75-77", "-")
 
 	ss := make([]byte, len(s))
 	for k, v := range s {
@@ -282,6 +253,7 @@ func f() (result int) {
 	}()
 	return 0
 }
+
 func pb2json(pb interface{}) []byte {
 	jsonBytes, err := json.Marshal(pb)
 	if err != nil {
@@ -354,7 +326,7 @@ func testCtldata() {
 
 func testCtldataV6() {
 	msg := &v6.DataProcessor{}
-	var s = `ChkIAhACGAEgASgBOg13bHN0LmVsdS42MjU5EhUQ0VMaAQEiCzAwMDAwMDAwMDA2KAEaAKIGAA==`
+	var s = `ChsIAhACGAEgASgBMAE6DXdsc3Quc2x1LjdjMDASBxC6jgMaAQOiBmjqJ2UIARADGAEgAygBMhsIARAEGgcBAAEBAQABIJ8IKgQBAQAAMgMYkAMyGwgBEAQaBwEAAQEBAAEg7AkqBAQEAAAyAxiQAzIfCAEQBRoHAQABAQEAASC4BCoCAAAyCQoCAQIQOxiQAw==`
 	ss, _ := base64.StdEncoding.DecodeString(s)
 	b := []byte(ss)
 	z := msg.ProcessCtl(&b)
@@ -372,6 +344,7 @@ func countCRC() {
 	bb = append(bb, bbb...)
 	println(gopsu.Bytes2String(bb, "-"))
 }
+
 func aaa(a ...interface{}) {
 	r := strings.NewReplacer("[", "", "]", "")
 	println(r.Replace((fmt.Sprintf("%+v", a))))
@@ -390,61 +363,60 @@ func tmlshv1data() {
 		println(k, fmt.Sprintf("%+v", v))
 	}
 }
-func ctlshv1data() {
-	dp := &shv1.DataProcessor{}
-	msg := &msgshv1.MsgSHv1{
-		DataID: &msgshv1.DataIdentification{
-			Dir:  0,
-			Tp:   0,
-			Seq:  0,
-			Afn:  0x05,
-			Addr: 1,
-			UintID: []*msgshv1.UnitIdentification{&msgshv1.UnitIdentification{
-				Pn: 0,
-				Fn: 31,
-			}},
-		},
-		Afn04P0F3: &msgshv1.Afn04_P0_F3{
-			Report: []int32{1, 6, 7},
-			Import: []int32{1, 6, 7},
-		},
-		Afn04P0F4: &msgshv1.Afn04_P0_F4{
-			CboxNumber: 1234,
-			TmlPhyid:   1,
-			Longitude:  109.12,
-			Latitude:   21.48,
-			UseSlu:     1,
-			SluFreq:    56432,
-		},
-		Afn04P0F9: &msgshv1.Afn04_P0_F9{
-			DtStart: "0101",
-			Days:    10,
-		},
-		Afn05P0F1: &msgshv1.Afn05_P0_F1{
-			CtlType:  0,
-			EngLevel: 1,
-		},
-		Afn05P0F31: &msgshv1.Afn05_P0_F31{
-			Time: 0,
-		},
-		Afn0AP0F25: &msgshv1.Afn04_P0_F25{
-			LoopNum:   57,
-			LoopStart: 0,
-		},
-		Afn0AP0F26: &msgshv1.Afn04_P0_F26{
-			LoopNum:   57,
-			LoopStart: 0,
-		},
-	}
-	b, _ := msg.Marshal()
-	ans := dp.ParseCtl(&b)
-	println(ans)
+// func ctlshv1data() {
+// 	dp := &shv1.DataProcessor{}
+// 	msg := &msgshv1.MsgSHv1{
+// 		DataID: &msgshv1.DataIdentification{
+// 			Dir:  0,
+// 			Tp:   0,
+// 			Seq:  0,
+// 			Afn:  0x05,
+// 			Addr: 1,
+// 			UintID: []*msgshv1.UnitIdentification{&msgshv1.UnitIdentification{
+// 				Pn: 0,
+// 				Fn: 31,
+// 			}},
+// 		},
+// 		Afn04P0F3: &msgshv1.Afn04_P0_F3{
+// 			Report: []int32{1, 6, 7},
+// 			Import: []int32{1, 6, 7},
+// 		},
+// 		Afn04P0F4: &msgshv1.Afn04_P0_F4{
+// 			CboxNumber: 1234,
+// 			TmlPhyid:   1,
+// 			Longitude:  109.12,
+// 			Latitude:   21.48,
+// 			UseSlu:     1,
+// 			SluFreq:    56432,
+// 		},
+// 		Afn04P0F9: &msgshv1.Afn04_P0_F9{
+// 			DtStart: "0101",
+// 			Days:    10,
+// 		},
+// 		Afn05P0F1: &msgshv1.Afn05_P0_F1{
+// 			CtlType:  0,
+// 			EngLevel: 1,
+// 		},
+// 		Afn05P0F31: &msgshv1.Afn05_P0_F31{
+// 			Time: 0,
+// 		},
+// 		Afn0AP0F25: &msgshv1.Afn04_P0_F25{
+// 			LoopNum:   57,
+// 			LoopStart: 0,
+// 		},
+// 		Afn0AP0F26: &msgshv1.Afn04_P0_F26{
+// 			LoopNum:   57,
+// 			LoopStart: 0,
+// 		},
+// 	}
+// 	b, _ := msg.Marshal()
+// 	ans := dp.ParseCtl(b)
+// 	println(ans)
 
-}
+// }
 func main() {
-	// testCtldataV6()
-	testTmldataV6()
 	// tmlshv1data()
+	//println(gopsu.Bytes2String(gopsu.Float642BcdBytes(float64(99999999999999), "%012.0f")[:6], "_"))
 	// ctlshv1data()
 	// s := "CikIARABGAEgASgBMAE6E3dsc3Quc3lzLm9ubGluZWluZm9IAnj3z/f2BRIAGp83MkIIwNHKmQUSDHdsc3QtbGR1LTEwNRIMd2xzdC1zbHUtMTA1Egx3bHN0LWFscy0xMDUSDHdsc3QtcnR1LTEwNSAWKGkyQgjA0cqZBRIMd2xzdC1hbHMtMTIxEgx3bHN0LXJ0dS0xMjESDHdsc3QtbGR1LTEyMRIMd2xzdC1zbHUtMTIxIBYoeTJDCMDRypkFEgx3bHN0LXNsdS0xODMSDHdsc3QtYWxzLTE4MxIMd2xzdC1ydHUtMTgzEgx3bHN0LWxkdS0xODMgFii3ATJDCMDRypkFEgx3bHN0LWFscy0xODUSDHdsc3QtcnR1LTE4NRIMd2xzdC1sZHUtMTg1Egx3bHN0LXNsdS0xODUgFii5ATJDCMDRypkFEgx3bHN0LWxkdS0xODgSDHdsc3Qtc2x1LTE4OBIMd2xzdC1hbHMtMTg4Egx3bHN0LXJ0dS0xODggFii8ATJCCMDRypkFEgx3bHN0LWFscy0xMDMSDHdsc3QtcnR1LTEwMxIMd2xzdC1sZHUtMTAzEgx3bHN0LXNsdS0xMDMgFihnMkIIwNHKmQUSDHdsc3QtbGR1LTEyNxIMd2xzdC1zbHUtMTI3Egx3bHN0LWFscy0xMjcSDHdsc3QtcnR1LTEyNyAWKH8yQwjA0cqZBRIMd2xzdC1sZHUtMTc1Egx3bHN0LXNsdS0xNzUSDHdsc3QtYWxzLTE3NRIMd2xzdC1ydHUtMTc1IBYorwEyQwjA0cqZBRIMd2xzdC1hbHMtMTc4Egx3bHN0LXJ0dS0xNzgSDHdsc3QtbGR1LTE3OBIMd2xzdC1zbHUtMTc4IBYosgEyQgjA0cqZBRIMd2xzdC1hbHMtMTEyEgx3bHN0LXJ0dS0xMTISDHdsc3QtbGR1LTExMhIMd2xzdC1zbHUtMTEyIBYocDJDCMDRypkFEgx3bHN0LWxkdS0xODQSDHdsc3Qtc2x1LTE4NBIMd2xzdC1hbHMtMTg0Egx3bHN0LXJ0dS0xODQgFii4ATIZCN3l+vMKEgt3bHN0LXJ0dS0xMRgEIBgoCzJDCMDRypkFEgx3bHN0LXNsdS0xMzMSDHdsc3QtYWxzLTEzMxIMd2xzdC1ydHUtMTMzEgx3bHN0LWxkdS0xMzMgFiiFATIYCN/R+e8OEg13bHN0LXJ0dS01MTE0KPonMkIIwNHKmQUSDHdsc3QtbGR1LTExMxIMd2xzdC1zbHUtMTEzEgx3bHN0LWFscy0xMTMSDHdsc3QtcnR1LTExMyAWKHEyQwjA0cqZBRIMd2xzdC1sZHUtMTY4Egx3bHN0LXNsdS0xNjgSDHdsc3QtYWxzLTE2OBIMd2xzdC1ydHUtMTY4IBYoqAEyQwjA0cqZBRIMd2xzdC1hbHMtMTczEgx3bHN0LXJ0dS0xNzMSDHdsc3QtbGR1LTE3MxIMd2xzdC1zbHUtMTczIBYorQEyQwjA0cqZBRIMd2xzdC1sZHUtMjAwEgx3bHN0LXNsdS0yMDASDHdsc3QtYWxzLTIwMBIMd2xzdC1ydHUtMjAwIBYoyAEyKwinoMbgBBINd2xzdC1sZHUtNTExMhINd2xzdC1ydHUtNTExMhgCIBso+CcyQgjA0cqZBRIMd2xzdC1sZHUtMTE4Egx3bHN0LXNsdS0xMTgSDHdsc3QtYWxzLTExOBIMd2xzdC1ydHUtMTE4IBYodjJDCMDRypkFEgx3bHN0LXNsdS0xNDkSDHdsc3QtYWxzLTE0ORIMd2xzdC1ydHUtMTQ5Egx3bHN0LWxkdS0xNDkgFiiVATJDCMDRypkFEgx3bHN0LWxkdS0xNTUSDHdsc3Qtc2x1LTE1NRIMd2xzdC1hbHMtMTU1Egx3bHN0LXJ0dS0xNTUgFiibATJDCMDRypkFEgx3bHN0LWFscy0xNjASDHdsc3QtcnR1LTE2MBIMd2xzdC1sZHUtMTYwEgx3bHN0LXNsdS0xNjAgFiigATJDCMDRypkFEgx3bHN0LWFscy0xMzQSDHdsc3QtcnR1LTEzNBIMd2xzdC1sZHUtMTM0Egx3bHN0LXNsdS0xMzQgFiiGATJCCMDRypkFEgx3bHN0LWxkdS0xMDISDHdsc3Qtc2x1LTEwMhIMd2xzdC1hbHMtMTAyEgx3bHN0LXJ0dS0xMDIgFihmMkIIwNHKmQUSDHdsc3QtYWxzLTEyMhIMd2xzdC1ydHUtMTIyEgx3bHN0LWxkdS0xMjISDHdsc3Qtc2x1LTEyMiAWKHoyQwjA0cqZBRIMd2xzdC1hbHMtMTUzEgx3bHN0LXJ0dS0xNTMSDHdsc3QtbGR1LTE1MxIMd2xzdC1zbHUtMTUzIBYomQEyQwjA0cqZBRIMd2xzdC1zbHUtMTY5Egx3bHN0LWFscy0xNjkSDHdsc3QtcnR1LTE2ORIMd2xzdC1sZHUtMTY5IBYoqQEyQwjA0cqZBRIMd2xzdC1sZHUtMTg3Egx3bHN0LXNsdS0xODcSDHdsc3QtYWxzLTE4NxIMd2xzdC1ydHUtMTg3IBYouwEyQgjA0cqZBRIMd2xzdC1sZHUtMTA0Egx3bHN0LXNsdS0xMDQSDHdsc3QtYWxzLTEwNBIMd2xzdC1ydHUtMTA0IBYoaDJDCMDRypkFEgx3bHN0LWxkdS0xMzASDHdsc3Qtc2x1LTEzMBIMd2xzdC1hbHMtMTMwEgx3bHN0LXJ0dS0xMzAgFiiCATJDCMDRypkFEgx3bHN0LXNsdS0xMzESDHdsc3QtYWxzLTEzMRIMd2xzdC1ydHUtMTMxEgx3bHN0LWxkdS0xMzEgFiiDATJDCMDRypkFEgx3bHN0LWxkdS0xNDQSDHdsc3Qtc2x1LTE0NBIMd2xzdC1hbHMtMTQ0Egx3bHN0LXJ0dS0xNDQgFiiQATJDCMDRypkFEgx3bHN0LXJ0dS0xNTESDHdsc3QtbGR1LTE1MRIMd2xzdC1zbHUtMTUxEgx3bHN0LWFscy0xNTEgFiiXATJDCMDRypkFEgx3bHN0LWxkdS0xNTQSDHdsc3Qtc2x1LTE1NBIMd2xzdC1hbHMtMTU0Egx3bHN0LXJ0dS0xNTQgFiiaATJDCMDRypkFEgx3bHN0LWxkdS0xOTQSDHdsc3Qtc2x1LTE5NBIMd2xzdC1hbHMtMTk0Egx3bHN0LXJ0dS0xOTQgFijCATJDCMDRypkFEgx3bHN0LWxkdS0xOTUSDHdsc3Qtc2x1LTE5NRIMd2xzdC1hbHMtMTk1Egx3bHN0LXJ0dS0xOTUgFijDATJCCMDRypkFEgx3bHN0LXNsdS0xMjUSDHdsc3QtYWxzLTEyNRIMd2xzdC1ydHUtMTI1Egx3bHN0LWxkdS0xMjUgFih9MkMIwNHKmQUSDHdsc3QtbGR1LTE2NBIMd2xzdC1zbHUtMTY0Egx3bHN0LWFscy0xNjQSDHdsc3QtcnR1LTE2NCAWKKQBMkMIwNHKmQUSDHdsc3QtbGR1LTE4MRIMd2xzdC1zbHUtMTgxEgx3bHN0LWFscy0xODESDHdsc3QtcnR1LTE4MSAWKLUBMkMIwNHKmQUSDHdsc3QtbGR1LTE5ORIMd2xzdC1zbHUtMTk5Egx3bHN0LWFscy0xOTkSDHdsc3QtcnR1LTE5OSAWKMcBMkMIwNHKmQUSDHdsc3Qtc2x1LTEzNhIMd2xzdC1hbHMtMTM2Egx3bHN0LXJ0dS0xMzYSDHdsc3QtbGR1LTEzNiAWKIgBMkIIwNHKmQUSDHdsc3QtcnR1LTEwOBIMd2xzdC1sZHUtMTA4Egx3bHN0LXNsdS0xMDgSDHdsc3QtYWxzLTEwOCAWKGwyQgjA0cqZBRIMd2xzdC1ydHUtMTA5Egx3bHN0LWxkdS0xMDkSDHdsc3Qtc2x1LTEwORIMd2xzdC1hbHMtMTA5IBYobTJDCMDRypkFEgx3bHN0LXNsdS0xNTISDHdsc3QtYWxzLTE1MhIMd2xzdC1ydHUtMTUyEgx3bHN0LWxkdS0xNTIgFiiYATJDCMDRypkFEgx3bHN0LWxkdS0xNzISDHdsc3Qtc2x1LTE3MhIMd2xzdC1hbHMtMTcyEgx3bHN0LXJ0dS0xNzIgFiisATJDCMDRypkFEgx3bHN0LXNsdS0xOTYSDHdsc3QtYWxzLTE5NhIMd2xzdC1ydHUtMTk2Egx3bHN0LWxkdS0xOTYgFijEATJDCMDRypkFEgx3bHN0LXNsdS0xMjkSDHdsc3QtYWxzLTEyORIMd2xzdC1ydHUtMTI5Egx3bHN0LWxkdS0xMjkgFiiBATJDCMDRypkFEgx3bHN0LWxkdS0xMzISDHdsc3Qtc2x1LTEzMhIMd2xzdC1hbHMtMTMyEgx3bHN0LXJ0dS0xMzIgFiiEATJDCMDRypkFEgx3bHN0LWxkdS0xMzcSDHdsc3Qtc2x1LTEzNxIMd2xzdC1hbHMtMTM3Egx3bHN0LXJ0dS0xMzcgFiiJATJDCMDRypkFEgx3bHN0LWFscy0xMzkSDHdsc3QtcnR1LTEzORIMd2xzdC1sZHUtMTM5Egx3bHN0LXNsdS0xMzkgFiiLATJCCMDRypkFEgx3bHN0LWxkdS0xMTUSDHdsc3Qtc2x1LTExNRIMd2xzdC1hbHMtMTE1Egx3bHN0LXJ0dS0xMTUgFihzMkMIwNHKmQUSDHdsc3QtYWxzLTEzOBIMd2xzdC1ydHUtMTM4Egx3bHN0LWxkdS0xMzgSDHdsc3Qtc2x1LTEzOCAWKIoBMkMIwNHKmQUSDHdsc3QtYWxzLTE2NhIMd2xzdC1ydHUtMTY2Egx3bHN0LWxkdS0xNjYSDHdsc3Qtc2x1LTE2NiAWKKYBMkMIwNHKmQUSDHdsc3Qtc2x1LTE5NxIMd2xzdC1hbHMtMTk3Egx3bHN0LXJ0dS0xOTcSDHdsc3QtbGR1LTE5NyAWKMUBMkMIwNHKmQUSDHdsc3QtbGR1LTE1MBIMd2xzdC1zbHUtMTUwEgx3bHN0LWFscy0xNTASDHdsc3QtcnR1LTE1MCAWKJYBMkMIwNHKmQUSDHdsc3QtbGR1LTE4MBIMd2xzdC1zbHUtMTgwEgx3bHN0LWFscy0xODASDHdsc3QtcnR1LTE4MCAWKLQBMkMIwNHKmQUSDHdsc3QtbGR1LTE4NhIMd2xzdC1zbHUtMTg2Egx3bHN0LWFscy0xODYSDHdsc3QtcnR1LTE4NiAWKLoBMkIIwNHKmQUSDHdsc3QtbGR1LTEwMRIMd2xzdC1zbHUtMTAxEgx3bHN0LWFscy0xMDESDHdsc3QtcnR1LTEwMSAWKGUyQgjA0cqZBRIMd2xzdC1zbHUtMTE3Egx3bHN0LWFscy0xMTcSDHdsc3QtcnR1LTExNxIMd2xzdC1sZHUtMTE3IBYodTJDCMDRypkFEgx3bHN0LWFscy0xMzUSDHdsc3QtcnR1LTEzNRIMd2xzdC1sZHUtMTM1Egx3bHN0LXNsdS0xMzUgFiiHATJCCMDRypkFEgx3bHN0LWxkdS0xMjQSDHdsc3Qtc2x1LTEyNBIMd2xzdC1hbHMtMTI0Egx3bHN0LXJ0dS0xMjQgFih8MkMIwNHKmQUSDHdsc3QtbGR1LTE0OBIMd2xzdC1zbHUtMTQ4Egx3bHN0LWFscy0xNDgSDHdsc3QtcnR1LTE0OCAWKJQBMkMIwNHKmQUSDHdsc3Qtc2x1LTE2MRIMd2xzdC1hbHMtMTYxEgx3bHN0LXJ0dS0xNjESDHdsc3QtbGR1LTE2MSAWKKEBMkMIwNHKmQUSDHdsc3QtYWxzLTE4MhIMd2xzdC1ydHUtMTgyEgx3bHN0LWxkdS0xODISDHdsc3Qtc2x1LTE4MiAWKLYBMkMIwNHKmQUSDHdsc3QtYWxzLTE5MBIMd2xzdC1ydHUtMTkwEgx3bHN0LWxkdS0xOTASDHdsc3Qtc2x1LTE5MCAWKL4BMkIIwNHKmQUSDHdsc3QtbGR1LTEyMBIMd2xzdC1zbHUtMTIwEgx3bHN0LWFscy0xMjASDHdsc3QtcnR1LTEyMCAWKHgyQwjA0cqZBRIMd2xzdC1sZHUtMTQyEgx3bHN0LXNsdS0xNDISDHdsc3QtYWxzLTE0MhIMd2xzdC1ydHUtMTQyIBYojgEyQwjA0cqZBRIMd2xzdC1sZHUtMTQ1Egx3bHN0LXNsdS0xNDUSDHdsc3QtYWxzLTE0NRIMd2xzdC1ydHUtMTQ1IBYokQEyQwjA0cqZBRIMd2xzdC1zbHUtMTQ3Egx3bHN0LWFscy0xNDcSDHdsc3QtcnR1LTE0NxIMd2xzdC1sZHUtMTQ3IBYokwEyQwjA0cqZBRIMd2xzdC1zbHUtMTc3Egx3bHN0LWFscy0xNzcSDHdsc3QtcnR1LTE3NxIMd2xzdC1sZHUtMTc3IBYosQEyHAjd5f7LBxINd2xzdC1ydHUtNTExMxgEIBwo+ScyQwjA0cqZBRIMd2xzdC1sZHUtMTQxEgx3bHN0LXNsdS0xNDESDHdsc3QtYWxzLTE0MRIMd2xzdC1ydHUtMTQxIBYojQEyQwjA0cqZBRIMd2xzdC1hbHMtMTU3Egx3bHN0LXJ0dS0xNTcSDHdsc3QtbGR1LTE1NxIMd2xzdC1zbHUtMTU3IBYonQEyQwjA0cqZBRIMd2xzdC1hbHMtMTc2Egx3bHN0LXJ0dS0xNzYSDHdsc3QtbGR1LTE3NhIMd2xzdC1zbHUtMTc2IBYosAEyQgjA0cqZBRIMd2xzdC1sZHUtMTIzEgx3bHN0LXNsdS0xMjMSDHdsc3QtYWxzLTEyMxIMd2xzdC1ydHUtMTIzIBYoezJDCMDRypkFEgx3bHN0LWxkdS0xNDMSDHdsc3Qtc2x1LTE0MxIMd2xzdC1hbHMtMTQzEgx3bHN0LXJ0dS0xNDMgFiiPATIiCPWIgrYBEgp3bHN0LXNsdS0zEgp3bHN0LXJ0dS0zIBAoAzIgCN3l9pMBEgp3bHN0LWFscy0zEgp3bHN0LWFscy0xKAMyQgjA0cqZBRIMd2xzdC1ydHUtMTEwEgx3bHN0LWxkdS0xMTASDHdsc3Qtc2x1LTExMBIMd2xzdC1hbHMtMTEwIBYobjJDCMDRypkFEgx3bHN0LWxkdS0xMjgSDHdsc3Qtc2x1LTEyOBIMd2xzdC1hbHMtMTI4Egx3bHN0LXJ0dS0xMjggFiiAATJDCMDRypkFEgx3bHN0LWFscy0xNjcSDHdsc3QtcnR1LTE2NxIMd2xzdC1sZHUtMTY3Egx3bHN0LXNsdS0xNjcgFiinATJCCMDRypkFEgx3bHN0LXJ0dS0xMjYSDHdsc3QtbGR1LTEyNhIMd2xzdC1zbHUtMTI2Egx3bHN0LWFscy0xMjYgFih+MkMIwNHKmQUSDHdsc3QtcnR1LTE1ORIMd2xzdC1sZHUtMTU5Egx3bHN0LXNsdS0xNTkSDHdsc3QtYWxzLTE1OSAWKJ8BMkMIwNHKmQUSDHdsc3QtbGR1LTE2NRIMd2xzdC1zbHUtMTY1Egx3bHN0LWFscy0xNjUSDHdsc3QtcnR1LTE2NSAWKKUBMkMIwNHKmQUSDHdsc3QtbGR1LTE4ORIMd2xzdC1zbHUtMTg5Egx3bHN0LWFscy0xODkSDHdsc3QtcnR1LTE4OSAWKL0BMkMIwNHKmQUSDHdsc3QtbGR1LTE3MBIMd2xzdC1zbHUtMTcwEgx3bHN0LWFscy0xNzASDHdsc3QtcnR1LTE3MCAWKKoBMkMIwNHKmQUSDHdsc3Qtc2x1LTE3ORIMd2xzdC1hbHMtMTc5Egx3bHN0LXJ0dS0xNzkSDHdsc3QtbGR1LTE3OSAWKLMBMkMIwNHKmQUSDHdsc3Qtc2x1LTE5MRIMd2xzdC1hbHMtMTkxEgx3bHN0LXJ0dS0xOTESDHdsc3QtbGR1LTE5MSAWKL8BMkMIwNHKmQUSDHdsc3QtbGR1LTE5MxIMd2xzdC1zbHUtMTkzEgx3bHN0LWFscy0xOTMSDHdsc3QtcnR1LTE5MyAWKMEBMkIIwNHKmQUSDHdsc3QtcnR1LTEwNhIMd2xzdC1sZHUtMTA2Egx3bHN0LXNsdS0xMDYSDHdsc3QtYWxzLTEwNiAWKGoyQgjA0cqZBRIMd2xzdC1sZHUtMTExEgx3bHN0LXNsdS0xMTESDHdsc3QtYWxzLTExMRIMd2xzdC1ydHUtMTExIBYobzJDCMDRypkFEgx3bHN0LXJ0dS0xNDASDHdsc3QtbGR1LTE0MBIMd2xzdC1zbHUtMTQwEgx3bHN0LWFscy0xNDAgFiiMATJDCMDRypkFEgx3bHN0LXNsdS0xNjISDHdsc3QtYWxzLTE2MhIMd2xzdC1ydHUtMTYyEgx3bHN0LWxkdS0xNjIgFiiiATJCCMDRypkFEgx3bHN0LXNsdS0xMTQSDHdsc3QtYWxzLTExNBIMd2xzdC1ydHUtMTE0Egx3bHN0LWxkdS0xMTQgFihyMkIIwNHKmQUSDHdsc3QtbGR1LTExNhIMd2xzdC1zbHUtMTE2Egx3bHN0LWFscy0xMTYSDHdsc3QtcnR1LTExNiAWKHQyQgjA0cqZBRIMd2xzdC1sZHUtMTE5Egx3bHN0LXNsdS0xMTkSDHdsc3QtYWxzLTExORIMd2xzdC1ydHUtMTE5IBYodzJDCMDRypkFEgx3bHN0LWxkdS0xNDYSDHdsc3Qtc2x1LTE0NhIMd2xzdC1hbHMtMTQ2Egx3bHN0LXJ0dS0xNDYgFiiSATJDCMDRypkFEgx3bHN0LWxkdS0xOTgSDHdsc3Qtc2x1LTE5OBIMd2xzdC1hbHMtMTk4Egx3bHN0LXJ0dS0xOTggFijGATJCCMDRypkFEgx3bHN0LWFscy0xMDcSDHdsc3QtcnR1LTEwNxIMd2xzdC1sZHUtMTA3Egx3bHN0LXNsdS0xMDcgFihrMkMIwNHKmQUSDHdsc3QtbGR1LTE1NhIMd2xzdC1zbHUtMTU2Egx3bHN0LWFscy0xNTYSDHdsc3QtcnR1LTE1NiAWKJwBMkMIwNHKmQUSDHdsc3Qtc2x1LTE3MRIMd2xzdC1hbHMtMTcxEgx3bHN0LXJ0dS0xNzESDHdsc3QtbGR1LTE3MSAWKKsBMkMIwNHKmQUSDHdsc3QtcnR1LTE3NBIMd2xzdC1sZHUtMTc0Egx3bHN0LXNsdS0xNzQSDHdsc3QtYWxzLTE3NCAWKK4BMkMIwNHKmQUSDHdsc3QtbGR1LTE1OBIMd2xzdC1zbHUtMTU4Egx3bHN0LWFscy0xNTgSDHdsc3QtcnR1LTE1OCAWKJ4BMkMIwNHKmQUSDHdsc3QtbGR1LTE2MxIMd2xzdC1zbHUtMTYzEgx3bHN0LWFscy0xNjMSDHdsc3QtcnR1LTE2MyAWKKMBMkMIwNHKmQUSDHdsc3QtbGR1LTE5MhIMd2xzdC1zbHUtMTkyEgx3bHN0LWFscy0xOTISDHdsc3QtcnR1LTE5MiAWKMAB"
 	// println(fmt.Sprintf("%+v", msg.Syscmds.OnlineRtus))
@@ -466,7 +438,7 @@ func main() {
 	//testCtldataV6()
 	//testTmldata()
 	// testTmldataV6()
-	// testTmldataNB()
+	testTmldataNB()
 	//println(fmt.Sprintf("%+v", gopsu.Uint642Bytes(uint64(12333), false)))
 	// aaa("adsfa", 12313, "asdfas", int64(1211), 1231.9876)
 	// countCRC()
