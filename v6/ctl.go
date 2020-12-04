@@ -2663,13 +2663,34 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 					default:
 						getprotocol = false
 					}
+				case "yf": // 远帆除湿
+					switch scmd[2] {
+					case "0300": // 读取数据
+						d.WriteByte(byte(pb2data.YfDry_0300.Addr))
+						d.Write([]byte{0x03, 0x00, 0x01, 0x00, 0x08})
+					case "1001": // 实时控制
+						d.WriteByte(byte(pb2data.YfDry_1001.Addr))
+						d.Write([]byte{0x10, 0x00, 0x01, 0x00, 0x01, 0x02})
+						d.Write([]byte{byte(pb2data.YfDry_1001.CtlStatus / 256), byte(pb2data.YfDry_1001.CtlStatus % 256)})
+					case "1005": // 设置参数
+						d.WriteByte(byte(pb2data.YfDry_1005.Addr))
+						d.Write([]byte{0x10, 0x00, 0x05, 0x00, 0x02, 0x04})
+						d.Write([]byte{
+							byte(pb2data.YfDry_1005.HumidityUplimit / 256), byte(pb2data.YfDry_1005.HumidityUplimit % 256),
+							byte(pb2data.YfDry_1005.HumidityLowlimit / 256), byte(pb2data.YfDry_1005.HumidityLowlimit % 256),
+							// byte(pb2data.YfDry_1005.TemperatureUplimit / 256), byte(pb2data.YfDry_1005.TemperatureUplimit % 256),
+							// byte(pb2data.YfDry_1005.TemperatureLowlimit / 256), byte(pb2data.YfDry_1005.TemperatureLowlimit % 256),
+						})
+					default:
+						getprotocol = false
+					}
 				default:
 					getprotocol = false
 				}
 				if getprotocol {
 					for _, v := range xaddrs {
 						f := &Fwd{
-							DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, d.Bytes(), br, rc),
+							DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, []byte{d.Bytes()[0], 0x03, 0x00, 0x01, 0x00, 0x08}, br, rc),
 							DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
 							DataCmd:  cmd,
 							DataSP:   byte(pb2data.Head.Ret),
@@ -2680,6 +2701,21 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							Addr:     v,
 							DstType:  1,
 							// Src:      fmt.Sprintf("%v", pb2data),
+						}
+						if strings.HasPrefix(cmd, "yf.dry.10") {
+							ff := &Fwd{
+								DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "yf.dry.0300", d.Bytes(), br, rc),
+								DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
+								DataCmd:  cmd,
+								DataSP:   byte(pb2data.Head.Ret),
+								DataPT:   3000,
+								DataType: DataTypeBytes,
+								Job:      JobSend,
+								Tra:      tra,
+								Addr:     v,
+								DstType:  1,
+							}
+							lstf = append(lstf, ff)
 						}
 						if cmd == "wlst.rtu.1900" {
 							if pb2data.WlstTml.WlstRtu_1900.TmlIp > 0 {
