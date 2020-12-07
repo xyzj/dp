@@ -402,8 +402,8 @@ var (
 	SendERtu6900 = gopsu.String2Bytes("7e-62-02-00-69-72-5c", "-")
 	// SendIMEI 读取模块imei
 	SendIMEI = gopsu.String2Bytes("3e-3c-0f-00-30-30-30-30-30-30-30-30-30-30-30-01-20-04-02-a7-d8", "-")
-	// SendHJLocker 恒杰门锁查锁号
-	SendHJLocker = gopsu.String2Bytes("7e-e0-00-00-00-00-11-00-2b-3d", "-")
+	// SendXHLocker 咸亨门锁查状态
+	SendXHLocker = gopsu.String2Bytes("7e-e0-00-00-00-00-11-00-2b-3d", "-")
 
 	// 国标
 
@@ -436,7 +436,7 @@ func init() {
 	DevMap.devList["upg"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendUpg0500, DataPT: 2000}
 	DevMap.devList["imei"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendIMEI, DataPT: 2000}
 	DevMap.devList["sim"] = &Fwd{DataType: DataTypeBytes, DataMsg: Send3e3c01, DataPT: 2000}
-	DevMap.devList["hjlocker"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendHJLocker, DataPT: 2000}
+	DevMap.devList["locker"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendXHLocker, DataPT: 2000}
 }
 
 // Fwd 数据解析结果需发送内容结构体
