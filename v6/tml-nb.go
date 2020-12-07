@@ -695,7 +695,7 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 			svrmsg.SluitemData.LightData = cbd.LightData
 
 			if repflg == 1 && svrmsg.SluitemData.Reson != 0 {
-				sendstr := DoCommand(1, 1, 1, f.Addr, repcid, "wlst.vslu.3900", []byte{d[15]}, 1, 1)
+				sendstr := DoCommand(1, 1, 1, f.Addr, repcid, "wlst.vslu.3900", []byte{d[15]}, 1, 1, 0)
 				ff := &Fwd{
 					Addr:     f.Addr,
 					DataCmd:  "wlst.vslu.3900",
@@ -742,7 +742,7 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 				svrmsg.NbSlu_3700.Snr = 0 - gopsu.String2Int64(m[1:], 2)
 			}
 
-			sendstr := DoCommand(1, 1, 1, f.Addr, repcid, "wlst.vslu.3700", []byte{d[6]}, 1, 1)
+			sendstr := DoCommand(1, 1, 1, f.Addr, repcid, "wlst.vslu.3700", []byte{d[6]}, 1, 1, 0)
 			ff := &Fwd{
 				Addr:     f.Addr,
 				DataCmd:  "wlst.vslu.3700",

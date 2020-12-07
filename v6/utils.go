@@ -583,7 +583,7 @@ func GetServerTimeMsg(addr int64, t int, oneMoreByte bool, nocmd bool) []byte {
 	if nocmd {
 		return newdate
 	}
-	return DoCommand(1, 1, 1, addr, 1, cmd, newdate, 0, 0)
+	return DoCommand(1, 1, 1, addr, 1, cmd, newdate, 0, 0, 0)
 }
 
 // CodePb2 code msgctl
@@ -655,7 +655,7 @@ func MsgCtlFromB64Str(s string) *msgctl.MsgWithCtrl {
 // 	data：数据
 // 	br：波特率
 // 	rc：校验位
-func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []byte, br, rc byte) []byte {
+func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []byte, br, rc byte, cid64 int64) []byte {
 	lstcmd := strings.Split(cmd, ".")
 	cmd1 := gopsu.String2Int8(lstcmd[2][:2], 16)
 	cmd2 := gopsu.String2Int8(lstcmd[2][2:], 16)
@@ -1115,6 +1115,45 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 			a := gopsu.CountCrc16VB(&data)
 			b.Write([]byte{a[0], a[1]})
 			return b.Bytes()
+		case "xh": // 咸亨门禁
+			switch lstcmd[1] {
+			case "lock": // 门禁
+				devaddr := addr
+				if tra == 2 {
+					devaddr = cid64
+				}
+				b.WriteByte(0x7e)
+				b.WriteByte(0xe0)
+				b.Write(gopsu.Int642Bytes(devaddr, false)[:4])
+				b.WriteByte(cmd1)
+				b.WriteByte(byte(len(data)))
+				if len(data) > 0 {
+					b.Write(data)
+				}
+				a := b.Bytes()[:]
+				crc := gopsu.CountCrc16VB(&a)
+				b.Write([]byte{crc[0], crc[1]})
+				switch tra {
+				case 1:
+					return b.Bytes()
+				case 2:
+					var b485 bytes.Buffer
+					b485.WriteByte(0x7e)
+					b485.WriteByte(byte(b.Len() + 7))
+					b485.WriteByte(byte(addr % 256))
+					b485.WriteByte(byte(addr / 256))
+					b485.WriteByte(0x37)
+					b485.WriteByte(br)
+					b485.WriteByte(rc)
+					b485.Write(b.Bytes())
+					b485.WriteByte(0)
+					a = b485.Bytes()
+					b485.WriteByte(gopsu.CountLrc(&a))
+					a = b485.Bytes()
+					b485.Write(gopsu.CountCrc16VB(&a))
+					return b485.Bytes()
+				}
+			}
 		}
 	case 2: // ahhf
 		l := len(data) + 8

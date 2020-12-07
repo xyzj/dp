@@ -166,10 +166,16 @@ LOOP:
 				d = d[k+ll+4:]
 				goto LOOP
 			}
-			// hjlocker直连
+			// xhlocker直连
 			if l == 0xe0 && bytes.Contains(hjlockreply, []byte{d[k+6]}) {
 				ll := int(d[k+7])
-				r.Do = append(r.Do, dp.dataHJLock(d[:k+ll+10], 1, 0)...)
+				if len(d[k:]) < ll+10 {
+					r.Ex = fmt.Sprintf("Insufficient data length. %s", gopsu.Bytes2String(d[k:], "-"))
+					r.Unfinish = d
+					d = []byte{}
+					goto LOOP
+				}
+				r.Do = append(r.Do, dp.dataXHLock(d[:k+ll+10], 1, 0)...)
 				d = d[k+ll+10:]
 				goto LOOP
 			}
@@ -304,6 +310,92 @@ LOOP:
 	return r
 }
 
+// 咸亨门禁
+func (dp *DataProcessor) dataXHLock(d []byte, tra byte, parentID int64) (lstf []*Fwd) {
+	var f = &Fwd{
+		DataType: DataTypeBase64,
+		DataDst:  "2",
+		DstType:  SockData,
+		Tra:      TraDirect,
+		Job:      JobSend,
+		Src:      gopsu.Bytes2String(d, "-"),
+	}
+
+	if !gopsu.CheckCrc16VB(d[:len(d)]) {
+		f.Ex = fmt.Sprintf("locker data validation fails")
+		lstf = append(lstf, f)
+		return lstf
+	}
+	var cid64 int64
+	cid64 = int64(d[2]) + int64(d[3])*256 + int64(d[4])*256*256 + int64(d[5])*256*256
+	cmd := d[6]
+	if parentID == 0 {
+		f.Addr = int64(cid64)
+		cid64 = 1
+	} else {
+		f.Addr = parentID
+	}
+	svrmsg := initMsgCtl(fmt.Sprintf("xh.lock.%02x00", cmd), f.Addr, dp.RemoteIP, 1, tra, 0, &dp.LocalPort)
+	svrmsg.Args.Cid64 = cid64
+	f.DataCmd = svrmsg.Head.Cmd
+	switch cmd {
+	case 0x81: // 设置地址
+		svrmsg.WlstTml.HjLock_8100 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8100.Status = int32(d[8])
+	case 0x82: // 读取状态
+		svrmsg.WlstTml.HjLock_8200 = &msgctl.HjLock_0200{}
+		svrmsg.WlstTml.HjLock_8200.LockStatus = int32(d[8])
+		// svrmsg.WlstTml.HjLock_8200.FreqLights = int32(d[9])
+		// svrmsg.WlstTml.HjLock_8200.FreqBeep = int32(d[10])
+		// svrmsg.WlstTml.HjLock_8200.TimeDelay = int32(d[11])
+		svrmsg.WlstTml.HjLock_8200.LockoffDelay = int32(gopsu.Bytes2Uint64(d[12:14], false))
+		// svrmsg.WlstTml.HjLock_8200.MasterCard1 = gopsu.Bytes2Uint64(d[14:18], true)
+		// svrmsg.WlstTml.HjLock_8200.MasterCard2 = gopsu.Bytes2Uint64(d[18:22], true)
+		svrmsg.WlstTml.HjLock_8200.Cards = int32(gopsu.Bytes2Int64(d[22:24], false))
+		svrmsg.WlstTml.HjLock_8200.HardwareVer = gopsu.Bytes2Uint64(d[24:28], true)
+		svrmsg.WlstTml.HjLock_8200.LastCard = gopsu.Bytes2Uint64(d[28:32], true)
+		svrmsg.WlstTml.HjLock_8200.LastCardLegal = int32(d[32])
+		svrmsg.WlstTml.HjLock_8200.CardType = int32(d[33])
+		svrmsg.WlstTml.HjLock_8200.Status = int32(d[34])
+	case 0x83: // 开锁
+		svrmsg.WlstTml.HjLock_8300 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8300.Status = int32(d[8])
+	case 0x88: // 设置管理卡
+		svrmsg.WlstTml.HjLock_8800 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8800.Status = int32(d[8])
+	case 0x89: // 重启
+		svrmsg.WlstTml.HjLock_8900 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8900.Status = int32(d[8])
+	case 0x8a: // 恢复出厂
+		svrmsg.WlstTml.HjLock_8A00 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8A00.Status = int32(d[8])
+	case 0x8c: // 设置开锁时间
+		svrmsg.WlstTml.HjLock_8C00 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8C00.Status = int32(d[8])
+	case 0x8e: // 设置报警参数
+		svrmsg.Head.Cmd = "xh.lock.8e01"
+		svrmsg.WlstTml.HjLock_8E01 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8E01.Status = int32(d[8])
+	case 0x8f: // 设置门磁报警
+		svrmsg.WlstTml.HjLock_8F00 = &msgctl.HjLock_0000{}
+		svrmsg.WlstTml.HjLock_8F00.Status = int32(d[8])
+	case 0x90: // 查询锁号（地址码)
+		svrmsg.WlstTml.HjLock_9000 = &msgctl.HjLock_1000{}
+		svrmsg.WlstTml.HjLock_9000.LockId = int64(d[8]) + int64(d[9])*256 + int64(d[10])*256*256 + int64(d[11])*256*256*256
+	case 0x91: // 查询门锁状态
+		svrmsg.WlstTml.HjLock_9100 = &msgctl.HjLock_1100{}
+		svrmsg.WlstTml.HjLock_9100.LockStatus = int32(d[8])
+		svrmsg.WlstTml.HjLock_9100.DoorStatus = int32(d[9])
+	}
+
+	if len(f.DataCmd) > 0 {
+		b, _ := svrmsg.Marshal()
+		f.DataMsg = b
+		lstf = append(lstf, f)
+	}
+	return lstf
+}
+
 // 恒杰门禁
 func (dp *DataProcessor) dataHJLock(d []byte, tra byte, parentID int64) (lstf []*Fwd) {
 	var f = &Fwd{
@@ -314,14 +406,13 @@ func (dp *DataProcessor) dataHJLock(d []byte, tra byte, parentID int64) (lstf []
 		Job:      JobSend,
 		Src:      gopsu.Bytes2String(d, "-"),
 	}
-
-	if !gopsu.CheckCrc16VBBigOrder(d[1 : len(d)-1]) {
+	if !gopsu.CheckCrc16VBBigOrder(d) {
 		f.Ex = fmt.Sprintf("locker data validation fails")
 		lstf = append(lstf, f)
 		return lstf
 	}
 	var cid int32
-	cmd := d[2]
+	cmd := d[6]
 	if parentID == 0 {
 		f.Addr = int64(d[1])
 		cid = 1
@@ -387,7 +478,6 @@ func (dp *DataProcessor) dataHJLock(d []byte, tra byte, parentID int64) (lstf []
 		svrmsg.WlstTml.HjLock_8E00.LastCard = gopsu.Bytes2Uint64(d[4:8], true)
 		svrmsg.WlstTml.HjLock_8E00.LastCardLegal = int32(d[8])
 	}
-
 	if len(f.DataCmd) > 0 {
 		b, _ := svrmsg.Marshal()
 		f.DataMsg = b
@@ -1505,8 +1595,7 @@ func (dp *DataProcessor) dataRtu(d []byte, crc bool) (lstf []*Fwd) {
 			DstType:  1,
 			Tra:      TraDirect,
 			Job:      JobSend,
-			DataMsg:  DoCommand(1, 1, 1, f.Addr, 1, "wlst.ldu.2600", []byte{d[5]}, 2, 5),
-			// DataMsg:  gopsu.Bytes2String(DoCommand(1, 1, 1, f.Addr, 1, "wlst.ldu.2600", []byte{d[5]}, 2, 5), "-"),
+			DataMsg:  DoCommand(1, 1, 1, f.Addr, 1, "wlst.ldu.2600", []byte{d[5]}, 2, 5, 0),
 		}
 		lstf = append(lstf, ff)
 	case 0xda: // 招测参数
@@ -2408,7 +2497,7 @@ func (dp *DataProcessor) dataRtu70(d []byte) (lstf []*Fwd) {
 				svrmsg.WlstTml.WlstRtu_7094.SwitchOutStPacked = append(svrmsg.WlstTml.WlstRtu_7094.SwitchOutStPacked, v-48)
 			}
 		}
-		sendstr := DoCommand(1, 1, 1, f.Addr, 1, "wlst.rtu.7014", []byte{d[7], d[8], d[9], d[10]}, 1, 1)
+		sendstr := DoCommand(1, 1, 1, f.Addr, 1, "wlst.rtu.7014", []byte{d[7], d[8], d[9], d[10]}, 1, 1, 0)
 
 		ff := &Fwd{
 			Addr:     f.Addr,
@@ -2499,7 +2588,7 @@ func (dp *DataProcessor) dataRtu70(d []byte) (lstf []*Fwd) {
 					DstType:  1,
 					Tra:      TraDirect,
 					Job:      JobSend,
-					DataMsg:  DoCommand(1, 1, TraDirect, f.Addr, svrmsg.Args.Cid, "wlst.rtu.7022", []byte{byte(cmdidx), 0x02, byte(svrmsg.WlstTml.WlstRtu_70A2.LoopType + 1)}, 5, 0),
+					DataMsg:  DoCommand(1, 1, TraDirect, f.Addr, svrmsg.Args.Cid, "wlst.rtu.7022", []byte{byte(cmdidx), 0x02, byte(svrmsg.WlstTml.WlstRtu_70A2.LoopType + 1)}, 5, 0, 0),
 				}
 				lstf = append(lstf, ff)
 			}
@@ -3821,9 +3910,8 @@ func (dp *DataProcessor) dataSlu(d []byte, tra byte, parentID int64) (lstf []*Fw
 			DstType:  1,
 			Tra:      tra,
 			Job:      JobSend,
-			DataMsg:  DoCommand(1, 1, tra, f.Addr, cid, "wlst.slu.7900", []byte{}, 5, 0),
-			// DataMsg:  gopsu.Bytes2String(DoCommand(1, 1, tra, f.Addr, cid, "wlst.slu.7900", []byte{}, 5, 0), "-"),
-			DataCmd: svrmsg.Head.Cmd,
+			DataMsg:  DoCommand(1, 1, tra, f.Addr, cid, "wlst.slu.7900", []byte{}, 5, 0, 0),
+			DataCmd:  svrmsg.Head.Cmd,
 		}
 		lstf = append(lstf, ff)
 		svrmsg.WlstTml.WlstSluF900 = &msgctl.WlstSluF900{}
@@ -5263,7 +5351,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 
 			svrmsg.WlstTml.WlstSluB900.LightData = cbd.LightData
 			if repflg == 1 && svrmsg.WlstTml.WlstSluB900.Reson != 0 {
-				sendstr := DoCommand(1, 1, 1, f.Addr, 1, "wlst.vslu.3900", []byte{d[6]}, 1, 1)
+				sendstr := DoCommand(1, 1, 1, f.Addr, 1, "wlst.vslu.3900", []byte{d[6]}, 1, 1, 0)
 				ff := &Fwd{
 					Addr:     f.Addr,
 					DataCmd:  "wlst.vslu.3900",
@@ -5369,8 +5457,7 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 		f.DstType = SockTml
 		f.Tra = TraDirect
 		f.Job = JobSend
-		f.DataMsg = DoCommand(1, 1, 1, f.Addr, 1, "wlst.com.3e05", dd, 5, 0)
-		// f.DataMsg = gopsu.Bytes2String(DoCommand(1, 1, 1, f.Addr, 1, "wlst.com.3e05", dd, 5, 0), "-")
+		f.DataMsg = DoCommand(1, 1, 1, f.Addr, 1, "wlst.com.3e05", dd, 5, 0, 0)
 	case 0x81: // 新参数选测
 		svrmsg.WlstCom_3E81 = &msgctl.WlstCom_3E02{}
 		svrmsg.WlstCom_3E81.Operators = &msgctl.WlstCom_3E02_Group01{}
@@ -5952,9 +6039,8 @@ func (dp *DataProcessor) dataD0(d []byte, tra byte, parentID int64) (lstf []*Fwd
 			Tra:      tra,
 			Job:      JobSend,
 			Src:      gopsu.Bytes2String(d, "-"),
-			DataMsg:  DoCommand(1, 1, byte(tra), parentID, svrmsg.Args.Cid, "wlst.elu.6258", []byte{0xaa}, br, rc),
-			// DataMsg:  gopsu.Bytes2String(DoCommand(1, 1, byte(tra), parentID, svrmsg.Args.Cid, "wlst.elu.6258", []byte{0xaa}, br, rc), "-"),
-			DataCmd: svrmsg.Head.Cmd,
+			DataMsg:  DoCommand(1, 1, byte(tra), parentID, svrmsg.Args.Cid, "wlst.elu.6258", []byte{0xaa}, br, rc, 0),
+			DataCmd:  svrmsg.Head.Cmd,
 		}
 		if tra == 2 {
 			ff2.DataDst = fmt.Sprintf("wlst-rtu-%d", f.Addr)

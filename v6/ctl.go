@@ -1509,7 +1509,7 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 								if len(xaddrs) > 0 && len(d22) == 3 {
 									for _, v := range xaddrs {
 										f := &Fwd{
-											DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "wlst.rtu.2200", d22, 0, 0),
+											DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "wlst.rtu.2200", d22, 0, 0, pb2data.Args.Cid64),
 											DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
 											DataCmd:  "wlst.rtu.2200",
 											DataSP:   byte(pb2data.Head.Ret),
@@ -2663,6 +2663,27 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 					default:
 						getprotocol = false
 					}
+				case "xh":
+					br = 5
+					rc = 0
+					switch scmd[2] {
+					case "0100": // 设置地址
+						d.Write(gopsu.Int642Bytes(pb2data.WlstTml.HjLock_0100.NewAddr, false)[:4])
+					case "0200": // 读取状态
+					case "0300": // 开锁
+					case "0a00": // 恢复出厂
+					case "0c00": // 设置开锁时间
+						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0C00.Delay), false)[:2])
+					case "0e01": // 设置报警参数
+						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0E00.FreqLights), false)[:2])
+						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0E00.FreqBeep), false)[:2])
+					case "0f00": // 设置门磁报警
+						d.WriteByte(byte(pb2data.WlstTml.HjLock_0F00.AlarmMagnetic))
+					case "1000": // 查询锁号（地址码）
+					case "1100": // 查询门锁状态
+					default:
+						getprotocol = false
+					}
 				case "yf": // 远帆除湿
 					switch scmd[2] {
 					case "0300": // 读取数据
@@ -2690,7 +2711,7 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 				if getprotocol {
 					for _, v := range xaddrs {
 						f := &Fwd{
-							DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, []byte{d.Bytes()[0], 0x03, 0x00, 0x01, 0x00, 0x08}, br, rc),
+							DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, cmd, d.Bytes(), br, rc, pb2data.Args.Cid64),
 							DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
 							DataCmd:  cmd,
 							DataSP:   byte(pb2data.Head.Ret),
@@ -2702,21 +2723,22 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							DstType:  1,
 							// Src:      fmt.Sprintf("%v", pb2data),
 						}
-						if strings.HasPrefix(cmd, "yf.dry.10") {
-							ff := &Fwd{
-								DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "yf.dry.0300", d.Bytes(), br, rc),
-								DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
-								DataCmd:  cmd,
-								DataSP:   byte(pb2data.Head.Ret),
-								DataPT:   3000,
-								DataType: DataTypeBytes,
-								Job:      JobSend,
-								Tra:      tra,
-								Addr:     v,
-								DstType:  1,
-							}
-							lstf = append(lstf, ff)
-						}
+						// 远帆除湿因为不应答设置命令所以追加选测
+						// if strings.HasPrefix(cmd, "yf.dry.10") {
+						// 	ff := &Fwd{
+						// 		DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, "yf.dry.0300", d.Bytes(), br, rc, pb2data.Args.Cid64),
+						// 		DataDst:  fmt.Sprintf("%s-%d", strings.Join(scmd[:2], "-"), v),
+						// 		DataCmd:  cmd,
+						// 		DataSP:   byte(pb2data.Head.Ret),
+						// 		DataPT:   3000,
+						// 		DataType: DataTypeBytes,
+						// 		Job:      JobSend,
+						// 		Tra:      tra,
+						// 		Addr:     v,
+						// 		DstType:  1,
+						// 	}
+						// 	lstf = append(lstf, ff)
+						// }
 						if cmd == "wlst.rtu.1900" {
 							if pb2data.WlstTml.WlstRtu_1900.TmlIp > 0 {
 								f.DstIP = gopsu.IPInt642String(pb2data.WlstTml.WlstRtu_1900.TmlIp)
@@ -2744,7 +2766,7 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 						if len(ndata) > 0 {
 							ff := &Fwd{
 								DataCmd:  ndatacmd,
-								DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, ndatacmd, ndata, br, rc),
+								DataMsg:  DoCommand(byte(pb2data.Head.Ver), byte(pb2data.Head.Tver), tra, v, pb2data.Args.Cid, ndatacmd, ndata, br, rc, pb2data.Args.Cid64),
 								DataSP:   SendLevelHigh,
 								DataDst:  fmt.Sprintf("wlst-rtu-%d", v),
 								DataPT:   3000,
