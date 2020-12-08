@@ -2695,12 +2695,12 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 						d.Write([]byte{byte(pb2data.YfDry_1001.CtlStatus / 256), byte(pb2data.YfDry_1001.CtlStatus % 256)})
 					case "1005": // 设置参数
 						d.WriteByte(byte(pb2data.YfDry_1005.Addr))
-						d.Write([]byte{0x10, 0x00, 0x05, 0x00, 0x02, 0x04})
+						d.Write([]byte{0x10, 0x00, 0x05, 0x00, 0x04, 0x08})
 						d.Write([]byte{
 							byte(pb2data.YfDry_1005.HumidityUplimit / 256), byte(pb2data.YfDry_1005.HumidityUplimit % 256),
 							byte(pb2data.YfDry_1005.HumidityLowlimit / 256), byte(pb2data.YfDry_1005.HumidityLowlimit % 256),
-							// byte(pb2data.YfDry_1005.TemperatureUplimit / 256), byte(pb2data.YfDry_1005.TemperatureUplimit % 256),
-							// byte(pb2data.YfDry_1005.TemperatureLowlimit / 256), byte(pb2data.YfDry_1005.TemperatureLowlimit % 256),
+							byte(pb2data.YfDry_1005.TemperatureUplimit / 256), byte(pb2data.YfDry_1005.TemperatureUplimit % 256),
+							byte(pb2data.YfDry_1005.TemperatureLowlimit / 256), byte(pb2data.YfDry_1005.TemperatureLowlimit % 256),
 						})
 					default:
 						getprotocol = false

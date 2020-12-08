@@ -34,11 +34,12 @@ func (dp *DataProcessor) ProcessTml(d []byte) (r *Rtb) {
 	}()
 LOOP:
 	if !bytes.ContainsAny(d, "~{>h^") ||
-		(len(d) < 3 && bytes.ContainsAny(d, "<")) || len(d) < 3 {
+		(len(d) < 3 && bytes.ContainsAny(d, "<")) { //|| len(d) < 3 {
 		return r
 	}
 	for k, v := range d {
 		if len(d)-k <= 3 {
+			r.Unfinish = d[k:]
 			return r
 		}
 		switch v {
@@ -46,6 +47,11 @@ LOOP:
 			l := int(d[k+1])
 			if l < 4 {
 				d = d[2:]
+				goto LOOP
+			}
+			if len(d) < k+6 {
+				r.Unfinish = d
+				d = []byte{}
 				goto LOOP
 			}
 			// 远程升级协议

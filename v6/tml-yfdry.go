@@ -18,32 +18,17 @@ func (dp *DataProcessor) ProcessYfDry(d []byte) (r *Rtb) {
 		}
 	}()
 
-	if len(d) < 6 {
-		return r
-	}
-	// 判断是否心跳
-	if string(d[:6]) == "      " {
-		// f := &Fwd{
-		// 	Addr:     1,
-		// 	DataCmd:  "wlst.rtu.2000",
-		// 	DataPT:   3000,
-		// 	DataType: DataTypeBytes,
-		// 	DataDst:  fmt.Sprintf("wlst-rtu-%d", 1),
-		// 	DstType:  1,
-		// 	Tra:      TraDirect,
-		// 	Job:      JobSend,
-		// 	Src:      gopsu.Bytes2String(d, "-"),
-		// 	DataMsg:  Send2000,
-		// }
-		// r.Do = append(r.Do, f)
-		return r
-	}
-	// 判断是否门锁设备
-	// if d[0] == 0x7e {
-	// 	r.Do = append(r.Do, dp.dataHJLock(d, 1, 0)...)
+	// if len(d) < 6 {
 	// 	return r
 	// }
+	// 判断是否心跳
+	if len(d) >= 6 && string(d[:6]) == "      " {
+		return r
+	}
 	l := int(d[2]) + 5
+	if d[1] == 0x10 {
+		l = 8
+	}
 	if len(d) < l {
 		r.Unfinish = d
 		return r
@@ -63,7 +48,6 @@ func (dp *DataProcessor) dataYfDry(d []byte, tra byte, parentID int64) (lstf []*
 		Job:      JobSend,
 		Src:      gopsu.Bytes2String(d, "-"),
 	}
-
 	if !gopsu.CheckCrc16VB(d) {
 		f.Ex = fmt.Sprintf("locker data validation fails")
 		lstf = append(lstf, f)
