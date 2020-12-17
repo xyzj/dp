@@ -2674,7 +2674,9 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 					case "0a00": // 恢复出厂
 					case "0c00": // 设置开锁时间
 						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0C00.Delay), false)[:2])
-					case "0e01": // 设置报警参数
+					case "0e00": // 设置报警参数
+						// d.WriteByte(byte(pb2data.WlstTml.HjLock_0E00.FreqLights % 256))
+						// d.WriteByte(byte(pb2data.WlstTml.HjLock_0E00.FreqLights / 256))
 						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0E00.FreqLights), false)[:2])
 						d.Write(gopsu.Int642Bytes(int64(pb2data.WlstTml.HjLock_0E00.FreqBeep), false)[:2])
 					case "0f00": // 设置门磁报警

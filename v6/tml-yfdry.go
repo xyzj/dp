@@ -71,24 +71,43 @@ func (dp *DataProcessor) dataYfDry(d []byte, tra byte, parentID int64) (lstf []*
 	case 0x03: // 读取数据
 		svrmsg.YfDry_0300 = &msgctl.YfDry_0300{}
 		svrmsg.YfDry_0300.Addr = int32(d[0])
-		svrmsg.YfDry_0300.CtlStatus = int32(d[3])*256 + int32(d[4])
-		svrmsg.YfDry_0300.DewPoint = int32(d[5])*256 + int32(d[6])
-		svrmsg.YfDry_0300.Humidity = int32(d[7])*256 + int32(d[8])
-		svrmsg.YfDry_0300.Temperature = int32(d[9])*256 + int32(d[10])
-		svrmsg.YfDry_0300.HumidityUplimit = int32(d[11])*256 + int32(d[12])
-		svrmsg.YfDry_0300.HumidityLowlimit = int32(d[13])*256 + int32(d[14])
-		svrmsg.YfDry_0300.TemperatureUplimit = int32(d[15])*256 + int32(d[16])
-		svrmsg.YfDry_0300.TemperatureLowlimit = int32(d[17])*256 + int32(d[18])
+		if d[2] >= 2 {
+			svrmsg.YfDry_0300.CtlStatus = int32(d[3])*256 + int32(d[4])
+		}
+		if d[2] >= 4 {
+			svrmsg.YfDry_0300.DewPoint = int32(d[5])*256 + int32(d[6])
+		}
+		if d[2] >= 6 {
+			svrmsg.YfDry_0300.Humidity = int32(d[7])*256 + int32(d[8])
+		}
+		if d[2] >= 8 {
+			svrmsg.YfDry_0300.Temperature = int32(d[9])*256 + int32(d[10])
+		}
+		if d[2] >= 10 {
+			svrmsg.YfDry_0300.HumidityUplimit = int32(d[11])*256 + int32(d[12])
+		}
+		if d[2] >= 12 {
+			svrmsg.YfDry_0300.HumidityLowlimit = int32(d[13])*256 + int32(d[14])
+		}
+		if d[2] >= 14 {
+			svrmsg.YfDry_0300.TemperatureUplimit = int32(d[15])*256 + int32(d[16])
+		}
+		if d[2] >= 16 {
+			svrmsg.YfDry_0300.TemperatureLowlimit = int32(d[17])*256 + int32(d[18])
+		}
 	case 0x10: // 设置数据
-		switch d[2] {
-		case 2: // 控制
+		switch d[3] {
+		case 1: // 控制
+			svrmsg.Head.Cmd = "yf.dry.1001"
 			svrmsg.YfDry_1001 = &msgctl.YfDry_1001{}
 			svrmsg.YfDry_1001.Addr = int32(d[0])
-		case 8: // 设置参数
+		case 5: // 设置参数
+			svrmsg.Head.Cmd = "yf.dry.1005"
 			svrmsg.YfDry_1005 = &msgctl.YfDry_1005{}
 			svrmsg.YfDry_1005.Addr = int32(d[0])
 		}
 	}
+	f.DataCmd = svrmsg.Head.Cmd
 
 	if len(f.DataCmd) > 0 {
 		b, _ := svrmsg.Marshal()

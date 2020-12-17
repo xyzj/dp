@@ -318,6 +318,7 @@ var hjlockreply = []byte{
 	0x8c, // 设置开锁时间
 	0x8d, // 设置刷卡主报
 	0x8e, // 刷卡主报
+	0x8f, // 设置门磁报警应答
 	0x90, // 查锁号
 	0x91, // 查锁状态
 }
@@ -404,6 +405,8 @@ var (
 	SendIMEI = gopsu.String2Bytes("3e-3c-0f-00-30-30-30-30-30-30-30-30-30-30-30-01-20-04-02-a7-d8", "-")
 	// SendXHLocker 咸亨门锁查状态
 	SendXHLocker = gopsu.String2Bytes("7e-e0-00-00-00-00-11-00-2b-3d", "-")
+	// SendYfDry 远帆除湿
+	SendYfDry = gopsu.String2Bytes("01-03-00-01-00-01-d5-ca", "-")
 
 	// 国标
 
@@ -437,6 +440,7 @@ func init() {
 	DevMap.devList["imei"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendIMEI, DataPT: 2000}
 	DevMap.devList["sim"] = &Fwd{DataType: DataTypeBytes, DataMsg: Send3e3c01, DataPT: 2000}
 	DevMap.devList["locker"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendXHLocker, DataPT: 2000}
+	DevMap.devList["yfdry"] = &Fwd{DataType: DataTypeBytes, DataMsg: SendYfDry, DataPT: 2000}
 }
 
 // Fwd 数据解析结果需发送内容结构体

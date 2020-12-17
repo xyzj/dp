@@ -30,6 +30,7 @@ func (dp *DataProcessor) ProcessTml(d []byte) (r *Rtb) {
 		if ex := recover(); ex != nil {
 			r.Src = gopsu.Bytes2String(d, "-")
 			r.Ex = fmt.Sprintf("%+v", errors.WithStack(ex.(error)))
+			r.Unfinish = d
 		}
 	}()
 LOOP:
@@ -38,10 +39,15 @@ LOOP:
 		return r
 	}
 	for k, v := range d {
-		if len(d)-k <= 3 {
-			r.Unfinish = d[k:]
-			return r
+		if len(d) == 2 {
+			if d[0] == d[1] {
+				return r
+			}
 		}
+		// if len(d)-k <= 3 {
+		// 	r.Unfinish = d[k:]
+		// 	return r
+		// }
 		switch v {
 		case 0x7e: // 终端设备等
 			l := int(d[k+1])
