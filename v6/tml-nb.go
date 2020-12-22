@@ -533,6 +533,10 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 			switch mi.Model {
 			case 0:
 				mi.SluitemType = "NBV0.2"
+			case 1:
+				mi.SluitemType = "NBV0.3"
+			case 2:
+				mi.SluitemType = "NBV0.4"
 			case 9:
 				mi.SluitemType = "NBV0.1"
 			default:

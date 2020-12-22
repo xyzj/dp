@@ -6173,6 +6173,7 @@ func dataCom(d []byte, ip *int64, portlocal, portremote *int) (lstf []*Fwd) {
 				x += 2
 				ss := ""
 				if m[15] == 49 { // iccid
+					svrmsg.WlstCom_3E81.Status.Iccid = string(d[j : j+20])
 					j += 20
 				}
 				if m[14] == 49 { // imsi
