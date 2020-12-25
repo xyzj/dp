@@ -859,7 +859,9 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 				svrmsg.SluitemConfig.SluitemPara.SluitemReverseDimming = append(svrmsg.SluitemConfig.SluitemPara.SluitemReverseDimming, int32(m[i]-48))
 			}
 			j++
-			j += 3
+			// 历史数据保存间隔
+			svrmsg.NbSlu_5200.RecordTimer = int32(dd[j])
+			j += 2
 		case 0xd4: // 即时控制应答
 			svrmsg.DataType = 6
 			f.DataCmd = "wlst.vslu.5400"
@@ -1011,6 +1013,64 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 			j++
 			svrmsg.NbSlu_3100.MaxDeviceCount = int32(dd[j]) + int32(dd[j+1])*256
 			j += 2
+		case 0xd8: // 设置漏电参数应答
+			svrmsg.DataType = 12
+			f.DataCmd = "wlst.vslu.5800"
+			svrmsg.NbSlu_5800 = &msgnb.NBSlu_5800{}
+			// 序号
+			j := 5
+			svrmsg.NbSlu_5800.CmdIdx = int32(dd[j])
+			j++
+			svrmsg.NbSlu_5800.Status = int32(dd[j])
+		case 0xd9: // 查询漏电参数
+			svrmsg.DataType = 12
+			f.DataCmd = "wlst.vslu.5900"
+			svrmsg.NbSlu_5800 = &msgnb.NBSlu_5800{}
+			// 序号
+			j := 5
+			svrmsg.NbSlu_5800.CmdIdx = int32(dd[j])
+			j++
+			svrmsg.NbSlu_5800.AlarmDelay = int32(dd[j]) + int32(dd[j+1])*256
+			j += 2
+			svrmsg.NbSlu_5800.AlarmLimit = int32(dd[j]) + int32(dd[j+1])*256
+			j += 2
+			svrmsg.NbSlu_5800.OptDelay = int32(dd[j]) + int32(dd[j+1])*256
+			j += 2
+			svrmsg.NbSlu_5800.OptLimit = int32(dd[j]) + int32(dd[j+1])*256
+			j += 2
+		case 0xe2: // 设置事件参数
+			svrmsg.DataType = 12
+			f.DataCmd = "wlst.vslu.6200"
+			svrmsg.NbSlu_6200 = &msgnb.NBSlu_6200{}
+			// 序号
+			j := 5
+			svrmsg.NbSlu_6200.CmdIdx = int32(dd[j])
+			j++
+			svrmsg.NbSlu_6200.Status = int32(dd[j])
+		case 0xe3: // 查询事件参数
+			svrmsg.DataType = 12
+			f.DataCmd = "wlst.vslu.6300"
+			svrmsg.NbSlu_6200 = &msgnb.NBSlu_6200{}
+			// 序号
+			j := 5
+			svrmsg.NbSlu_6200.CmdIdx = int32(dd[j])
+			j++
+			ea:=gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b",int32(dd[j+3]),int32(dd[j+2]),int32(dd[j+1]),int32(dd[j])))
+			for k, v := range ea {
+				if v == 48 {
+					break
+				}
+				svrmsg.NbSlu_6200.EventsAvailable = append(svrmsg.NbSlu_6200.EventsAvailable, int32(k))
+			}
+			j += 4
+			er:=gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b",int32(dd[j+3]),int32(dd[j+2]),int32(dd[j+1]),int32(dd[j])))
+			for k, v := range er {
+				if v == 48 {
+					break
+				}
+				svrmsg.NbSlu_6200.EventsReport = append(svrmsg.NbSlu_6200.EventsReport, int32(k))
+			}
+			j += 4			
 		default:
 			f.Ex = "Unhandled nbslu data"
 			lstf = append(lstf, f)
