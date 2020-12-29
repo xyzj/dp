@@ -5637,9 +5637,11 @@ func (dp *DataProcessor) dataCom(d []byte) (lstf []*Fwd) {
 				x += 2
 				ss := ""
 				if m[15] == 49 { // iccid
+					svrmsg.WlstCom_3E81.Status.Iccid = string(d[j : j+20])
 					j += 20
 				}
 				if m[14] == 49 { // imsi
+					svrmsg.WlstCom_3E81.Status.Imsi = string(d[j : j+15])
 					j += 15
 				}
 				if m[13] == 49 { // imei（gsm）

@@ -12,6 +12,41 @@ import (
 	msgnb "github.com/xyzj/proto/msgnb"
 )
 
+var (
+	mapEvent01Type = map[byte]string{
+		1: "遥控",
+		2: "时控",
+		4: "经纬度控制",
+		8: "光控",
+	}
+	mapEvent01Opt = map[byte]string{
+		0: "开",
+		1: "关",
+		2: "调光",
+	}
+	mapEventAlarm = map[byte]string{
+		0: "消警",
+		1: "报警",
+	}
+	mapEvent07Type = map[byte]string{
+		0:    "漏电报警消除",
+		1:    "漏电报警",
+		0x80: "分匝报警消除",
+		0x81: "分匝报警",
+	}
+	mapEventResult = map[byte]string{
+		0: "失败",
+		1: "成功",
+	}
+	mapEventError = map[byte]string{
+		2: "意外灭灯",
+		3: "意外亮灯",
+		4: "自熄灯(频闪)",
+		5: "光源故障",
+		6: "补偿电容故障",
+	}
+)
+
 // ClassifyTmlDataNB NB数据解析
 // Args:
 // 	rawdata: base64原始数据
@@ -1048,14 +1083,14 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 			j++
 			svrmsg.NbSlu_6200.Status = int32(dd[j])
 		case 0xe3: // 查询事件参数
-			svrmsg.DataType = 12
+			svrmsg.DataType = 13
 			f.DataCmd = "wlst.vslu.6300"
 			svrmsg.NbSlu_6200 = &msgnb.NBSlu_6200{}
 			// 序号
 			j := 5
 			svrmsg.NbSlu_6200.CmdIdx = int32(dd[j])
 			j++
-			ea:=gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b",int32(dd[j+3]),int32(dd[j+2]),int32(dd[j+1]),int32(dd[j])))
+			ea := gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", int32(dd[j+3]), int32(dd[j+2]), int32(dd[j+1]), int32(dd[j])))
 			for k, v := range ea {
 				if v == 48 {
 					break
@@ -1063,14 +1098,70 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 				svrmsg.NbSlu_6200.EventsAvailable = append(svrmsg.NbSlu_6200.EventsAvailable, int32(k))
 			}
 			j += 4
-			er:=gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b",int32(dd[j+3]),int32(dd[j+2]),int32(dd[j+1]),int32(dd[j])))
+			er := gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", int32(dd[j+3]), int32(dd[j+2]), int32(dd[j+1]), int32(dd[j])))
 			for k, v := range er {
 				if v == 48 {
 					break
 				}
 				svrmsg.NbSlu_6200.EventsReport = append(svrmsg.NbSlu_6200.EventsReport, int32(k))
 			}
-			j += 4			
+			j += 4
+		case 0xe1: // 读取历史数据
+			svrmsg.DataType = 14
+			f.DataCmd = "wlst.vslu.6100"
+		case 0xe4: // 读取事件记录
+			svrmsg.DataType = 15
+			f.DataCmd = "wlst.vslu.6400"
+			svrmsg.NbSlu_6400 = &msgnb.NBSlu_6400{}
+			// 序号
+			j := 5
+			svrmsg.NbSlu_6400.CmdIdx = int32(dd[j])
+			j++
+			svrmsg.NbSlu_6400.EventsCount = int32(dd[j])
+			j++
+			for i := int32(0); i < svrmsg.NbSlu_6400.EventsCount; i++ {
+				msgevent := &msgnb.NBSlu_6400_Event_Data{
+					EventId:   int32(dd[j]),
+					EventTime: gopsu.Time2Stamp(fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", int(dd[j+2])+2000, dd[j+3], dd[j+4], dd[j+5], dd[j+6], dd[j+7])),
+				}
+				l := int(dd[j+1])
+				j += 8
+				switch msgevent.EventId {
+				case 1: // 开关/调光
+					msgevent.EventMsg = fmt.Sprintf("灯%d %s%s%d%%,频率%d,电压%.02f,电流%.02f,有功功率%.02f,无功功率%.02f,功率因数%.02f,光照度%.02f",
+						dd[j+1],
+						mapEvent01Type[dd[j]],
+						mapEvent01Opt[dd[j+2]],
+						dd[j+3],
+						dd[j+4],
+						float32(int(dd[j+5])+int(dd[j+6])*256)/100.0,
+						float32(int(dd[j+7])+int(dd[j+8])*256)/100.0,
+						float32(int(dd[j+9])+int(dd[j+10])*256)/10.0,
+						float32(int(dd[j+11])+int(dd[j+12])*256)/10.0,
+						float32(dd[j+13])/100.0,
+						float32(int(dd[j+14])+int(dd[j+15])*256),
+					)
+				case 2, 3, 4, 5, 6: // 灯具报警
+					msgevent.EventMsg = fmt.Sprintf("灯%d %s时%s%s,电压%.02f,电流%.02f,有功功率%.02f,无功功率%.02f,功率因数%.02f",
+						dd[j+1],
+						mapEvent01Opt[dd[j+11]],
+						mapEventError[byte(msgevent.EventId)],
+						mapEventAlarm[dd[j]],
+						float32(int(dd[j+2])+int(dd[j+3])*256)/100.0,
+						float32(int(dd[j+4])+int(dd[j+5])*256)/100.0,
+						float32(int(dd[j+6])+int(dd[j+7])*256)/10.0,
+						float32(int(dd[j+8])+int(dd[j+9])*256)/10.0,
+						float32(dd[j+10])/100.0,
+					)
+				case 7: // 漏电
+					msgevent.EventMsg = fmt.Sprintf("%s,漏电流值%.02f", mapEvent07Type[dd[j]], float32(dd[j+1]))
+				case 8: // 对时
+					msgevent.EventMsg = fmt.Sprintf("对时%s,%s", mapEventResult[dd[j]], fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", int(dd[j+7])+2000, dd[j+8], dd[j+9], dd[j+10], dd[j+11], dd[j+12]))
+				case 9: // 远程升级
+					msgevent.EventMsg = fmt.Sprintf("远程升级%s,升级前版本%s,升级后版本%s", mapEventResult[dd[j]], string(dd[j+1:j+32]), string(dd[j+32:j+64]))
+				}
+				j += l - 6
+			}
 		default:
 			f.Ex = "Unhandled nbslu data"
 			lstf = append(lstf, f)
