@@ -1073,6 +1073,11 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 			j += 2
 			svrmsg.NbSlu_5800.OptLimit = int32(dd[j]) + int32(dd[j+1])*256
 			j += 2
+			svrmsg.NbSlu_5800.CcAlarm = int32(dd[j])
+			j += 1			
+			svrmsg.NbSlu_5800.CcNormal = int32(dd[j])
+			j+=1
+			j+=30
 		case 0xe2: // 设置事件参数
 			svrmsg.DataType = 12
 			f.DataCmd = "wlst.vslu.6200"
