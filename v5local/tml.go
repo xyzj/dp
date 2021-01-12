@@ -237,7 +237,11 @@ LOOP:
 				if p < 11 {
 					d = d[k+p+3:]
 				} else {
-					d = d[k+p+5:]
+					if len(d[k:]) > k+p+5 {
+						d = d[k+p+7:]
+					} else {
+						d = d[k+p+7:]
+					}
 				}
 			}
 			goto LOOP
