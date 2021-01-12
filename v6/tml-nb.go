@@ -1073,6 +1073,11 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 			j += 2
 			svrmsg.NbSlu_5800.OptLimit = int32(dd[j]) + int32(dd[j+1])*256
 			j += 2
+			svrmsg.NbSlu_5800.CcAlarm = int32(dd[j])
+			j += 1			
+			svrmsg.NbSlu_5800.CcNormal = int32(dd[j])
+			j+=1
+			j+=30
 		case 0xe2: // 设置事件参数
 			svrmsg.DataType = 12
 			f.DataCmd = "wlst.vslu.6200"
@@ -1109,6 +1114,68 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 		case 0xe1: // 读取历史数据
 			svrmsg.DataType = 14
 			f.DataCmd = "wlst.vslu.6100"
+			// 序号
+			j := 5
+			svrmsg.NbSlu_6200.CmdIdx = int32(dd[j])
+			j++
+			// 本次历史数据组数
+			s := fmt.Sprintf("%08b", dd[j])
+			// if s[0] == 49 {
+			// 	svrmsg.NbSlu_6100.DataContinue = 1
+			// }
+			rundatacount := int32(gopsu.String2Int32(s[2:], 2))
+			j++
+			// 历史数据
+			for i := int32(0); i < rundatacount; i++ {
+				dr := &msgnb.NBSlu_6100_Data_Record{}
+				// 记录时间
+				dr.DtRecord = gopsu.Time2Stamp(fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", int32(dd[j])+2000, dd[j+1], dd[j+2], dd[j+3], dd[j+4], dd[j+5]))
+				j+=6
+				// 电压
+				dr.Voltage = append(dr.Voltage,(float64(d[j]) + float64(d[j+1])*256) / 100,(float64(d[j+2]) + float64(d[j+3])*256) / 100)
+				j+=4
+				// 电流
+				dr.Current = append(dr.Current,(float64(d[j]) + float64(d[j+1])*256) / 100,(float64(d[j+2]) + float64(d[j+3])*256) / 100)
+				j+=4
+				// 有功功率
+				dr.ActivePower = append(dr.ActivePower,(float64(d[j]) + float64(d[j+1])*256) / 100,(float64(d[j+2]) + float64(d[j+3])*256) / 100)
+				j+=4
+				// 功率因数
+				dr.PowerFactor = append(dr.PowerFactor,(float64(d[j]) + float64(d[j+1])*256) / 100,(float64(d[j+2]) + float64(d[j+3])*256) / 100)
+				j+=4
+				// 漏电流
+				dr.LeakageCurrent = float64(d[j]) / 100
+				j++
+				// 光照度（未定）
+				dr.Lux = (float64(d[j]) + float64(d[j+1])*256) / 100
+				j+=2
+				// 调试信息
+				dr.Csq = int32(d[j])
+				j++
+				m := fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				dr.Snr = gopsu.String2Int64(m, 2)
+				j += 4
+				m = fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				if gopsu.String2Int64(m[:1], 2) == 0 {
+					dr.Rsrp = gopsu.String2Int64(m[1:], 2)
+				} else {
+					dr.Rsrp = 0 - gopsu.String2Int64(m[1:], 2)
+				}
+				j += 4
+				m = fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				dr.Cellid = gopsu.String2Int64(m, 2)
+				j += 4
+				m = fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				dr.Pci = gopsu.String2Int64(m, 2)
+				j += 4
+				m = fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				dr.Earfcn = gopsu.String2Int64(m, 2)
+				j += 4
+				dr.StatusCommunication = int32(d[j])
+				j++
+				// 保留
+				j+=19
+			}	
 		case 0xe4: // 读取事件记录
 			svrmsg.DataType = 15
 			f.DataCmd = "wlst.vslu.6400"
