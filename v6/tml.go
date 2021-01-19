@@ -30,7 +30,7 @@ func (dp *DataProcessor) ProcessTml(d []byte) (r *Rtb) {
 		if ex := recover(); ex != nil {
 			r.Src = gopsu.Bytes2String(d, "-")
 			r.Ex = fmt.Sprintf("%+v", errors.WithStack(ex.(error)))
-			r.Unfinish = d
+			// r.Unfinish = d
 		}
 	}()
 LOOP:
@@ -92,7 +92,6 @@ LOOP:
 					d = []byte{}
 					goto LOOP
 				}
-				// data := d[k : k+ll+6]
 				r.Do = append(r.Do, dp.dataRtu70(d[k:k+ll+6])...)
 				d = d[k+ll+6:]
 				goto LOOP
@@ -111,7 +110,6 @@ LOOP:
 					d = []byte{}
 					goto LOOP
 				}
-				// data := d[k : k+ll+6]
 				r.Do = append(r.Do, dp.dataGps(d[k:k+ll+6])...)
 				d = d[k+ll+6:]
 				goto LOOP
@@ -132,7 +130,6 @@ LOOP:
 					d = []byte{}
 					goto LOOP
 				}
-				// data := d[k : k+ll+6]
 				r.Do = append(r.Do, dp.dataSlu(d[k:k+ll+6], 1, 0)...)
 				d = d[k+ll+6:]
 				goto LOOP
@@ -146,7 +143,6 @@ LOOP:
 					d = []byte{}
 					goto LOOP
 				}
-				// data := d[k : k+ll+3]
 				r.Do = append(r.Do, dp.dataAls(d[k:k+ll+3], 1, 0)...)
 				d = d[k+ll+3:]
 				goto LOOP
@@ -207,11 +203,9 @@ LOOP:
 				} else {
 					r.Do = append(r.Do, dp.dataRtu(d[k:k+l+4], true)...)
 				}
-				// data := d[k : k+l+4]
 				d = d[k+l+4:]
 				goto LOOP
 			} else {
-				// data := d[k : k+l+2]
 				r.Do = append(r.Do, dp.dataRtu(d[k:k+l+2], false)...)
 				d = d[k+l+2:]
 				goto LOOP
@@ -227,7 +221,7 @@ LOOP:
 					if len(d[k:]) > k+p+5 {
 						d = d[k+p+7:]
 					} else {
-						d = d[k+p+7:]
+						d = d[k+p+5:]
 					}
 				}
 			}
