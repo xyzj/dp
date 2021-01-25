@@ -1098,25 +1098,26 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 			ea := gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", int32(dd[j+3]), int32(dd[j+2]), int32(dd[j+1]), int32(dd[j])))
 			for k, v := range ea {
 				if v == 48 {
-					break
+					continue
 				}
-				svrmsg.NbSlu_6200.EventsAvailable = append(svrmsg.NbSlu_6200.EventsAvailable, int32(k))
+				svrmsg.NbSlu_6200.EventsAvailable = append(svrmsg.NbSlu_6200.EventsAvailable, int32(k)+1)
 			}
 			j += 4
 			er := gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", int32(dd[j+3]), int32(dd[j+2]), int32(dd[j+1]), int32(dd[j])))
 			for k, v := range er {
 				if v == 48 {
-					break
+					continue
 				}
-				svrmsg.NbSlu_6200.EventsReport = append(svrmsg.NbSlu_6200.EventsReport, int32(k))
+				svrmsg.NbSlu_6200.EventsReport = append(svrmsg.NbSlu_6200.EventsReport, int32(k)+1)
 			}
 			j += 4
 		case 0xe1: // 读取历史数据
 			svrmsg.DataType = 14
 			f.DataCmd = "wlst.vslu.6100"
+			svrmsg.NbSlu_6100 = &msgnb.NBSlu_6100{}
 			// 序号
 			j := 5
-			svrmsg.NbSlu_6200.CmdIdx = int32(dd[j])
+			svrmsg.NbSlu_6100.CmdIdx = int32(dd[j])
 			j++
 			// 本次历史数据组数
 			s := fmt.Sprintf("%08b", dd[j])
@@ -1132,49 +1133,52 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 				dr.DtRecord = gopsu.Time2Stamp(fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", int32(dd[j])+2000, dd[j+1], dd[j+2], dd[j+3], dd[j+4], dd[j+5]))
 				j+=6
 				// 电压
-				dr.Voltage = append(dr.Voltage,(float64(d[j]) + float64(d[j+1])*256) / 100,(float64(d[j+2]) + float64(d[j+3])*256) / 100)
+				dr.Voltage = append(dr.Voltage,(float64(dd[j]) + float64(dd[j+1])*256) / 100,(float64(dd[j+2]) + float64(dd[j+3])*256) / 100)
+
 				j+=4
 				// 电流
-				dr.Current = append(dr.Current,(float64(d[j]) + float64(d[j+1])*256) / 100,(float64(d[j+2]) + float64(d[j+3])*256) / 100)
+				dr.Current = append(dr.Current,(float64(dd[j]) + float64(dd[j+1])*256) / 100,(float64(dd[j+2]) + float64(dd[j+3])*256) / 100)
 				j+=4
 				// 有功功率
-				dr.ActivePower = append(dr.ActivePower,(float64(d[j]) + float64(d[j+1])*256) / 100,(float64(d[j+2]) + float64(d[j+3])*256) / 100)
+				dr.ActivePower = append(dr.ActivePower,(float64(dd[j]) + float64(dd[j+1])*256) / 100,(float64(dd[j+2]) + float64(dd[j+3])*256) / 100)
 				j+=4
 				// 功率因数
-				dr.PowerFactor = append(dr.PowerFactor,(float64(d[j]) + float64(d[j+1])*256) / 100,(float64(d[j+2]) + float64(d[j+3])*256) / 100)
-				j+=4
+				dr.PowerFactor = append(dr.PowerFactor,float64(dd[j]) / 100,float64(dd[j+2]) / 100)
+				j+=2
 				// 漏电流
-				dr.LeakageCurrent = float64(d[j]) / 100
+				dr.LeakageCurrent = float64(dd[j]) / 100
 				j++
 				// 光照度（未定）
-				dr.Lux = (float64(d[j]) + float64(d[j+1])*256) / 100
+				dr.Lux = (float64(dd[j]) + float64(dd[j+1])*256) / 100
 				j+=2
 				// 调试信息
-				dr.Csq = int32(d[j])
+				dr.Csq = int32(dd[j])
 				j++
-				m := fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				m := fmt.Sprintf("%08b%08b%08b%08b", dd[j+3], dd[j+2], dd[j+1], dd[j])
 				dr.Snr = gopsu.String2Int64(m, 2)
 				j += 4
-				m = fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				m = fmt.Sprintf("%08b%08b%08b%08b", dd[j+3], dd[j+2], dd[j+1], dd[j])
 				if gopsu.String2Int64(m[:1], 2) == 0 {
 					dr.Rsrp = gopsu.String2Int64(m[1:], 2)
 				} else {
 					dr.Rsrp = 0 - gopsu.String2Int64(m[1:], 2)
 				}
 				j += 4
-				m = fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				m = fmt.Sprintf("%08b%08b%08b%08b", dd[j+3], dd[j+2], dd[j+1], dd[j])
 				dr.Cellid = gopsu.String2Int64(m, 2)
 				j += 4
-				m = fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				m = fmt.Sprintf("%08b%08b%08b%08b", dd[j+3], dd[j+2], dd[j+1], dd[j])
 				dr.Pci = gopsu.String2Int64(m, 2)
 				j += 4
-				m = fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])
+				m = fmt.Sprintf("%08b%08b%08b%08b", dd[j+3], dd[j+2], dd[j+1], dd[j])
 				dr.Earfcn = gopsu.String2Int64(m, 2)
 				j += 4
-				dr.StatusCommunication = int32(d[j])
+				dr.StatusCommunication = int32(dd[j])
 				j++
 				// 保留
 				j+=19
+				
+				svrmsg.NbSlu_6100.DataRecord = append(svrmsg.NbSlu_6100.DataRecord,dr)
 			}	
 		case 0xe4: // 读取事件记录
 			svrmsg.DataType = 15
@@ -1196,7 +1200,7 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 				switch msgevent.EventId {
 				case 1: // 开关/调光
 					msgevent.EventMsg = fmt.Sprintf("灯%d %s%s%d%%,频率%d,电压%.02f,电流%.02f,有功功率%.02f,无功功率%.02f,功率因数%.02f,光照度%.02f",
-						dd[j+1],
+						dd[j+1]+1,
 						mapEvent01Type[dd[j]],
 						mapEvent01Opt[dd[j+2]],
 						dd[j+3],
@@ -1210,7 +1214,7 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 					)
 				case 2, 3, 4, 5, 6: // 灯具报警
 					msgevent.EventMsg = fmt.Sprintf("灯%d %s时%s%s,电压%.02f,电流%.02f,有功功率%.02f,无功功率%.02f,功率因数%.02f",
-						dd[j+1],
+						dd[j+1]+1,
 						mapEvent01Opt[dd[j+11]],
 						mapEventError[byte(msgevent.EventId)],
 						mapEventAlarm[dd[j]],
@@ -1228,6 +1232,8 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 					msgevent.EventMsg = fmt.Sprintf("远程升级%s,升级前版本%s,升级后版本%s", mapEventResult[dd[j]], string(dd[j+1:j+32]), string(dd[j+32:j+64]))
 				}
 				j += l - 6
+
+				svrmsg.NbSlu_6400.EventData = append(svrmsg.NbSlu_6400.EventData,msgevent)
 			}
 		default:
 			f.Ex = "Unhandled nbslu data"
