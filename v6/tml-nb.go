@@ -1074,10 +1074,10 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 			svrmsg.NbSlu_5800.OptLimit = int32(dd[j]) + int32(dd[j+1])*256
 			j += 2
 			svrmsg.NbSlu_5800.CcAlarm = int32(dd[j])
-			j += 1			
+			j++
 			svrmsg.NbSlu_5800.CcNormal = int32(dd[j])
-			j+=1
-			j+=30
+			j++
+			j += 30
 		case 0xe2: // 设置事件参数
 			svrmsg.DataType = 12
 			f.DataCmd = "wlst.vslu.6200"
@@ -1131,26 +1131,26 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 				dr := &msgnb.NBSlu_6100_Data_Record{}
 				// 记录时间
 				dr.DtRecord = gopsu.Time2Stamp(fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", int32(dd[j])+2000, dd[j+1], dd[j+2], dd[j+3], dd[j+4], dd[j+5]))
-				j+=6
+				j += 6
 				// 电压
-				dr.Voltage = append(dr.Voltage,(float64(dd[j]) + float64(dd[j+1])*256) / 100,(float64(dd[j+2]) + float64(dd[j+3])*256) / 100)
+				dr.Voltage = append(dr.Voltage, (float64(dd[j])+float64(dd[j+1])*256)/100, (float64(dd[j+2])+float64(dd[j+3])*256)/100)
 
-				j+=4
+				j += 4
 				// 电流
-				dr.Current = append(dr.Current,(float64(dd[j]) + float64(dd[j+1])*256) / 100,(float64(dd[j+2]) + float64(dd[j+3])*256) / 100)
-				j+=4
+				dr.Current = append(dr.Current, (float64(dd[j])+float64(dd[j+1])*256)/100, (float64(dd[j+2])+float64(dd[j+3])*256)/100)
+				j += 4
 				// 有功功率
-				dr.ActivePower = append(dr.ActivePower,(float64(dd[j]) + float64(dd[j+1])*256) / 100,(float64(dd[j+2]) + float64(dd[j+3])*256) / 100)
-				j+=4
+				dr.ActivePower = append(dr.ActivePower, (float64(dd[j])+float64(dd[j+1])*256)/100, (float64(dd[j+2])+float64(dd[j+3])*256)/100)
+				j += 4
 				// 功率因数
-				dr.PowerFactor = append(dr.PowerFactor,float64(dd[j]) / 100,float64(dd[j+2]) / 100)
-				j+=2
+				dr.PowerFactor = append(dr.PowerFactor, float64(dd[j])/100, float64(dd[j+2])/100)
+				j += 2
 				// 漏电流
 				dr.LeakageCurrent = float64(dd[j]) / 100
 				j++
 				// 光照度（未定）
 				dr.Lux = (float64(dd[j]) + float64(dd[j+1])*256) / 100
-				j+=2
+				j += 2
 				// 调试信息
 				dr.Csq = int32(dd[j])
 				j++
@@ -1176,10 +1176,10 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 				dr.StatusCommunication = int32(dd[j])
 				j++
 				// 保留
-				j+=19
-				
-				svrmsg.NbSlu_6100.DataRecord = append(svrmsg.NbSlu_6100.DataRecord,dr)
-			}	
+				j += 19
+
+				svrmsg.NbSlu_6100.DataRecord = append(svrmsg.NbSlu_6100.DataRecord, dr)
+			}
 		case 0xe4: // 读取事件记录
 			svrmsg.DataType = 15
 			f.DataCmd = "wlst.vslu.6400"
@@ -1225,7 +1225,7 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 						float32(dd[j+10])/100.0,
 					)
 				case 7: // 漏电
-					msgevent.EventMsg = fmt.Sprintf("%s,漏电流值%.02f", mapEvent07Type[dd[j]], float32(dd[j+1]))
+					msgevent.EventMsg = fmt.Sprintf("%s,漏电流值%.02f", mapEvent07Type[dd[j]], (float32(dd[j+1])+float32(dd[j+2])*256)/100.0)
 				case 8: // 对时
 					msgevent.EventMsg = fmt.Sprintf("对时%s,%s", mapEventResult[dd[j]], fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d", int(dd[j+7])+2000, dd[j+8], dd[j+9], dd[j+10], dd[j+11], dd[j+12]))
 				case 9: // 远程升级
@@ -1233,7 +1233,7 @@ func dataNB(d []byte, imei, at int64, deviceID string, dataflag int32) (lstf []*
 				}
 				j += l - 6
 
-				svrmsg.NbSlu_6400.EventData = append(svrmsg.NbSlu_6400.EventData,msgevent)
+				svrmsg.NbSlu_6400.EventData = append(svrmsg.NbSlu_6400.EventData, msgevent)
 			}
 		default:
 			f.Ex = "Unhandled nbslu data"

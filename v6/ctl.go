@@ -2381,21 +2381,46 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 								loopmark[7-k] = fmt.Sprintf("%d", v.LoopMark)
 								if v.AlarmValueSet > 0 && v.OptValueSet > 0 {
 									xdata = append(xdata, 3)
+									xdata = append(xdata, byte(v.AlarmValueSet%256))
+									xdata = append(xdata, byte(v.AlarmValueSet/256))
+									xdata = append(xdata, byte(v.OptValueSet%256))
+									xdata = append(xdata, byte(v.OptValueSet/256))
 								} else if v.AlarmValueSet > 0 {
 									xdata = append(xdata, 1)
+									xdata = append(xdata, byte(v.AlarmValueSet%256))
+									xdata = append(xdata, byte(v.AlarmValueSet/256))
+									xdata = append(xdata, byte(1000%256))
+									xdata = append(xdata, byte(1000/256))
 								} else if v.OptValueSet > 0 {
 									xdata = append(xdata, 2)
+									xdata = append(xdata, byte(500%256))
+									xdata = append(xdata, byte(500/256))
+									xdata = append(xdata, byte(v.OptValueSet%256))
+									xdata = append(xdata, byte(v.OptValueSet/256))
 								} else {
 									xdata = append(xdata, 0)
+									xdata = append(xdata, byte(500%256))
+									xdata = append(xdata, byte(500/256))
+									xdata = append(xdata, byte(1000%256))
+									xdata = append(xdata, byte(1000/256))
 								}
-								xdata = append(xdata, byte(v.AlarmValueSet%256))
-								xdata = append(xdata, byte(v.AlarmValueSet/256))
-								xdata = append(xdata, byte(v.OptValueSet%256))
-								xdata = append(xdata, byte(v.OptValueSet/256))
+								// xdata = append(xdata, byte(v.AlarmValueSet%256))
+								// xdata = append(xdata, byte(v.AlarmValueSet/256))
+								// xdata = append(xdata, byte(v.OptValueSet%256))
+								// xdata = append(xdata, byte(v.OptValueSet/256))
+								if v.OptDelay == 0 {
+									v.OptDelay = 10
+								}
 								xdata = append(xdata, byte((v.OptDelay/10)%256))
 								xdata = append(xdata, byte((v.OptDelay/10)/256))
 								xdata = append(xdata, byte(v.OptRecover))
+								if v.OptRecoverCount == 0 {
+									v.OptRecoverCount = 1
+								}
 								xdata = append(xdata, byte(v.OptRecoverCount))
+								if v.OptRecoverTime == 0 {
+									v.OptRecoverTime = 1
+								}
 								xdata = append(xdata, byte(v.OptRecoverTime))
 							}
 							d.WriteByte(gopsu.String2Int8(strings.Join(loopmark, ""), 2))
@@ -3097,14 +3122,13 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 				case 52: // 设置漏电保护参数
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
-					d.WriteByte(byte(pb2data.Afn04P0F52.LoopNo))
-					d.WriteByte(byte(pb2data.Afn04P0F52.LoopEnable))
-					d.WriteByte(byte(pb2data.Afn04P0F52.LoopSwitchout))
-					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level1Limit)/1000, "%07.03f"))
-					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level2Limit)/1000, "%07.03f"))
-					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level3Limit)/1000, "%07.03f"))
-					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level4Limit)/1000, "%07.03f"))
-
+					// d.WriteByte(byte(pb2data.Afn04P0F52.LoopNo))
+					// d.WriteByte(byte(pb2data.Afn04P0F52.LoopEnable))
+					// d.WriteByte(byte(pb2data.Afn04P0F52.LoopSwitchout))
+					// d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level1Limit)/1000, "%07.03f"))
+					// d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level2Limit)/1000, "%07.03f"))
+					// d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level3Limit)/1000, "%07.03f"))
+					// d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level4Limit)/1000, "%07.03f"))
 				case 53: // 设置光照度限值参数
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))

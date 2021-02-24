@@ -817,20 +817,20 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 				case 51: // 设置模拟量上下限(有疑问)
 				case 52: // 设置漏电保护参数
 					svrmsg.Afn0AP0F52 = &msgopen.Afn04_P0_F52{}
-					svrmsg.Afn0AP0F52.LoopNo = int32(d[j])
-					j++
-					svrmsg.Afn0AP0F52.LoopEnable = int32(d[j])
-					j++
-					svrmsg.Afn0AP0F52.LoopSwitchout = int32(d[j])
-					j++
-					svrmsg.Afn0AP0F52.Level1Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
-					j += 3
-					svrmsg.Afn0AP0F52.Level2Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
-					j += 3
-					svrmsg.Afn0AP0F52.Level3Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
-					j += 3
-					svrmsg.Afn0AP0F52.Level4Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
-					j += 3
+					// svrmsg.Afn0AP0F52.LoopNo = int32(d[j])
+					// j++
+					// svrmsg.Afn0AP0F52.LoopEnable = int32(d[j])
+					// j++
+					// svrmsg.Afn0AP0F52.LoopSwitchout = int32(d[j])
+					// j++
+					// svrmsg.Afn0AP0F52.Level1Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
+					// j += 3
+					// svrmsg.Afn0AP0F52.Level2Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
+					// j += 3
+					// svrmsg.Afn0AP0F52.Level3Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
+					// j += 3
+					// svrmsg.Afn0AP0F52.Level4Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
+					// j += 3
 				case 53: // 设置光照度限值 参数
 					svrmsg.Afn0AP0F53 = &msgopen.Afn04_P0_F53{}
 					svrmsg.Afn0AP0F53.LuxThreshold = int32(d[j]) + int32(d[j])*256
@@ -1337,7 +1337,7 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 			switch uid.Pn {
 			case 0:
 				switch uid.Fn {
-				case 1: // 透明转发(有疑问)
+				case 2: // 透明转发(有疑问)
 				case 10: // 终端FTP升级结果
 					svrmsg.Afn10P0F10 = &msgopen.Afn10_P0_F10{}
 					svrmsg.Afn10P0F10.SoftwareVerOld = gopsu.TrimString(string(d[j : j+4]))
