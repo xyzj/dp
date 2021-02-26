@@ -815,22 +815,54 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					svrmsg.Afn0AP0F50.ReportTimer = int32(d[j])
 					j++
 				case 51: // 设置模拟量上下限(有疑问)
+					svrmsg.Afn0AP0F51 = &msgopen.Afn04_P0_F51{}
+					svrmsg.Afn0AP0F51.VoltageLowerLimit = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
+					j+=2
+					svrmsg.Afn0AP0F51.VoltageUpperLimit = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
+					j+=2
+					n := int(d[j])
+					j++
+					for i := 0; i < n; i++{
+						m := int(d[j])
+						j++
+						cs := &msgopen.Afn04_P0_F51_Current_Setting{}
+						for ii := 0;ii < m; ii++{
+							ls := &msgopen.Afn04_P0_F51_Loop_Setting{}
+							ls.TimeStart = gopsu.Bcd2STime(d[j:j+2])
+							j+=2
+							ls.TimeEnd = gopsu.Bcd2STime(d[j:j+2])
+							j+=2
+							ls.CurrentLowerLimit = gopsu.BcdBytes2Float64(d[j:j+3], 3, false)
+							j+=2
+							ls.CurrentUpperLimit = gopsu.BcdBytes2Float64(d[j:j+3], 3, false)
+							j+=2
+							cs.LoopSetting = append(cs.LoopSetting,ls)						
+						}			
+						svrmsg.Afn0AP0F51.CurrentSetting = append(svrmsg.Afn0AP0F51.CurrentSetting,cs)			
+					}
 				case 52: // 设置漏电保护参数
 					svrmsg.Afn0AP0F52 = &msgopen.Afn04_P0_F52{}
-					// svrmsg.Afn0AP0F52.LoopNo = int32(d[j])
-					// j++
-					// svrmsg.Afn0AP0F52.LoopEnable = int32(d[j])
-					// j++
-					// svrmsg.Afn0AP0F52.LoopSwitchout = int32(d[j])
-					// j++
-					// svrmsg.Afn0AP0F52.Level1Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
-					// j += 3
-					// svrmsg.Afn0AP0F52.Level2Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
-					// j += 3
-					// svrmsg.Afn0AP0F52.Level3Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
-					// j += 3
-					// svrmsg.Afn0AP0F52.Level4Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
-					// j += 3
+					for i := 0;i < 8;i++{
+						//ln := int32(d[j])
+						j++
+						svrmsg.Afn0AP0F52.LeakageLimit[i].LoopEnable = int32(d[j])
+						j++
+						svrmsg.Afn0AP0F52.LeakageLimit[i].LoopSwitchout = int32(d[j])
+						j++
+						svrmsg.Afn0AP0F52.LeakageLimit[i].Level1Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
+						j += 3
+						svrmsg.Afn0AP0F52.LeakageLimit[i].Level2Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
+						j += 3
+						svrmsg.Afn0AP0F52.LeakageLimit[i].Level3Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
+						j += 3
+						svrmsg.Afn0AP0F52.LeakageLimit[i].Level4Limit = int32(gopsu.BcdBytes2Float64(d[j:j+3], 3, false) * 1000)
+						j += 3
+
+						if i!=7{
+							j+=4
+						}
+					}
+					
 				case 53: // 设置光照度限值 参数
 					svrmsg.Afn0AP0F53 = &msgopen.Afn04_P0_F53{}
 					svrmsg.Afn0AP0F53.LuxThreshold = int32(d[j]) + int32(d[j])*256
