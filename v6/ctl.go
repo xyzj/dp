@@ -3118,17 +3118,38 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 					d.Write(setPnFn(v.Fn))
 					d.WriteByte(byte(pb2data.Afn04P0F50.ReportTimer))
 
-				case 51: // 设置模拟量上下限【暂未确定】
-				case 52: // 设置漏电保护参数
+				case 51: // 设置模拟量上下限
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
-					// d.WriteByte(byte(pb2data.Afn04P0F52.LoopNo))
-					// d.WriteByte(byte(pb2data.Afn04P0F52.LoopEnable))
-					// d.WriteByte(byte(pb2data.Afn04P0F52.LoopSwitchout))
-					// d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level1Limit)/1000, "%07.03f"))
-					// d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level2Limit)/1000, "%07.03f"))
-					// d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level3Limit)/1000, "%07.03f"))
-					// d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.Level4Limit)/1000, "%07.03f"))
+					// 电压上下限
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F51.VoltageLowerLimit)/10, "%03.01f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F51.VoltageUpperLimit)/10, "%03.01f"))
+					// 电流回路数
+					d.WriteByte(byte(len(pb2data.Afn04P0F51.CurrentSetting)))					
+					for _, cs := range pb2data.Afn04P0F51.CurrentSetting {						
+						// 电流有效时段数
+						d.WriteByte(byte(len(cs.LoopSetting)))
+						for _, ls := range cs.LoopSetting {	
+							d.Write(gopsu.STime2Bcd(ls.TimeStart))
+							d.Write(gopsu.STime2Bcd(ls.TimeEnd))
+							d.Write(gopsu.Float642BcdBytes(float64(ls.CurrentLowerLimit), "%07.03f"))
+							d.Write(gopsu.Float642BcdBytes(float64(ls.CurrentUpperLimit), "%07.03f"))				
+						}
+					}
+				
+				case 52: // 设置漏电保护参数
+					for i:=0;i<8;i++{
+						d.Write(setPnFn(v.Pn))
+						d.Write(setPnFn(v.Fn))
+						d.WriteByte(byte(i))
+						d.WriteByte(byte(pb2data.Afn04P0F52.LeakageLimit[i].LoopEnable))
+						d.WriteByte(byte(pb2data.Afn04P0F52.LeakageLimit[i].LoopSwitchout))
+						d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.LeakageLimit[i].Level1Limit)/1000, "%07.03f"))
+						d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.LeakageLimit[i].Level2Limit)/1000, "%07.03f"))
+						d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.LeakageLimit[i].Level3Limit)/1000, "%07.03f"))
+						d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F52.LeakageLimit[i].Level4Limit)/1000, "%07.03f"))
+					}
+
 				case 53: // 设置光照度限值参数
 					d.Write(setPnFn(v.Pn))
 					d.Write(setPnFn(v.Fn))
@@ -3403,6 +3424,102 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 				case 0:
 					switch v.Fn {
 					case 1: // 485转发
+					case 2: // 透明转发
+						d.Write(setPnFn(v.Pn))
+						d.Write(setPnFn(v.Fn))
+						// 串口配置
+						d.WriteByte(byte(pb2data.Afn10P0F2.RsSetting.Idx))
+						d.WriteByte(byte(pb2data.Afn10P0F2.RsSetting.Bps))
+						d.WriteByte(byte(pb2data.Afn10P0F2.RsSetting.Rc))
+						// 透传数据拼装
+						var da bytes.Buffer
+						switch pb2data.Afn10P0F2.Cmd{
+						case "wlst.mru.1100":
+							da.WriteByte(0x68)
+							da.Write(gopsu.Float642BcdBytesBigOrder(float64(pb2data.Afn10P0F2.WlstMru_9100.Addr),"%12.0f"))
+							
+							da.WriteByte(0x68)
+							if pb2data.Afn10P0F2.WlstMru_9100.Ver == 2 { // 2007
+								da.WriteByte(0x11)
+								da.WriteByte(0x4)
+								switch pb2data.Afn10P0F2.WlstMru_9100.MeterReadingType {
+								case 1:
+									da.WriteByte(byte(pb2data.Afn10P0F2.WlstMru_9100.MeterReadingDate + 0x33))
+									da.WriteByte(0x00 + 0x33)
+									da.WriteByte(0x15 + 0x33)
+									da.WriteByte(0x00 + 0x33)
+								case 2:
+									da.WriteByte(byte(pb2data.Afn10P0F2.WlstMru_9100.MeterReadingDate + 0x33))
+									da.WriteByte(0x00 + 0x33)
+									da.WriteByte(0x29 + 0x33)
+									da.WriteByte(0x00 + 0x33)
+								case 3:
+									da.WriteByte(byte(pb2data.Afn10P0F2.WlstMru_9100.MeterReadingDate + 0x33))
+									da.WriteByte(0x00 + 0x33)
+									da.WriteByte(0x3d + 0x33)
+									da.WriteByte(0x00 + 0x33)
+								case 4:
+									da.WriteByte(byte(pb2data.Afn10P0F2.WlstMru_9100.MeterReadingDate + 0x33))
+									da.WriteByte(0x00 + 0x33)
+									da.WriteByte(0x01 + 0x33)
+									da.WriteByte(0x00 + 0x33)
+								case 5:
+									da.WriteByte(byte(pb2data.Afn10P0F2.WlstMru_9100.MeterReadingDate + 0x33))
+									da.WriteByte(0x00 + 0x33)
+									da.WriteByte(0x00 + 0x33)
+									da.WriteByte(0x00 + 0x33)
+								default:
+									da.WriteByte(byte(pb2data.Afn10P0F2.WlstMru_9100.MeterReadingDate + 0x33))
+									da.WriteByte(0x00 + 0x33)
+									da.WriteByte(0x00 + 0x33)
+									da.WriteByte(0x00 + 0x33)
+								}
+							} else { // 1997
+								da.WriteByte(0x1)
+								da.WriteByte(0x2)
+								switch pb2data.Afn10P0F2.WlstMru_9100.MeterReadingType {
+								case 1: // d0=00110000
+									da.WriteByte(0x34)
+									da.WriteByte(0x17)
+								case 2: // D0=01010000
+									da.WriteByte(0x35)
+									da.WriteByte(0x17)
+								case 3: // D0=01100000
+									da.WriteByte(0x36)
+									da.WriteByte(0x17)
+								case 4: // D0=00010000
+									da.WriteByte(gopsu.String2Int8("00010000", 2) + 0x33)
+									da.WriteByte(gopsu.String2Int8(fmt.Sprintf("1001%02b00", pb2data.Afn10P0F2.WlstMru_9100.MeterReadingDate), 2) + 0x33)
+								case 5: // D0=00010000
+									da.WriteByte(gopsu.String2Int8("00000000", 2) + 0x33)
+									da.WriteByte(gopsu.String2Int8(fmt.Sprintf("1001%02b00", pb2data.Afn10P0F2.WlstMru_9100.MeterReadingDate), 2) + 0x33)
+								default:
+									da.WriteByte(gopsu.String2Int8("00000000", 2) + 0x33)
+									da.WriteByte(gopsu.String2Int8(fmt.Sprintf("1001%02b00", pb2data.Afn10P0F2.WlstMru_9100.MeterReadingDate), 2) + 0x33)
+								}
+							}
+							// 校验
+							a := da.Bytes()	
+							l := len(a)
+							x := 0
+							for i := 4; i < l; i++ {
+								x += int(a[i])
+							}
+							da.WriteByte(byte(x % 256))
+							da.WriteByte(0x16)
+						case "wlst.mru.1300":							
+							da.WriteByte(0x68)
+							da.Write([]byte{0xaa,0xaa,0xaa,0xaa,0xaa,0xaa})							
+							da.WriteByte(0x68)
+							da.Write([]byte{0x13,0x0,0xdf})
+							da.WriteByte(0x16)
+						}
+						// 填充
+						d.Write([]byte{byte(da.Len()%256),byte(da.Len()/256)})
+						a := da.Bytes()	 
+						d.Write(gopsu.CountCrc16VB(&a))
+						d.Write(da.Bytes())
+						
 					case 9: // ftp升级
 						d.Write(setPnFn(v.Pn))
 						d.Write(setPnFn(v.Fn))
