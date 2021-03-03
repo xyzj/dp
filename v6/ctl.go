@@ -1354,7 +1354,7 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 									d.WriteByte(gopsu.String2Int8(fmt.Sprintf("1001%02b00", pb2data.WlstTml.WlstMru_1100.MeterReadingDate), 2) + 0x33)
 								}
 							}
-							d.WriteByte(byte(pb2data.WlstTml.WlstMru_1100.BaudRate))
+							// d.WriteByte(byte(pb2data.WlstTml.WlstMru_1100.BaudRate))
 						case "1300": // 读地址
 							br = byte(pb2data.WlstTml.WlstMru_1300.BaudRate)
 							for _, v := range pb2data.WlstTml.WlstMru_1300.Addr {
@@ -1362,7 +1362,7 @@ func (dp *DataProcessor) ProcessCtl(b *[]byte) (lstf []*Fwd) {
 							}
 							d.WriteByte(0x13)
 							d.WriteByte(0x0)
-							d.WriteByte(byte(pb2data.WlstTml.WlstMru_1300.BaudRate))
+							// d.WriteByte(byte(pb2data.WlstTml.WlstMru_1300.BaudRate))
 						default:
 							getprotocol = false
 						}
@@ -3197,6 +3197,73 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 			lstf = append(lstf, f)
 			getprotocol = true
 		}
+	case "0a05": // 控制命令
+		d.Reset()
+		for _, v := range pb2data.DataID.UintID {
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 29, 37: // 允许/禁止主动上报
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				case 1: // 允许合闸/跳闸
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					sout := []string{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"}
+					sdo := []string{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"}
+					var donow = true
+					for _, sc := range pb2data.Afn05P0F1.SwitchoutCtrl {
+						sout[sc.SwitchoutNo-1] = "1"
+						sdo[sc.SwitchoutNo-1] = fmt.Sprintf("%d", sc.SwitchoutDo)
+						if sc.SwitchoutTime > 0 {
+							donow = false
+						}
+					}
+					s := gopsu.ReverseString(strings.Join(sout, ""))
+					d.Write([]byte{gopsu.String2Int8(s[8:], 2), gopsu.String2Int8(s[:8], 2)})
+					s = gopsu.ReverseString(strings.Join(sdo, ""))
+					d.Write([]byte{gopsu.String2Int8(s[8:], 2), gopsu.String2Int8(s[:8], 2)})
+					switch dp.AreaCode {
+					case "4201": // 武汉
+						if donow {
+							d.Write([]byte{0, 0, 0, 0, 0, 0})
+						} else {
+							for _, sc := range pb2data.Afn05P0F1.SwitchoutCtrl {
+								d.Write(gopsu.Stamp2BcdDT(sc.SwitchoutTime))
+							}
+						}
+					default:
+						for _, sc := range pb2data.Afn05P0F1.SwitchoutCtrl {
+							d.Write(gopsu.Stamp2BcdDT(sc.SwitchoutTime))
+						}
+					}
+					// 设置额外指令保护时间
+					// TODO:
+				case 9: // 消除漏电分闸/报警
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(len(pb2data.Afn05P0F9.LoopMark)))
+					for _, v := range pb2data.Afn05P0F9.LoopMark {
+						d.WriteByte(byte(v))
+					}
+				case 31: // 对时命令
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.Write(gopsu.Stamp2BcdDT(pb2data.Afn05P0F31.TimeUnix))
+				}
+			}
+		}
+		if d.Len() > 0 {
+			f := &Fwd{
+				DataDst: fmt.Sprintf("wlst-open-%d-%s", pb2data.DataID.Addr, pb2data.DataID.Area),
+				DataMsg: dp.BuildCommand(d.Bytes(), pb2data.DataID.Addr, 1, pb2data.DataID.Fun, 0, 1, pb2data.DataID.Afn, 1, pb2data.DataID.Seq, pb2data.DataID.Area),
+				Src:     fmt.Sprintf("%v", pb2data),
+				DataSP:  byte(pb2data.DataID.Sp),
+				DataPT:  pt,
+			}
+			lstf = append(lstf, f)
+			getprotocol = true
+		}
 	default: // 其他命令，仅单数据单元下发
 		for _, v := range pb2data.DataID.UintID {
 			d.Reset()
@@ -3208,59 +3275,6 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 					case 1, 2, 3, 4: // 硬件初始化(重启)/数据区初始化(预留)/参数及全体数据区初始化(即恢复至出厂配置)/参数(除与系统主站通信有关的)及全体数据区初始化
 						d.Write(setPnFn(v.Pn))
 						d.Write(setPnFn(v.Fn))
-					}
-				}
-			case "0a05": // 控制命令
-				switch v.Pn {
-				case 0:
-					switch v.Fn {
-					case 29, 37: // 允许/禁止主动上报
-						d.Write(setPnFn(v.Pn))
-						d.Write(setPnFn(v.Fn))
-					case 1: // 允许合闸/跳闸
-						d.Write(setPnFn(v.Pn))
-						d.Write(setPnFn(v.Fn))
-						sout := []string{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"}
-						sdo := []string{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"}
-						var donow = true
-						for _, sc := range pb2data.Afn05P0F1.SwitchoutCtrl {
-							sout[sc.SwitchoutNo-1] = "1"
-							sdo[sc.SwitchoutNo-1] = fmt.Sprintf("%d", sc.SwitchoutDo)
-							if sc.SwitchoutTime > 0 {
-								donow = false
-							}
-						}
-						s := gopsu.ReverseString(strings.Join(sout, ""))
-						d.Write([]byte{gopsu.String2Int8(s[8:], 2), gopsu.String2Int8(s[:8], 2)})
-						s = gopsu.ReverseString(strings.Join(sdo, ""))
-						d.Write([]byte{gopsu.String2Int8(s[8:], 2), gopsu.String2Int8(s[:8], 2)})
-						switch dp.AreaCode {
-						case "4201": // 武汉
-							if donow {
-								d.Write([]byte{0, 0, 0, 0, 0, 0})
-							} else {
-								for _, sc := range pb2data.Afn05P0F1.SwitchoutCtrl {
-									d.Write(gopsu.Stamp2BcdDT(sc.SwitchoutTime))
-								}
-							}
-						default:
-							for _, sc := range pb2data.Afn05P0F1.SwitchoutCtrl {
-								d.Write(gopsu.Stamp2BcdDT(sc.SwitchoutTime))
-							}
-						}
-						// 设置额外指令保护时间
-						// TODO:
-					case 9: // 消除漏电分闸/报警
-						d.Write(setPnFn(v.Pn))
-						d.Write(setPnFn(v.Fn))
-						d.WriteByte(byte(len(pb2data.Afn05P0F9.LoopMark)))
-						for _, v := range pb2data.Afn05P0F9.LoopMark {
-							d.WriteByte(byte(v))
-						}
-					case 31: // 对时命令
-						d.Write(setPnFn(v.Pn))
-						d.Write(setPnFn(v.Fn))
-						d.Write(gopsu.Stamp2BcdDT(pb2data.Afn05P0F31.TimeUnix))
 					}
 				}
 			case "0b03": // 中继站命令（未支持）

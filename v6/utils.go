@@ -913,9 +913,9 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 				b.WriteByte(0xfe)
 				b.WriteByte(0x68)
 				for k, v := range data {
-					if k == len(data)-1 {
-						break
-					}
+					// if k == len(data)-1 {
+					// 	break
+					// }
 					b.WriteByte(v)
 					if k == 5 {
 						b.WriteByte(0x68)
@@ -935,7 +935,7 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 				case 2:
 					var b485 bytes.Buffer
 					b485.WriteByte(0x7e)
-					b485.WriteByte(byte(b.Len() + 6))
+					b485.WriteByte(byte(b.Len() + 7))
 					b485.WriteByte(byte(addr % 256))
 					b485.WriteByte(byte(addr / 256))
 					b485.WriteByte(0x37)
@@ -943,6 +943,7 @@ func DoCommand(ver, tver, tra byte, addr int64, cid int32, cmd string, data []by
 					// b485.WriteByte(byte(data[len(data)-1]))
 					b485.WriteByte(rc)
 					b485.Write(b.Bytes())
+					b485.WriteByte(0)
 					a = b485.Bytes()
 					b485.WriteByte(gopsu.CountLrc(&a))
 					a = b485.Bytes()

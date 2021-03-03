@@ -1234,11 +1234,11 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					svrmsg.Afn0EP0F1.EventsData = make([]*msgopen.Afn0E_P0_F1_Events_Data, x)
 					for i := 0; i < x; i++ { // 循环获取事件
 						erc := &msgopen.Afn0E_P0_F1_Events_Data{}
-						erc.ErcId = int32(d[j])
+						erc.EventId = int32(d[j])
 						j += 4
-						erc.DtReport = gopsu.BcdDT2Stamp(d[j : j+5])
+						erc.EventTime = gopsu.BcdDT2Stamp(d[j : j+5])
 						j += 5
-						switch erc.ErcId {
+						switch erc.EventId {
 						case 4:
 							erc.Erc04 = &msgopen.Afn0E_P0_F1_Erc04_Data{
 								LoopStatus: int32(d[j]),
@@ -4476,11 +4476,12 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 	if parentID > 0 {
 		f.Addr = parentID
 	} else {
-		var xaddr string
-		for i := 6; i > 0; i-- {
-			xaddr += fmt.Sprintf("%02x", d[i])
-		}
-		f.Addr = int64(gopsu.String2Int64(xaddr, 10))
+		f.Addr = int64(gopsu.BcdBytes2Float64(d[1:6], 0, true))
+		// var xaddr string
+		// for i := 6; i > 0; i-- {
+		// 	xaddr += fmt.Sprintf("%02x", d[i])
+		// }
+		// f.Addr = int64(gopsu.String2Int64(xaddr, 10))
 	}
 	svrmsg := initMsgCtl("", int64(f.Addr), dp.RemoteIP, 1, tra, 1, &dp.LocalPort)
 	svrmsg.Args.Sim = dp.SIM
@@ -4530,7 +4531,7 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 		}
 		f.DataCmd = "wlst.mru.9100"
 		svrmsg.WlstTml.WlstMru_9100 = &msgctl.WlstMru_9100{}
-		for i := 1; i < 7; i++ {
+		for i := 6; i > 0; i-- {
 			svrmsg.WlstTml.WlstMru_9100.Addr = append(svrmsg.WlstTml.WlstMru_9100.Addr, int32(d[i]))
 		}
 		c := fmt.Sprintf("%02x%02x", d[10], d[11])
@@ -4557,13 +4558,13 @@ func (dp *DataProcessor) dataMru(d []byte, tra byte, parentID int64) (lstf []*Fw
 		mdata := float64(gopsu.Bcd2Int8(d[12]-0x33))*0.01 + float64(gopsu.Bcd2Int8(d[13]-0x33)) + float64(gopsu.Bcd2Int8(d[14]-0x33))*100 + float64(gopsu.Bcd2Int8(d[15]-0x33))*10000.0
 		svrmsg.WlstTml.WlstMru_9100.MeterValue = mdata
 	case 0x9c: // 控制器直连
-		var xaddr string
+		// var xaddr string
 		svrmsg.WlstTml.WlstSluFa00 = &msgctl.WlstSlu_9D00{}
-		for i := 6; i > 0; i-- {
-			xaddr += fmt.Sprintf("%02x", d[i])
-		}
-		svrmsg.Args.Addr[0] = gopsu.String2Int64(xaddr, 10)
-		f.Addr = int64(gopsu.String2Int64(xaddr, 10))
+		// for i := 6; i > 0; i-- {
+		// 	xaddr += fmt.Sprintf("%02x", d[i])
+		// }
+		f.Addr = int64(gopsu.BcdBytes2Float64(d[1:6], 0, true))
+		svrmsg.Args.Addr[0] = f.Addr
 		l := d[9]
 		dd := d[10 : 10+l]
 		if !gopsu.CheckCrc16VB(dd) {
