@@ -3125,20 +3125,20 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F51.VoltageLowerLimit)/10, "%03.01f"))
 					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F51.VoltageUpperLimit)/10, "%03.01f"))
 					// 电流回路数
-					d.WriteByte(byte(len(pb2data.Afn04P0F51.CurrentSetting)))					
-					for _, cs := range pb2data.Afn04P0F51.CurrentSetting {						
+					d.WriteByte(byte(len(pb2data.Afn04P0F51.CurrentSetting)))
+					for _, cs := range pb2data.Afn04P0F51.CurrentSetting {
 						// 电流有效时段数
 						d.WriteByte(byte(len(cs.LoopSetting)))
-						for _, ls := range cs.LoopSetting {	
+						for _, ls := range cs.LoopSetting {
 							d.Write(gopsu.STime2Bcd(ls.TimeStart))
 							d.Write(gopsu.STime2Bcd(ls.TimeEnd))
 							d.Write(gopsu.Float642BcdBytes(float64(ls.CurrentLowerLimit), "%07.03f"))
-							d.Write(gopsu.Float642BcdBytes(float64(ls.CurrentUpperLimit), "%07.03f"))				
+							d.Write(gopsu.Float642BcdBytes(float64(ls.CurrentUpperLimit), "%07.03f"))
 						}
 					}
-				
+
 				case 52: // 设置漏电保护参数
-					for i:=0;i<8;i++{
+					for i := 0; i < 8; i++ {
 						d.Write(setPnFn(v.Pn))
 						d.Write(setPnFn(v.Fn))
 						d.WriteByte(byte(i))
@@ -3285,6 +3285,43 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 			lstf = append(lstf, f)
 			getprotocol = true
 		}
+	case "0b0c": // 请求实时数据
+		d.Reset()
+		for _, v := range pb2data.DataID.UintID {
+			switch v.Pn {
+			case 0:
+				switch v.Fn {
+				case 2, 3, 4, 6, 7, 99, 18, 19, 20: // 终端日历时钟
+					// 进线模拟量数据(全数据)(报警主报)
+					// 终端上行通信状态
+					// 终端当前控制状态
+					// 终端事件计数器当前值
+					// 终端状态量及变位标志(全数据)
+					// 终端回路事件报警状态(全数据)
+					// 漏电检测数据(全数据)
+					// 光照度数据(主报)
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				}
+			case 0xffff: // 出线模拟量数据(全数据)(报警主报)
+				switch v.Fn {
+				case 1:
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+				}
+			}
+		}
+		if d.Len() > 0 {
+			f := &Fwd{
+				DataDst: fmt.Sprintf("wlst-open-%d-%s", pb2data.DataID.Addr, pb2data.DataID.Area),
+				DataMsg: dp.BuildCommand(d.Bytes(), pb2data.DataID.Addr, 1, pb2data.DataID.Fun, 0, 1, pb2data.DataID.Afn, 1, pb2data.DataID.Seq, pb2data.DataID.Area),
+				Src:     fmt.Sprintf("%v", pb2data),
+				DataSP:  byte(pb2data.DataID.Sp),
+				DataPT:  pt,
+			}
+			lstf = append(lstf, f)
+			getprotocol = true
+		}
 	default: // 其他命令，仅单数据单元下发
 		for _, v := range pb2data.DataID.UintID {
 			d.Reset()
@@ -3334,29 +3371,6 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 					}
 				}
 			case "0b0b": // 请求任务数据（未支持）
-			case "0b0c": // 请求实时数据
-				switch v.Pn {
-				case 0:
-					switch v.Fn {
-					case 2, 3, 4, 6, 7, 99, 18, 19, 20: // 终端日历时钟
-						// 进线模拟量数据(全数据)(报警主报)
-						// 终端上行通信状态
-						// 终端当前控制状态
-						// 终端事件计数器当前值
-						// 终端状态量及变位标志(全数据)
-						// 终端回路事件报警状态(全数据)
-						// 漏电检测数据(全数据)
-						// 光照度数据(主报)
-						d.Write(setPnFn(v.Pn))
-						d.Write(setPnFn(v.Fn))
-					}
-				case 0xffff: // 出线模拟量数据(全数据)(报警主报)
-					switch v.Fn {
-					case 1:
-						d.Write(setPnFn(v.Pn))
-						d.Write(setPnFn(v.Fn))
-					}
-				}
 			case "0b0d": // 请求历史数据
 				switch v.Pn {
 				case 0:
@@ -3433,11 +3447,11 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 						d.WriteByte(byte(pb2data.Afn10P0F2.RsSetting.Rc))
 						// 透传数据拼装
 						var da bytes.Buffer
-						switch pb2data.Afn10P0F2.Cmd{
+						switch pb2data.Afn10P0F2.Cmd {
 						case "wlst.mru.1100":
 							da.WriteByte(0x68)
-							da.Write(gopsu.Float642BcdBytesBigOrder(float64(pb2data.Afn10P0F2.WlstMru_9100.Addr),"%12.0f"))
-							
+							da.Write(gopsu.Float642BcdBytesBigOrder(float64(pb2data.Afn10P0F2.WlstMru_9100.Addr), "%12.0f"))
+
 							da.WriteByte(0x68)
 							if pb2data.Afn10P0F2.WlstMru_9100.Ver == 2 { // 2007
 								da.WriteByte(0x11)
@@ -3499,7 +3513,7 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 								}
 							}
 							// 校验
-							a := da.Bytes()	
+							a := da.Bytes()
 							l := len(a)
 							x := 0
 							for i := 4; i < l; i++ {
@@ -3507,19 +3521,19 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 							}
 							da.WriteByte(byte(x % 256))
 							da.WriteByte(0x16)
-						case "wlst.mru.1300":							
+						case "wlst.mru.1300":
 							da.WriteByte(0x68)
-							da.Write([]byte{0xaa,0xaa,0xaa,0xaa,0xaa,0xaa})							
+							da.Write([]byte{0xaa, 0xaa, 0xaa, 0xaa, 0xaa, 0xaa})
 							da.WriteByte(0x68)
-							da.Write([]byte{0x13,0x0,0xdf})
+							da.Write([]byte{0x13, 0x0, 0xdf})
 							da.WriteByte(0x16)
 						}
 						// 填充
-						d.Write([]byte{byte(da.Len()%256),byte(da.Len()/256)})
-						a := da.Bytes()	 
+						d.Write([]byte{byte(da.Len() % 256), byte(da.Len() / 256)})
+						a := da.Bytes()
 						d.Write(gopsu.CountCrc16VB(&a))
 						d.Write(da.Bytes())
-						
+
 					case 9: // ftp升级
 						d.Write(setPnFn(v.Pn))
 						d.Write(setPnFn(v.Fn))
