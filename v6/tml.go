@@ -1241,8 +1241,8 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 						switch erc.EventId {
 						case 4:
 							erc.Erc04 = &msgopen.Afn0E_P0_F1_Erc04_Data{
-								LoopStatus: int32(d[j]),
-								LoopNo:     int32(d[j+1]),
+								DiStatus: int32(d[j]),
+								DiNo:     int32(d[j+1]),
 							}
 							j += 2
 						case 5:
