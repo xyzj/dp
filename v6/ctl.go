@@ -3174,7 +3174,55 @@ func (dp *DataProcessor) ProcessOpen(b *[]byte) (lstf []*Fwd) {
 					d.Write([]byte{gopsu.String2Int8(s[40:], 2), gopsu.String2Int8(s[32:40], 2),
 						gopsu.String2Int8(s[24:32], 2), gopsu.String2Int8(s[16:24], 2),
 						gopsu.String2Int8(s[8:16], 2), gopsu.String2Int8(s[:8], 2)})
-				}
+				case 65: // 电流回路矢量
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(len(pb2data.Afn04P0F65.SwitchinVector)))
+					for _, v := range pb2data.Afn04P0F65.SwitchinVector{						
+						d.WriteByte(byte(v))
+					}			
+				case 66: // 电流回路遥信矢量
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(len(pb2data.Afn04P0F66.SwitchinSwitchout)))
+					for _, v := range pb2data.Afn04P0F66.SwitchinSwitchout{						
+						d.WriteByte(byte(v))
+					}	
+				case 67: // 开关量输出矢量
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					d.WriteByte(byte(len(pb2data.Afn04P0F67.SwitchoutVector)))
+					for _, v := range pb2data.Afn04P0F67.SwitchoutVector{						
+						d.WriteByte(byte(v))
+					}	
+				case 68: // 设置断电保护参数
+					d.Write(setPnFn(v.Pn))
+					d.Write(setPnFn(v.Fn))
+					// 是否启用欠压断电					
+					if pb2data.Afn04P0F68.VoltageLowerLimit < 100{
+						d.Write([]byte{0,0,0})
+					}else{
+						d.WriteByte(byte(pb2data.Afn04P0F68.VoltageLowerBreak))
+						d.WriteByte(byte(pb2data.Afn04P0F68.VoltageLowerBreak))
+						d.WriteByte(byte(pb2data.Afn04P0F68.VoltageLowerBreak))
+					}
+					// 电压下限
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F68.VoltageLowerLimit)/10, "%03.01f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F68.VoltageLowerLimit)/10, "%03.01f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F68.VoltageLowerLimit)/10, "%03.01f"))
+					// 是否启用过压断电		
+					if pb2data.Afn04P0F68.VoltageLowerLimit > 300{
+						d.Write([]byte{0,0,0})
+					}else{
+						d.WriteByte(byte(pb2data.Afn04P0F68.VoltageUpperBreak))
+						d.WriteByte(byte(pb2data.Afn04P0F68.VoltageUpperBreak))
+						d.WriteByte(byte(pb2data.Afn04P0F68.VoltageUpperBreak))
+					}
+					// 电压上限
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F68.VoltageUpperLimit)/10, "%03.01f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F68.VoltageUpperLimit)/10, "%03.01f"))
+					d.Write(gopsu.Float642BcdBytes(float64(pb2data.Afn04P0F68.VoltageUpperLimit)/10, "%03.01f"))
+				}		
 			default:
 				switch v.Fn {
 				case 14: // 扩展设备配置参数（外接设备配置）【暂未确定】

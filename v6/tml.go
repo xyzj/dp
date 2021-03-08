@@ -878,7 +878,41 @@ func (dp *DataProcessor) dataWlst(d []byte) (lstf []*Fwd) {
 					// for _, v := range s {
 					// 	svrmsg.Afn0AP0F57.LoopMark = append(svrmsg.Afn0AP0F57.LoopMark, gopsu.String2Int32(v, 10))
 					// }
-				}
+				case 65: // 电流回路矢量
+					svrmsg.Afn0AP0F65 = &msgopen.Afn04_P0_F65{}
+					x := int(d[j])
+					j++
+					for i := 0; i < x; i++ {
+						svrmsg.Afn0AP0F65.SwitchinVector = append(svrmsg.Afn0AP0F65.SwitchinVector, int32(d[j]))
+						j++
+					}
+				case 66: // 电流回路遥信矢量
+					svrmsg.Afn0AP0F66 = &msgopen.Afn04_P0_F66{}
+					x := int(d[j])
+					j++
+					for i := 0; i < x; i++ {
+						svrmsg.Afn0AP0F66.SwitchinSwitchout = append(svrmsg.Afn0AP0F66.SwitchinSwitchout, int32(d[j]))
+						j++
+					}
+				case 67: // 开关量输出矢量
+					svrmsg.Afn0AP0F67 = &msgopen.Afn04_P0_F67{}
+					x := int(d[j])
+					j++
+					for i := 0; i < x; i++ {
+						svrmsg.Afn0AP0F67.SwitchoutVector = append(svrmsg.Afn0AP0F67.SwitchoutVector, int32(d[j]))
+						j++
+					}
+				case 68: // 断电保护参数
+					svrmsg.Afn0AP0F68 = &msgopen.Afn04_P0_F68{}
+					svrmsg.Afn0AP0F68.VoltageLowerBreak = int32(d[j])
+					j+=3					
+					svrmsg.Afn0AP0F68.VoltageLowerLimit = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
+					j+=3
+					svrmsg.Afn0AP0F68.VoltageUpperBreak = int32(d[j])
+					j+=3
+					svrmsg.Afn0AP0F68.VoltageUpperLimit = gopsu.BcdBytes2Float64(d[j:j+2], 1, true)
+					j+=3
+				}				
 			default:
 				switch uid.Fn {
 				case 15: // 继电器输出控制方案（年设置）
