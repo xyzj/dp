@@ -624,7 +624,7 @@ func (dp *DataProcessor) dataGBOpen(d []byte) (lstf []*Fwd) {
 					svrmsg.Afn0CPnF1.LoopData = make([]*msgopen.Afn0C_Pn_F1_Loop_Data, x)
 					for i := 0; i < x; i++ {
 						ld := &msgopen.Afn0C_Pn_F1_Loop_Data{
-							LoopNo: i + 1,
+							LoopNo: int32(i) + 1,
 						}
 						svrmsg.Afn0CPnF1.LoopData[i] = ld
 					}
