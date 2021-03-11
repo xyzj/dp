@@ -198,7 +198,7 @@ func testTmldataNB() {
 
 func testTmldataV6() {
 	msg := &v6.DataProcessor{}
-	s := strings.Split("68-21-13-07-00-00-00-68-93-06-54-46-3a-33-33-33-11-16", "-")
+	s := strings.Split("68-0d-00-0d-00-68-c9-01-05-32-16-00-00-02-70-00-00-01-00-8a-16", "-")
 
 	ss := make([]byte, len(s))
 	for k, v := range s {

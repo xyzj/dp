@@ -623,7 +623,9 @@ func (dp *DataProcessor) dataGBOpen(d []byte) (lstf []*Fwd) {
 					j++
 					svrmsg.Afn0CPnF1.LoopData = make([]*msgopen.Afn0C_Pn_F1_Loop_Data, x)
 					for i := 0; i < x; i++ {
-						ld := &msgopen.Afn0C_Pn_F1_Loop_Data{}
+						ld := &msgopen.Afn0C_Pn_F1_Loop_Data{
+							LoopNo: i + 1,
+						}
 						svrmsg.Afn0CPnF1.LoopData[i] = ld
 					}
 					// 电压
@@ -990,6 +992,7 @@ func (dp *DataProcessor) dataGBOpen(d []byte) (lstf []*Fwd) {
 				Tra:      TraDirect,
 				Job:      JobSend,
 				Src:      gopsu.Bytes2String(d, "-"),
+				Addr:     f.Addr,
 			}
 			lstf = append(lstf, ff)
 		case 0x0c, 0x10: // 请求实时数据,数据转发
@@ -1002,6 +1005,7 @@ func (dp *DataProcessor) dataGBOpen(d []byte) (lstf []*Fwd) {
 				Tra:      TraDirect,
 				Job:      JobSend,
 				DataSP:   SendLevelHigh,
+				Addr:     f.Addr,
 			}
 			lstf = append(lstf, ff)
 		}
