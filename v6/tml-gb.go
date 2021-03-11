@@ -222,28 +222,32 @@ func (dp *DataProcessor) dataGBOpen(d []byte) (lstf []*Fwd) {
 					j += 32
 				case 9: // 终端事件记录配置设置
 					svrmsg.Afn0AP0F9 = &msgopen.Afn04_P0_F9{}
-					svrmsg.Afn0AP0F9.EventsAvailable = make([]int32, 64)
+					svrmsg.Afn0AP0F9.EventsAvailable = make([]int32, 0)
 					ss := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3], d[j+4], d[j+5], d[j+6], d[j+7])), 1)
 					j += 8
 					for k, v := range ss {
-						svrmsg.Afn0AP0F9.EventsAvailable[k] = gopsu.String2Int32(v, 10)
+						if v == "1" {
+							svrmsg.Afn0AP0F9.EventsAvailable = append(svrmsg.Afn0AP0F9.EventsAvailable, int32(k)+1)
+						}
 					}
-					svrmsg.Afn0AP0F9.EventsReport = make([]int32, 64)
+					svrmsg.Afn0AP0F9.EventsReport = make([]int32, 0)
 					ss = gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3], d[j+4], d[j+5], d[j+6], d[j+7])), 1)
 					j += 8
 					for k, v := range ss {
-						svrmsg.Afn0AP0F9.EventsReport[k] = gopsu.String2Int32(v, 10)
+						if v == "1" {
+							svrmsg.Afn0AP0F9.EventsReport = append(svrmsg.Afn0AP0F9.EventsReport, int32(k)+1)
+						}
 					}
 				case 10: // 设备状态输入参数
 					svrmsg.Afn0AP0F10 = &msgopen.Afn04_P0_F10{}
 					svrmsg.Afn0AP0F10.SwitchinAvailable = make([]int32, 32)
-					ss := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3])), 1)
+					ss := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])), 1)
 					j += 4
 					for k, v := range ss {
 						svrmsg.Afn0AP0F10.SwitchinAvailable[k] = gopsu.String2Int32(v, 10)
 					}
 					svrmsg.Afn0AP0F10.SwitchinHopping = make([]int32, 32)
-					ss = gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3])), 1)
+					ss = gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b", d[j+3], d[j+2], d[j+1], d[j])), 1)
 					j += 4
 					for k, v := range ss {
 						svrmsg.Afn0AP0F10.SwitchinHopping[k] = gopsu.String2Int32(v, 10)
