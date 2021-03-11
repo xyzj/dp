@@ -223,7 +223,7 @@ func (dp *DataProcessor) dataGBOpen(d []byte) (lstf []*Fwd) {
 				case 9: // 终端事件记录配置设置
 					svrmsg.Afn0AP0F9 = &msgopen.Afn04_P0_F9{}
 					svrmsg.Afn0AP0F9.EventsAvailable = make([]int32, 0)
-					ss := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3], d[j+4], d[j+5], d[j+6], d[j+7])), 1)
+					ss := gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b%08b%08b%08b%08b", d[j+7], d[j+6], d[j+5], d[j+4], d[j+3], d[j+2], d[j+1], d[j])), 1)
 					j += 8
 					for k, v := range ss {
 						if v == "1" {
@@ -231,7 +231,7 @@ func (dp *DataProcessor) dataGBOpen(d []byte) (lstf []*Fwd) {
 						}
 					}
 					svrmsg.Afn0AP0F9.EventsReport = make([]int32, 0)
-					ss = gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b%08b%08b%08b%08b", d[j], d[j+1], d[j+2], d[j+3], d[j+4], d[j+5], d[j+6], d[j+7])), 1)
+					ss = gopsu.SplitStringWithLen(gopsu.ReverseString(fmt.Sprintf("%08b%08b%08b%08b%08b%08b%08b%08b", d[j+7], d[j+6], d[j+5], d[j+4], d[j+3], d[j+2], d[j+1], d[j])), 1)
 					j += 8
 					for k, v := range ss {
 						if v == "1" {
